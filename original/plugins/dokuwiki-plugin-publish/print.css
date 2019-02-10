@@ -1,0 +1,75 @@
+div.publish {
+  margin: 2em;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70% !important;
+  min-height: 40px;
+  clear: both;
+  text-align: justify;
+  vertical-align: middle;
+  border-collapse: collapse;
+  padding: 15px 20px 15px 20px;
+  -moz-border-radius: 10px;
+  -khtml-border-radius: 10px;
+  border-radius: 10px;
+  border: solid black 2px;
+}
+
+div.published_yes {
+  background-color: #dfd;
+  background-image: url(images/yes.gif);
+}
+
+div.published_no {
+  background-color: #fdd;
+  background-image: url(images/no.gif);
+}
+
+div.publish em {
+  font-weight: bold;
+}
+
+div.publish span {
+  display: block;
+}
+
+div.published_revision {
+  background-color: #dfd;
+}
+
+div.unpublished_revision {
+  background-color: #fdd;
+}
+
+p.pub_none { }
+
+/* table.pub_table tr.pub_head th.(pub_page,pub_prev,pub_upd)
+ * table.pub_table tr.pub_ns td a
+ * table.pub_table tr.pub_entry [pub_never] td.(pub_page,pub_prev,pub_upd) a
+ */
+table.pub_table {
+  width: 100%;
+}
+
+table.pub_table tr.pub_head {
+  border-bottom: solid black 2px;
+}
+
+table.pub_table tr.pub_ns {
+  border-bottom: solid black 1px;
+}
+
+
+table.pub_table tr.pub_ns td {
+  text-align: center;
+  font-weight: bold;
+}
+
+a.published_diff_link {
+  visibility: hidden;
+}
+
+div.publish span span.publish_date {
+  display: inline;
+  font-size: 80%;
+}

@@ -1,0 +1,74 @@
+div.publish {
+  font-size: 0.9em;
+  margin: 1em;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 35em;
+  clear: both;
+//  text-align: justify;
+  vertical-align: middle;
+  border-collapse: collapse;
+  padding: 1em 1em 1em 4em;
+  background-position: 1.2em 50%;
+  background-repeat: no-repeat;
+  -moz-border-radius: 10px;
+  -khtml-border-radius: 10px;
+  border-radius: 10px;
+}
+
+div.publish .button {
+  float:right;
+  margin-top:-0.3em; // hacky
+  margin-left:1em;
+}
+
+div.published_yes {
+  background-color: #dfd;
+  background-image: url(images/yes.gif);
+}
+
+div.published_no {
+  background-color: #fdd;
+  background-image: url(images/no.gif);
+}
+
+div.publish em {
+  font-weight: bold;
+}
+
+div.publish span {
+  display: block;
+}
+
+div.published_revision {
+  background-color: #dfd;
+}
+
+div.unpublished_revision {
+  background-color: #fdd;
+}
+
+a.published_diff_link {
+  padding-left: 1em;
+}
+
+p.pub_none { }
+
+/* table.pub_table tr.pub_head th.(pub_page,pub_prev,pub_upd)
+ * table.pub_table tr.pub_ns td a
+ * table.pub_table tr.pub_entry [pub_never] td.(pub_page,pub_prev,pub_upd) a
+ */
+table.pub_table {
+  width: 70%;
+  background-color: #fdd;
+}
+
+table.pub_table tr.pub_ns td {
+  text-align: center;
+  background-color: #dfd;
+  font-weight: bold;
+}
+
+div.publish span span.publish_date {
+  display: inline;
+}

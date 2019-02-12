@@ -1,2 +1,2 @@
 # skyphp-dokuwiki
-The skylark php server based on dokuwiki.
+A version of dokuwiki that ported to running on skylarkjs and skylarkphp.

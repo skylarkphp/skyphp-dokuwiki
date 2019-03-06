@@ -21,9 +21,13 @@ jquery_out();
 function jquery_out() {
     $cache = new cache('jquery', '.js');
     $files = array(
-        DOKU_INC . 'lib/scripts/jquery/jquery.min.js',
-        DOKU_INC . 'lib/scripts/jquery/jquery-ui.min.js',
-        DOKU_INC . 'lib/scripts/jquery/jquery-migrate.min.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-utils-dom-all.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jquery.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui-interact.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui.js'
+//        DOKU_INC . 'lib/scripts/jquery/jquery.min.js',
+//        DOKU_INC . 'lib/scripts/jquery/jquery-ui.min.js',
+//        DOKU_INC . 'lib/scripts/jquery/jquery-migrate.min.js',
     );
     $cache_files = $files;
     $cache_files[] = __FILE__;

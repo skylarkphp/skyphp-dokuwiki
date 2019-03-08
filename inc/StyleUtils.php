@@ -140,7 +140,8 @@ class StyleUtils
                 msg("Stylesheet $file not found, please contact the developer of \"$this->tpl\" template.", 2);
             }
         }
-        $stylesheets[$mode][fullpath($incbase . $file)] = $webbase;
+        //$stylesheets[$mode][fullpath($incbase . $file)] = $webbase;
+        $stylesheets[$mode][$incbase . $file] = $webbase;  // fix a less compile bug about import path by lee on 2019/03/08
         return $stylesheets;
     }
 

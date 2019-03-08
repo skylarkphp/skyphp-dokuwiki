@@ -52,9 +52,10 @@ function css_out(){
     $tplinc = tpl_incdir($tpl);
     $cache_files = getConfigFiles('main');
     $cache_files[] = $tplinc.'style.ini';
+
     $cache_files[] = DOKU_CONF."tpl/$tpl/style.ini";
     $cache_files[] = __FILE__;
-    if($INPUT->bool('preview')) $cache_files[] = $conf['cachedir'].'/preview.ini';
+    if($INPUT->bool('preview')) $cache_files[] = $conf['cachedir'].'/prelwfview.ini';
 
     // Array of needed files and their web locations, the latter ones
     // are needed to fix relative paths in the stylesheets
@@ -134,7 +135,6 @@ function css_out(){
         // load files
         foreach($cssData['files'] as $file => $location){
             $display = str_replace(fullpath(DOKU_INC), '', fullpath($file));
-            print "\n/* XXXXXXXXX $display XXXXXXXXX */\n";
             print css_loadfile($file, $location);
         }
 

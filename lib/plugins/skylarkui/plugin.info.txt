@@ -1,7 +1,7 @@
 base skylarkui
-author Giuseppe Di Terlizzi
-email giuseppe.diterlizzi@gmail.com
-date 2017-04-07
-name Bootstrap Wrapper Plugin
-desc Bootstrap Wrapper for DokuWiki
+author Hudaokeji
+email github@hudaokeji.com
+date 2019-03-08
+name Skylarkui wrapper Plugin
+desc Skylarkui Wrapper for DokuWiki
 url http://www.dokuwiki.org/plugin:skylarkui

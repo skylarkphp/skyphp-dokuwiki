@@ -1,4 +1,35 @@
-# Folders to ignore
-conf
-data
+/conf/*.local.conf
+/conf/acl.auth.php
+/conf/local.php
+/conf/local.protected.php
+/conf/users.auth.php
+/conf/user*.css
+/conf/user*.js
+/conf/words.aspell
+/conf/lang/*
+/conf/plugin_lang/*
+/conf/plugins.local.*
+/conf/tpl/*
 .htaccess
+*.swp
+*.bak
+*.old
+*~
+*.DS_Store
+*.iml
+.idea/
+# Eclipse IDE
+.buildpath
+.project
+.settings/
+# DokuWiki
+/data/attic/*
+/data/cache/*
+/data/index/*
+/data/locks/*
+/data/media/*
+/data/media_meta/*
+/data/media_attic/*
+/data/meta/*
+/data/pages/*
+/data/tmp/*

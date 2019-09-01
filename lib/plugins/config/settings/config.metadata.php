@@ -154,6 +154,9 @@ $meta['securecookie'] = array('onoff');
 $meta['remote']       = array('onoff','_caution' => 'security');
 $meta['remoteuser']   = array('string');
 
+$meta['nologin_maxaccesspages']  = array('numeric'); // added by lwf
+$meta['nologin_hintmessage']  = array('string');     // added by lwf
+
 $meta['_anti_spam']  = array('fieldset');
 $meta['usewordblock']= array('onoff');
 $meta['relnofollow'] = array('onoff');

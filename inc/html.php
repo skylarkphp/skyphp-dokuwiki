@@ -251,7 +251,9 @@ function html_btn($name, $id, $akey, $params, $method='get', $tooltip='', $label
  * @author Szymon Olewniczak <dokuwiki@imz.re>
  */
 function html_showrev() {
-    print p_locale_xhtml('showrev');
+    if ($INFO['perm']>=AUTH_EDIT) {
+       print p_locale_xhtml('showrev');
+    }
 }
 
 /**

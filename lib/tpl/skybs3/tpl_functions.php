@@ -716,7 +716,7 @@ function bootstrap3_html_msgarea() {
   /** @var array $MSG */
   // store if the global $MSG has already been shown and thus HTML output has been started
   $MSG_shown = true;
-
+ 
   // Check if translation is outdate
   if (bootstrap3_conf('showTranslation') && $translation = plugin_load('helper','translation')) {
     global $ID;
@@ -1721,7 +1721,9 @@ function bootstrap3_metaheaders(Doku_Event &$event, $param) {
   $stylesheets[] = $tpl_basedir . 'assets/font-awesome/css/font-awesome.min.css';
 
   # Bootstrap JavaScript
-  $scripts[] = $tpl_basedir . 'assets/bootstrap/js/bootstrap.min.js';
+  //$scripts[] = $tpl_basedir . 'assets/bootstrap/js/bootstrap.min.js';
+  $scripts[] = $tpl_basedir . 'assets/bootstrap/js/skylark-bootstrap3.js';
+  $scripts[] = $tpl_basedir . 'assets/bootstrap/js/init.js';
 
   # AnchorJS
   $scripts[] = $tpl_basedir . 'assets/anchorjs/anchor.min.js';

@@ -1,7 +1,7 @@
-Bootstrap Wrapper Plugin for DokuWiki
+Skylarkui Wrapper Plugin for DokuWiki
 =====================================
 
-Bootstrap Wrapper for DokuWiki
+Skylarkui Wrapper for DokuWiki
 
 All documentation for this plugin can be found at
 http://www.dokuwiki.org/plugin:skylarkui
@@ -14,7 +14,7 @@ Please refer to http://www.dokuwiki.org/plugins for additional info
 on how to install plugins in DokuWiki.
 
 ----
-Copyright (C) Giuseppe Di Terlizzi <giuseppe.diterlizzi@gmail.com>
+Copyright (C) Hudaokeji <github@hudaokeji.com>
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

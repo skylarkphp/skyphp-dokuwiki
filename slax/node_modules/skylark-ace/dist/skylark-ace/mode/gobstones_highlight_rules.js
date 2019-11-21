@@ -1,0 +1,9 @@
+/**
+ * skylark-ace - A version of ace v1.4.3 that ported to running on skylarkjs.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(function(e,t,o){"use strict";var r=e("../lib/oop"),n=e("./doc_comment_highlight_rules").DocCommentHighlightRules,i=e("./text_highlight_rules").TextHighlightRules,a=function(){var e=this.createKeywordMapper({keyword:"program|procedure|function|interactive|if|then|else|switch|repeat|while|foreach|in|not|div|mod|Skip|return","constant.language":"False|True","support.function":"Poner|Sacar|Mover|IrAlBorde|VaciarTablero|nroBolitas|hayBolitas|puedeMover|siguiente|previo|opuesto|minBool|maxBool|minDir|maxDir|minColor|maxColor","support.type":"Verde|Rojo|Azul|Negro|Norte|Sur|Este|Oeste"},"identifier");this.$rules={start:[{token:"comment",regex:"\\/\\/.*$"},{token:"comment",regex:"\\-\\-.*$"},{token:"comment",regex:"#.*$"},n.getStartRule("doc-start"),{token:"comment",regex:"\\/\\*",next:"comment"},{token:"string",regex:'["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'},{token:"string",regex:"['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"},{token:"constant.numeric",regex:/0(?:[xX][0-9a-fA-F][0-9a-fA-F_]*|[bB][01][01_]*)[LlSsDdFfYy]?\b/},{token:"constant.numeric",regex:/[+-]?\d[\d_]*(?:(?:\.[\d_]*)?(?:[eE][+-]?[\d_]+)?)?[LlSsDdFfYy]?\b/},{token:"constant.language.boolean",regex:"(?:True|False)\\b"},{token:"keyword.operator",regex:":=|\\.\\.|,|;|\\|\\||\\/\\/|\\+|\\-|\\^|\\*|>|<|>=|=>|==|&&"},{token:e,regex:"[a-zA-Z_$][a-zA-Z0-9_$]*\\b"},{token:"lparen",regex:"[[({]"},{token:"rparen",regex:"[\\])}]"},{token:"text",regex:"\\s+"}],comment:[{token:"comment",regex:"\\*\\/",next:"start"},{defaultToken:"comment"}]},this.embedRules(n,"doc-",[n.getEndRule("start")])};r.inherits(a,i),t.GobstonesHighlightRules=a});
+//# sourceMappingURL=../sourcemaps/mode/gobstones_highlight_rules.js.map

@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","Gradienter"],"mappings":";;;;;;;AAAAA,QACI,gBACD,SAASC,GACR,OAAOA","file":"../main.js","sourcesContent":["define([\r\n    \"./Gradienter\",\r\n], function(Gradienter) {\r\n    return Gradienter;\r\n});\r\n"]}

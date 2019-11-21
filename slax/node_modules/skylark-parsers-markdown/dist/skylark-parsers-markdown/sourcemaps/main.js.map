@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","markdown"],"mappings":";;;;;;;AAAAA,QACI,aACA,WACA,cACD,SAASC,GACR,OAAOA","file":"../main.js","sourcesContent":["define([\r\n    \"./markdown\",\r\n    \"./Parser\",\r\n    \"./Turndown\"\r\n], function(markdown) {\r\n    return markdown;\r\n});\r\n"]}

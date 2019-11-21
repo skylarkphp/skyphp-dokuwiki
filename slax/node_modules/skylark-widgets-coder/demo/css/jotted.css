@@ -1,0 +1,428 @@
+/* coder
+ */
+.coder {
+  position: relative;
+  height: 12em;
+  overflow: hidden;
+  border: 1px solid rgba(51,51,51,0.24);
+  border-radius: 2px;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+/* nav
+ */
+.coder-nav {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: 100%;
+  height: 2.4em;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  background: rgba(51,51,51,0.08);
+  border-bottom: 1px solid rgba(51,51,51,0.2);
+}
+.coder-nav-item {
+  display: none;
+  float: left;
+  border-width: 0 1px;
+  border-style: solid;
+  border-color: transparent;
+  color: #555;
+}
+.coder-nav-item:first-child {
+  border-width: 0 1px 0 0;
+}
+.coder-nav-item:hover,
+.coder-nav-item:focus {
+  background: rgba(51,51,51,0.04);
+}
+.coder-nav-item:active {
+  background: rgba(51,51,51,0.12);
+}
+.coder-nav-item a {
+  display: block;
+  padding: 0 0.8em;
+  color: inherit;
+  line-height: 2.4em;
+  text-decoration: none;
+}
+.coder-pane-active-result .coder-nav-item-result,
+.coder-pane-active-html .coder-nav-item-html,
+.coder-pane-active-css .coder-nav-item-css,
+.coder-pane-active-js .coder-nav-item-js {
+  background: #fff;
+  border-color: rgba(51,51,51,0.3);
+  color: #222;
+}
+/* always show the result tab nav
+ */
+coder-nav-item,
+.coder-nav-item-result {
+  display: block;
+}
+/* show tabs if we have content for them
+ */
+.coder-has-html .coder-nav-item-html,
+.coder-has-css .coder-nav-item-css,
+.coder-has-js .coder-nav-item-js {
+  display: block;
+}
+/* pane
+ */
+.coder-pane {
+  position: absolute;
+  z-index: 1;
+  visibility: hidden;
+  height: 100%;
+  width: 100%;
+  padding-top: 2.4em;
+  box-sizing: border-box;
+  background: #fff;
+}
+.coder-pane-active-result .coder-pane-result,
+.coder-pane-active-html .coder-pane-html,
+.coder-pane-active-css .coder-pane-css,
+.coder-pane-active-js .coder-pane-js {
+  position: relative;
+  visibility: visible;
+}
+/* editor
+ */
+.coder-editor {
+  height: 100%;
+}
+.coder-pane-result iframe,
+.coder-editor textarea {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  box-sizing: border-box;
+}
+.coder-editor textarea {
+  padding: 1em;
+  background: #fff;
+}
+/* status
+ */
+.coder-status-active-html .coder-pane-html,
+.coder-status-active-css .coder-pane-css,
+.coder-status-active-js .coder-pane-js {
+  padding-bottom: 1.5em;
+}
+.coder-status {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+  width: 100%;
+  padding: 0 0.6em;
+}
+.coder-status p {
+  margin: 0;
+  color: #333;
+  font-size: 0.8em;
+  line-height: 1.8em;
+}
+.coder-status p:before {
+  content: '';
+  position: relative;
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  margin-right: 0.8em;
+  margin-bottom: 0.28em;
+  border-radius: 100%;
+  color: #fff;
+  font-size: 0.8em;
+  font-family: monospace;
+  font-weight: bold;
+  line-height: 1.2em;
+  text-align: center;
+  vertical-align: middle;
+}
+.coder-status-loading {
+  background: #fff6d5;
+}
+.coder-status-loading p:before {
+  background: #fd5;
+}
+.coder-status-error {
+  background: #ffccbc;
+}
+.coder-status-error p:before {
+  background: #c0392b;
+}
+/* buttons
+ * used by plugins
+ */
+.coder-button {
+  padding: 0 1em;
+  border: 1px solid #ccc;
+  background: rgba(236,236,236,0.92);
+  background: linear-gradient(rgba(249,249,249,0.92), rgba(236,236,236,0.92));
+  border-radius: 2px;
+  cursor: pointer;
+  line-height: 1.6em;
+}
+.coder-button:hover {
+  background: #f9f9f9;
+}
+/* plugins
+ */
+.coder-plugin-ace .coder-editor > textarea {
+  display: none;
+}
+.coder-plugin-ace .ace_editor {
+  width: 100%;
+  height: 100%;
+}
+.coder-plugin-codemirror .CodeMirror {
+  height: 100%;
+}
+.coder-nav-item-console {
+  display: block;
+}
+.coder-pane-console {
+  background: #fff;
+}
+.coder-pane-active-console .coder-pane-console {
+  position: relative;
+  visibility: visible;
+}
+.coder-pane-active-console .coder-nav-item-console {
+  background: #fff;
+  border-color: rgba(51,51,51,0.3);
+  color: #222;
+}
+.coder-console-container {
+  height: 100%;
+  overflow: auto;
+  font-family: monospace;
+}
+.coder-console-output {
+  margin: 0;
+  padding: 0;
+  list-style-type: none;
+  line-height: 2.8em;
+}
+.coder-console-log {
+  padding: 0 1em;
+}
+.coder-console-log-history {
+  border-width: 1px 0;
+  border-style: solid;
+  border-color: rgba(51,51,51,0.08);
+  background: rgba(51,51,51,0.04);
+}
+.coder-console-log-error {
+  background: #ffccbc;
+  color: #500;
+}
+.coder-console-input {
+  position: relative;
+  background: rgba(51,51,51,0.12);
+}
+.coder-console-input:before {
+  content: '>';
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  padding: 0 1em;
+  pointer-events: none;
+  font-family: inherit;
+  font-weight: bold;
+  line-height: 2.4em;
+}
+.coder-console-input input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  height: 2.4em;
+  border: 0;
+  padding: 0 1em 0 2.4em;
+  background: transparent;
+  line-height: 2.4em;
+  font-family: inherit;
+}
+.coder-console-clear {
+  position: absolute;
+  top: 3.3em;
+  right: 1.4em;
+}
+.coder-plugin-pen {
+  display: flex;
+  flex-flow: row wrap;
+  user-select: none;
+}
+.coder-plugin-pen .coder-pane-result {
+  flex: 1 100%;
+}
+.coder-plugin-pen .coder-editor .CodeMirror {
+  height: calc(100% - 39px);
+}
+.coder-plugin-pen .coder-nav {
+  display: none;
+}
+.coder-plugin-pen .coder-pane {
+  padding-top: 0;
+  height: 50%;
+}
+.coder-plugin-pen .coder-pane-title {
+  display: block;
+  background: rgba(51,51,51,0.08);
+  border-bottom: 1px solid rgba(51,51,51,0.2);
+  padding: 0 0.8em;
+  line-height: 2.4em;
+  font-family: sans-serif;
+}
+.coder-plugin-pen .coder-pane-title-result {
+  display: none;
+}
+.coder-plugin-pen .coder-pane-result,
+.coder-plugin-pen.coder-has-html .coder-pane-html,
+.coder-plugin-pen.coder-has-css .coder-pane-css,
+.coder-plugin-pen.coder-has-js .coder-pane-js,
+.coder-plugin-pen.coder-plugin-console .coder-pane-console {
+  position: relative;
+  visibility: visible;
+}
+.coder-plugin-pen.coder-has-html .coder-pane,
+.coder-plugin-pen.coder-has-css .coder-pane,
+.coder-plugin-pen.coder-has-js .coder-pane {
+  max-width: 100%;
+  width: 100%;
+}
+.coder-plugin-pen.coder-has-html.coder-has-css .coder-pane-html,
+.coder-plugin-pen.coder-has-html.coder-has-css .coder-pane-css,
+.coder-plugin-pen.coder-has-html.coder-has-js .coder-pane-html,
+.coder-plugin-pen.coder-has-html.coder-has-js .coder-pane-js,
+.coder-plugin-pen.coder-has-css.coder-has-js .coder-pane-css,
+.coder-plugin-pen.coder-has-css.coder-has-js .coder-pane-js {
+  max-width: 50%;
+  width: 50%;
+}
+.coder-plugin-pen.coder-has-html.coder-has-css.coder-has-js .coder-pane-html,
+.coder-plugin-pen.coder-has-html.coder-has-css.coder-has-js .coder-pane-js,
+.coder-plugin-pen.coder-has-html.coder-has-css.coder-has-js .coder-pane-css {
+  max-width: 33.3333%;
+  width: 33.3333%;
+}
+.coder-plugin-pen.coder-plugin-console .coder-console-clear {
+  top: 4.3em;
+}
+.coder-plugin-console.coder-plugin-pen.coder-has-html .coder-pane,
+.coder-plugin-console.coder-plugin-pen.coder-has-css .coder-pane,
+.coder-plugin-console.coder-plugin-pen.coder-has-js .coder-pane {
+  width: 50%;
+}
+.coder-plugin-console.coder-plugin-pen.coder-has-html.coder-has-css .coder-pane,
+.coder-plugin-console.coder-plugin-pen.coder-has-html.coder-has-js .coder-pane,
+.coder-plugin-console.coder-plugin-pen.coder-has-css.coder-has-js .coder-pane {
+  width: 33.33%;
+}
+.coder-plugin-console.coder-plugin-pen.coder-has-html.coder-has-css.coder-has-js .coder-pane {
+  width: 25%;
+}
+.coder-plugin-pen-expander {
+  position: absolute;
+  height: 100%;
+  width: 3px;
+  z-index: 5;
+  cursor: col-resize;
+  border-left: 1px solid #ddd;
+}
+.coder-button-play {
+  position: absolute;
+  top: 0.52em;
+  right: 0.52em;
+  z-index: 3;
+}
+/* themes
+ */
+.coder-nav-item,
+.coder-pane {
+  box-sizing: border-box;
+}
+.coder-theme-bin {
+  overflow: hidden;
+}
+.coder-theme-bin .coder-nav {
+  clear: both;
+}
+.coder-theme-bin .coder-nav-item {
+  background: transparent;
+  pointer-events: none;
+  text-align: center;
+}
+.coder-theme-bin .coder-nav-item,
+.coder-theme-bin .coder-pane {
+  border-width: 0 1px 0 0;
+  border-style: solid;
+  border-color: #ddd;
+}
+.coder-theme-bin .coder-pane:last-child {
+  border: 0;
+}
+.coder-theme-bin .coder-pane-result,
+.coder-theme-bin.coder-has-html .coder-pane-html,
+.coder-theme-bin.coder-has-css .coder-pane-css,
+.coder-theme-bin.coder-has-js .coder-pane-js {
+  position: relative;
+  float: left;
+  visibility: visible;
+}
+.coder-theme-bin .coder-pane-result,
+.coder-theme-bin .coder-nav-item {
+  width: 100%;
+}
+.coder-theme-bin.coder-has-html .coder-nav-item,
+.coder-theme-bin.coder-has-css .coder-nav-item,
+.coder-theme-bin.coder-has-js .coder-nav-item,
+.coder-theme-bin.coder-has-html .coder-pane,
+.coder-theme-bin.coder-has-css .coder-pane,
+.coder-theme-bin.coder-has-js .coder-pane {
+  width: 50%;
+}
+.coder-theme-bin.coder-has-html.coder-has-css .coder-nav-item,
+.coder-theme-bin.coder-has-html.coder-has-js .coder-nav-item,
+.coder-theme-bin.coder-has-css.coder-has-js .coder-nav-item,
+.coder-theme-bin.coder-has-html.coder-has-css .coder-pane,
+.coder-theme-bin.coder-has-html.coder-has-js .coder-pane,
+.coder-theme-bin.coder-has-css.coder-has-js .coder-pane {
+  width: 33.33%;
+}
+.coder-theme-bin.coder-has-html.coder-has-css.coder-has-js .coder-nav-item,
+.coder-theme-bin.coder-has-html.coder-has-css.coder-has-js .coder-pane {
+  width: 25%;
+}
+.coder-theme-bin .coder-pane-console {
+  position: relative;
+  float: left;
+  visibility: visible;
+}
+.coder-plugin-console.coder-theme-bin.coder-has-html .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-css .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-js .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-html .coder-pane,
+.coder-plugin-console.coder-theme-bin.coder-has-css .coder-pane,
+.coder-plugin-console.coder-theme-bin.coder-has-js .coder-pane {
+  width: 33.33%;
+}
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-css .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-js .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-css.coder-has-js .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-css .coder-pane,
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-js .coder-pane,
+.coder-plugin-console.coder-theme-bin.coder-has-css.coder-has-js .coder-pane {
+  width: 25%;
+}
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-css.coder-has-js .coder-nav-item,
+.coder-plugin-console.coder-theme-bin.coder-has-html.coder-has-css.coder-has-js .coder-pane {
+  width: 20%;
+}

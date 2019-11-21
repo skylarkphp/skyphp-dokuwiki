@@ -1,0 +1,9 @@
+/**
+ * skylark-ace - A version of ace v1.4.3 that ported to running on skylarkjs.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(function(t,n,s){"use strict";t("../range").Range;var r=t("../range_list").RangeList,o=t("../lib/oop"),e=n.Fold=function(t,n){this.foldLine=null,this.placeholder=n,this.range=t,this.start=t.start,this.end=t.end,this.sameRow=t.start.row==t.end.row,this.subFolds=this.ranges=[]};function i(t,n){t.row-=n.row,0==t.row&&(t.column-=n.column)}function l(t,n){0==t.row&&(t.column+=n.column),t.row+=n.row}o.inherits(e,r),function(){this.toString=function(){return'"'+this.placeholder+'" '+this.range.toString()},this.setFoldLine=function(t){this.foldLine=t,this.subFolds.forEach(function(n){n.setFoldLine(t)})},this.clone=function(){var t=this.range.clone(),n=new e(t,this.placeholder);return this.subFolds.forEach(function(t){n.subFolds.push(t.clone())}),n.collapseChildren=this.collapseChildren,n},this.addSubFold=function(t){if(!this.range.isEqual(t)){if(!this.range.containsRange(t))throw new Error("A fold can't intersect already existing fold"+t.range+this.range);var n,s;n=t,s=this.start,i(n.start,s),i(n.end,s);for(var r=t.start.row,o=t.start.column,e=0,l=-1;e<this.subFolds.length&&1==(l=this.subFolds[e].range.compare(r,o));e++);var a=this.subFolds[e];if(0==l)return a.addSubFold(t);r=t.range.end.row,o=t.range.end.column;var h=e;for(l=-1;h<this.subFolds.length&&1==(l=this.subFolds[h].range.compare(r,o));h++);this.subFolds[h];if(0==l)throw new Error("A fold can't intersect already existing fold"+t.range+this.range);this.subFolds.splice(e,h-e,t);return t.setFoldLine(this.foldLine),t}},this.restoreRange=function(t){return function(t,n){l(t.start,n),l(t.end,n)}(t,this.start)}}.call(e.prototype)});
+//# sourceMappingURL=../sourcemaps/edit_session/fold.js.map

@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","slax"],"mappings":";;;;;;;AAAAA,QACG,uBACA,wBACA,0BACA,oBACD,SAASC,GACV,OAAOA","file":"../main.js","sourcesContent":["define([\r\n   \"skylark-slax-runtime\",\r\n   \"skylark-widgets-coder\",\r\n   \"skylark-widgets-textpad\",\r\n   \"skylark-jqueryui\"\r\n],function(slax){\r\n\treturn slax;\r\n})"]}

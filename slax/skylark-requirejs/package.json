@@ -1,0 +1,41 @@
+{
+  "_from": "git+https://github.com/skylarkjs/skylark-requirejs.git#master",
+  "_id": "slax-requirejs@0.9.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/skylark-requirejs",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "skylark-requirejs@git+https://github.com/skylarkjs/skylark-requirejs.git#master",
+    "name": "skylark-requirejs",
+    "escapedName": "skylark-requirejs",
+    "rawSpec": "git+https://github.com/skylarkjs/skylark-requirejs.git#master",
+    "saveSpec": "git+https://github.com/skylarkjs/skylark-requirejs.git#master",
+    "fetchSpec": "https://github.com/skylarkjs/skylark-requirejs.git",
+    "gitCommittish": "master"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "git+https://github.com/skylarkjs/skylark-requirejs.git#3c1af3779a9b9adf33d192bcdeb3eecf2c91ff66",
+  "_spec": "skylark-requirejs@git+https://github.com/skylarkjs/skylark-requirejs.git#master",
+  "_where": "C:\\Studio\\studio2\\21_SKY\\skyphp\\skydoku\\slax",
+  "author": {
+    "name": "Hudaokeji Co.,Ltd"
+  },
+  "bundleDependencies": false,
+  "dependencies": {},
+  "deprecated": false,
+  "description": "The skylark module loader.",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "keywords": [
+    "skylark",
+    "requirejs"
+  ],
+  "name": "slax-requirejs",
+  "scripts": {},
+  "version": "0.9.0"
+}

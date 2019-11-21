@@ -1,0 +1,9 @@
+/**
+ * skylark-ace - A version of ace v1.4.3 that ported to running on skylarkjs.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(function(t,i,e){"use strict";var r=t("../lib/oop"),n=t("../keyboard/hash_handler").MultiHashHandler,a=t("../lib/event_emitter").EventEmitter,o=function(t,i){n.call(this,i,t),this.byName=this.commands,this.setDefaultHandler("exec",function(t){return t.command.exec(t.editor,t.args||{})})};r.inherits(o,n),function(){r.implement(this,a),this.exec=function(t,i,e){if(Array.isArray(t)){for(var r=t.length;r--;)if(this.exec(t[r],i,e))return!0;return!1}if("string"==typeof t&&(t=this.commands[t]),!t)return!1;if(i&&i.$readOnly&&!t.readOnly)return!1;if(0!=this.$checkCommandState&&t.isAvailable&&!t.isAvailable(i))return!1;var n={editor:i,command:t,args:e};return n.returnValue=this._emit("exec",n),this._signal("afterExec",n),!1!==n.returnValue},this.toggleRecording=function(t){if(!this.$inReplay)return t&&t._emit("changeStatus"),this.recording?(this.macro.pop(),this.removeEventListener("exec",this.$addCommandToMacro),this.macro.length||(this.macro=this.oldMacro),this.recording=!1):(this.$addCommandToMacro||(this.$addCommandToMacro=function(t){this.macro.push([t.command,t.args])}.bind(this)),this.oldMacro=this.macro,this.macro=[],this.on("exec",this.$addCommandToMacro),this.recording=!0)},this.replay=function(t){if(!this.$inReplay&&this.macro){if(this.recording)return this.toggleRecording(t);try{this.$inReplay=!0,this.macro.forEach(function(i){"string"==typeof i?this.exec(i,t):this.exec(i[0],t,i[1])},this)}finally{this.$inReplay=!1}}},this.trimMacro=function(t){return t.map(function(t){return"string"!=typeof t[0]&&(t[0]=t[0].name),t[1]||(t=t[0]),t})}}.call(o.prototype),i.CommandManager=o});
+//# sourceMappingURL=../sourcemaps/commands/command_manager.js.map

@@ -1,0 +1,1 @@
+{"version":3,"sources":["version.js"],"names":["define","$","ui","version"],"mappings":";;;;;;;AAAAA,QAAU,kBAAqB,SAAUC,GAIxC,OAFAA,EAAEC,GAAKD,EAAEC,OAEFD,EAAEC,GAAGC,QAAU","file":"../version.js","sourcesContent":["define( [ \"skylark-jquery\" ],  function( $ ) {\r\n\r\n\t$.ui = $.ui || {};\r\n\r\n\treturn $.ui.version = \"@VERSION\";\r\n\r\n});\r\n"]}

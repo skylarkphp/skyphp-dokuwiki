@@ -1,0 +1,9 @@
+/**
+ * skylark-langx-arrays - The skylark JavaScript language extension library.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(["skylark-langx-ns/ns","skylark-langx-types","skylark-langx-objects"],function(r,n,e){var t=Array.prototype.filter,u=n.isArrayLike;function f(r,n,e,t){for(var u=r.length,f=e+(t?1:-1);t?f--:++f<u;)if(n(r[f],f,r))return f;return-1}function a(r){return r!=r}function i(r){if(u(r)){for(var n=[],e=0;e<r.length;e++){var t=r[e];if(u(t))for(var f=0;f<t.length;f++)n.push(t[f]);else n.push(t)}return n}return r}return r.attach("langx.arrays",{baseFindIndex:f,baseIndexOf:function(r,n,e){if(n!=n)return f(r,a,e);for(var t=e-1,u=r.length;++t<u;)if(r[t]===n)return t;return-1},compact:function(r){return t.call(r,function(r){return null!=r})},first:function(r,n){return n?r.slice(0,n):r[0]},filter:function(r,n){return t.call(r,n)},flatten:i,grep:function(r,n){var t=[];return e.each(r,function(r,e){n(e,r)&&t.push(e)}),t},inArray:function(r,n){if(!n)return-1;var e;if(n.indexOf)return n.indexOf(r);for(e=n.length;e--;)if(n[e]===r)return e;return-1},makeArray:function(r,n,e){return u(r)?(e||[]).concat(Array.prototype.slice.call(r,n||0)):[r]},merge:function(r,n){var e=n.length,t=r.length,u=0;if("number"==typeof e)for(;u<e;u++)r[t++]=n[u];else for(;void 0!==n[u];)r[t++]=n[u++];return r.length=t,r},forEach:function(r,n){if(r.forEach)return r.forEach(n);for(var e=0;e<r.length;e++)n(r[e],e)},map:function(r,n){var e,t,f,a=[];if(u(r))for(t=0;t<r.length;t++)null!=(e=n.call(r[t],r[t],t))&&a.push(e);else for(f in r)null!=(e=n.call(r[f],r[f],f))&&a.push(e);return i(a)},reduce:function(r,n,e){return Array.prototype.reduce.call(r,n,e)},uniq:function(r){return t.call(r,function(n,e){return r.indexOf(n)==e})}})});
+//# sourceMappingURL=sourcemaps/arrays.js.map

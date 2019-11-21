@@ -1,0 +1,155 @@
+.wordpad .lark-toolbar > ul > li > .toolbar-item span.wordpad-icon {
+  display: inline;
+  line-height: normal;
+}
+
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-title span:before {
+  content: "H";
+  font-size: 19px;
+  font-weight: bold;
+  font-family: 'Times New Roman';
+}
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-title.active-h1 span:before {
+  content: 'H1';
+  font-size: 18px;
+}
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-title.active-h2 span:before {
+  content: 'H2';
+  font-size: 18px;
+}
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-title.active-h3 span:before {
+  content: 'H3';
+  font-size: 18px;
+}
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-image {
+  position: relative;
+  overflow: hidden;
+}
+.wordpad .lark-toolbar > ul > li > .toolbar-item.toolbar-item-image > input[type=file] {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  opacity: 0;
+  font-size: 100px;
+  cursor: pointer;
+}
+.wordpad .lark-toolbar .toolbar-menu ul > li .menu-item.menu-item-h1 {
+  font-size: 24px;
+  color: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu ul > li .menu-item.menu-item-h2 {
+  font-size: 22px;
+  color: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu ul > li .menu-item.menu-item-h3 {
+  font-size: 20px;
+  color: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu ul > li .menu-item.menu-item-h4 {
+  font-size: 18px;
+  color: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu ul > li .menu-item.menu-item-h5 {
+  font-size: 16px;
+  color: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color {
+  width: 96px;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list {
+  height: 40px;
+  margin: 10px 6px 6px 10px;
+  padding: 0;
+  min-width: 0;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li {
+  float: left;
+  margin: 0 4px 4px 0;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color {
+  display: block;
+  width: 16px;
+  height: 16px;
+  background: #dfdfdf;
+  border-radius: 2px;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color:hover {
+  opacity: 0.8;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color.font-color-default {
+  background: #333333;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-1 {
+  background: #E33737;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-2 {
+  background: #e28b41;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-3 {
+  background: #c8a732;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-4 {
+  background: #209361;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-5 {
+  background: #418caf;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-6 {
+  background: #aa8773;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-color .color-list li .font-color-7 {
+  background: #999999;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-create-table {
+  background: #ffffff;
+  padding: 1px;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-create-table table {
+  border: none;
+  border-collapse: collapse;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-create-table table td {
+  padding: 0;
+  cursor: pointer;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-create-table table td:before {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #ffffff;
+  background: #f3f3f3;
+  display: block;
+  content: "";
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-create-table table td.selected:before {
+  background: #cfcfcf;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-edit-table {
+  display: none;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-table .menu-edit-table ul li {
+  white-space: nowrap;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-image .menu-item-upload-image {
+  position: relative;
+  overflow: hidden;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-image .menu-item-upload-image input[type=file] {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  opacity: 0;
+  font-size: 100px;
+  cursor: pointer;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-alignment {
+  width: 100%;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-alignment ul {
+  min-width: 100%;
+}
+.wordpad .lark-toolbar .toolbar-menu.toolbar-menu-alignment .menu-item {
+  text-align: center;
+}
+

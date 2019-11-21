@@ -21,19 +21,13 @@ jquery_out();
 function jquery_out() {
     $cache = new cache('jquery', '.js');
     $files = array(
-        DOKU_INC . 'lib/scripts/skylarkjs/skylark-requirejs.js',        
-        DOKU_INC . 'lib/scripts/skylarkjs/require.text.js',
-        DOKU_INC . 'lib/scripts/skylarkjs/require.i18n.js',
-        DOKU_INC . 'slax/dist/uncompressed/slax-skydoku-all.js',
-///        DOKU_INC . 'lib/scripts/skylarkjs/skylark-slax-runtime-all.js',
-///        DOKU_INC . 'lib/scripts/jquery/require.js',
-///        DOKU_INC . 'lib/scripts/jquery/require.text.js',
-///        DOKU_INC . 'lib/scripts/jquery/require.i18n.js',
-///        DOKU_INC . 'lib/scripts/jquery/skylark-utils-dom-all.js',
-///        DOKU_INC . 'lib/scripts/jquery/skylark-jquery.js',
-///        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui-interact.js',
-///        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui.js',
-///        DOKU_INC . 'lib/scripts/jquery/init.js'
+        DOKU_INC . 'lib/scripts/jquery/skylark-requirejs.js',        
+        DOKU_INC . 'lib/scripts/jquery/require.text.js',
+        DOKU_INC . 'lib/scripts/jquery/require.i18n.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jquery-all.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui-interact.js',
+        DOKU_INC . 'lib/scripts/jquery/skylark-jqueryui.js',
+        DOKU_INC . 'lib/scripts/jquery/init.js'
 //        DOKU_INC . 'lib/scripts/jquery/jquery.min.js',
 //        DOKU_INC . 'lib/scripts/jquery/jquery-ui.min.js',
 //        DOKU_INC . 'lib/scripts/jquery/jquery-migrate.min.js',

@@ -88,12 +88,16 @@
 
 define('slax-skydoku/main',[
    "skylark-slax-runtime",
+   "skylark-bootstrap3/loadedInit",
    "skylark-widgets-coder",
    "skylark-widgets-textpad",
    "skylark-jqueryui"
-],function(slax){
+],function(slax,bsInit){
+	bsInit();
 	return slax;
-});
+})
+
+;
 define('slax-skydoku', ['slax-skydoku/main'], function (main) { return main; });
 
 

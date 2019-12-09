@@ -1,5 +1,5 @@
 define([
-	"skylark-utils-dom/langx"
+	"skylark-langx/langx"
 ],function(langx) {
 	/*
 	 * This manager tracks offsets of draggables and droppables

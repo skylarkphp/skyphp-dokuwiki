@@ -1,8 +1,8 @@
 define( [
-	"skylark-utils-dom/browser",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-domx-browser",
+	"skylark-domx-data",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"skylark-jquery/JqueryPlugin"
 ],function(browser, datax, $, plugins, JqPlugin) {
 

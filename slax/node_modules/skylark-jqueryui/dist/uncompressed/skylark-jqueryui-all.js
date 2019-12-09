@@ -18678,72 +18678,11 @@ return $.datepicker;
 
 });
 
-define('skylark-utils-dom/langx',[
-    "skylark-langx/langx"
-], function(langx) {
-    return langx;
-});
-
-define('skylark-utils-dom/skylark',["skylark-langx/skylark"], function(skylark) {
-    return skylark;
-});
-
-define('skylark-utils-dom/dom',["./skylark"], function(skylark) {
-	return skylark.dom = skylark.attach("dom",{});
-});
-
-define('skylark-utils-dom/eventer',[
-    "./dom",
-    "skylark-domx-eventer"
-], function(dom, eventer) {
- 
-    return dom.eventer = eventer;
-});
-define('skylark-utils-dom/noder',[
-    "./dom",
-    "skylark-domx-noder"
-], function(dom, noder) {
-
-    return dom.noder = noder;
-});
-define('skylark-utils-dom/query',[
-    "./dom",
-    "skylark-domx-query"
-], function(dom, query) {
-
-    return dom.query = query;
-
-});
-define('skylark-utils-dom/plugins',[
-    "./dom",
-    "skylark-domx-plugins"
-], function(dom, plugins) {
-    "use strict";
-
-
-    return dom.plugins = plugins;
-});
-define('skylark-utils-dom/browser',[
-    "./dom",
-    "skylark-domx-browser"
-], function(dom,browser) {
-    "use strict";
-
-    return dom.browser = browser;
-});
-
-define('skylark-utils-dom/datax',[
-    "./dom",
-    "skylark-domx-data"
-], function(dom, datax) {
- 
-    return dom.datax = datax;
-});
 define( 'skylark-jqueryui-interact/Mouse',[
-	"skylark-utils-dom/browser",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-domx-browser",
+	"skylark-domx-data",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"skylark-jquery/JqueryPlugin"
 ],function(browser, datax, $, plugins, JqPlugin) {
 
@@ -18986,7 +18925,7 @@ define('skylark-jqueryui-interact/patch',[
 });
 
 define('skylark-jqueryui-interact/ddmanager',[
-	"skylark-utils-dom/langx"
+	"skylark-langx/langx"
 ],function(langx) {
 	/*
 	 * This manager tracks offsets of draggables and droppables
@@ -19194,11 +19133,11 @@ define('skylark-jqueryui-interact/ddmanager',[
 	return ddmanager;
 });
 define( 'skylark-jqueryui-interact/Draggable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./patch",
 	"./ddmanager",
@@ -20473,12 +20412,12 @@ define( 'skylark-jqueryui/widgets/mouse',[
 });
 
 define( 'skylark-jqueryui-interact/Resizable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./patch",
 	"./ddmanager",
@@ -22623,11 +22562,11 @@ return $.ui.dialog;
 });
 
 define( 'skylark-jqueryui-interact/Droppable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"skylark-jquery/JqueryPlugin",
 	"./patch",
 	"./ddmanager",
@@ -23060,12 +22999,12 @@ return $.widget( "ui.progressbar", {
 });
 
 define( 'skylark-jqueryui-interact/Selectable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse"
 ],function(langx, datax, eventer, noder, $, plugins, Mouse) {
 
@@ -24806,12 +24745,12 @@ return $.widget( "ui.slider", $.ui.mouse, {
 });
 
 define( 'skylark-jqueryui-interact/Sortable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./ddmanager",
 ],function(langx, datax, eventer, noder, $, plugins, Mouse, ddmanager) {

@@ -1,7 +1,9 @@
 define([
   "skylark-langx/skylark",
   "skylark-langx/langx",
-  "skylark-utils-dom/query"
+  "skylark-domx-query",
+  "skylark-domx-data",
+  "skylark-domx-styler"
 ],function(skylark,langx,$) {
 
   "use strict";

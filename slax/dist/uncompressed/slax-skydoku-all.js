@@ -11839,50 +11839,6 @@ define('skylark-domx-plugins/plugins',[
         return pluginInstance;
     }
 
-    function shortcutter(pluginName,extfn) {
-       /*
-        * Create or get or destory a plugin instance assocated with the element,
-        * and also you can execute the plugin method directory;
-        */
-        return function (elm,options) {
-            var  plugin = instantiate(elm, pluginName,"instance");
-            if ( options === "instance" ) {
-              return plugin || null;
-            }
-            if (!plugin) {
-                plugin = instantiate(elm, pluginName,typeof options == 'object' && options || {});
-                return this;
-            } else  if (options) {
-                var args = slice.call(arguments,1); //2
-                if (extfn) {
-                    var ret =  extfn.apply(plugin,args);
-                    if (ret === undefined) {
-                        ret = this;
-                    }
-                    return ret;
-                } else {
-                    if (typeof options == 'string') {
-                        var methodName = options;
-
-                        if ( !plugin ) {
-                            throw new Error( "cannot call methods on " + pluginName +
-                                " prior to initialization; " +
-                                "attempted to call method '" + methodName + "'" );
-                        }
-
-                        if ( !langx.isFunction( plugin[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
-                            throw new Error( "no such method '" + methodName + "' for " + pluginName +
-                                " plugin instance" );
-                        }
-
-                        return plugin[methodName].apply(plugin,args);
-                    }                
-                }                
-            }
-
-        }
-
-    }
 
     function shortcutter(pluginName,extfn) {
        /*
@@ -11894,9 +11850,14 @@ define('skylark-domx-plugins/plugins',[
             if ( options === "instance" ) {
               return plugin || null;
             }
+
             if (!plugin) {
                 plugin = instantiate(elm, pluginName,typeof options == 'object' && options || {});
-            } else  if (options) {
+                if (typeof options != "string") {
+                  return this;
+                }
+            } 
+            if (options) {
                 var args = slice.call(arguments,1); //2
                 if (extfn) {
                     return extfn.apply(plugin,args);
@@ -11953,7 +11914,7 @@ define('skylark-domx-plugins/plugins',[
                   this.each(function () {
                     var args2 = slice.call(args);
                     args2.unshift(this);
-                    var  ret  = shortcut.apply(null,args2);
+                    var  ret  = shortcut.apply(undefined,args2);
                     if (ret !== undefined) {
                         returnValue = ret;
                         return false;
@@ -13404,26 +13365,12 @@ define('skylark-nprogress/main',[
 });
 define('skylark-nprogress', ['skylark-nprogress/main'], function (main) { return main; });
 
-define('skylark-utils-dom/skylark',["skylark-langx/skylark"], function(skylark) {
-    return skylark;
-});
-
-define('skylark-utils-dom/dom',["./skylark"], function(skylark) {
-	return skylark.dom = skylark.attach("dom",{});
-});
-
-define('skylark-utils-dom/query',[
-    "./dom",
-    "skylark-domx-query"
-], function(dom, query) {
-
-    return dom.query = query;
-
-});
 define('skylark-bootbox4/bootbox',[
   "skylark-langx/skylark",
   "skylark-langx/langx",
-  "skylark-utils-dom/query"
+  "skylark-domx-query",
+  "skylark-domx-data",
+  "skylark-domx-styler"
 ],function(skylark,langx,$) {
 
   "use strict";
@@ -15094,7 +15041,7 @@ define('skylark-widgets-shells/Shell',[
 	"skylark-widgets-swt/Widget",
 	"skylark-nprogress",
 	"skylark-bootbox4",
-  "skylark-visibility",
+    "skylark-visibility",
   "skylark-tinycon",
 	"./shells"
 ],function(langx, css, scripter, finder,$,Widget,nprogress,bootbox,Visibility, Tinycon,shells){
@@ -15434,558 +15381,6 @@ define('skylark-widgets-shells/Shell',[
 	return shells.Shell = Shell;
 
 });
-
-define('skylark-utils-dom/browser',[
-    "./dom",
-    "skylark-domx-browser"
-], function(dom,browser) {
-    "use strict";
-
-    return dom.browser = browser;
-});
-
-define('skylark-utils-dom/css',[
-    "./dom",
-    "skylark-domx-css"
-], function(dom, css) {
-    "use strict";
-
-     return dom.css = css;
-});
-
-define('skylark-utils-dom/datax',[
-    "./dom",
-    "skylark-domx-data"
-], function(dom, datax) {
- 
-    return dom.datax = datax;
-});
-define('skylark-utils-dom/eventer',[
-    "./dom",
-    "skylark-domx-eventer"
-], function(dom, eventer) {
- 
-    return dom.eventer = eventer;
-});
-define('skylark-utils-dom/finder',[
-    "./dom",
-    "skylark-domx-finder"
-], function(dom, finder) {
-
-    return dom.finder = finder;
-});
-define('skylark-utils-dom/fx',[
-    "./dom",
-    "skylark-domx-fx"
-], function(dom, fx) {
-    return dom.fx = fx;
-});
-define('skylark-utils-dom/geom',[
-    "./dom",
-    "skylark-domx-geom"
-], function(dom, geom) {
-
-    return dom.geom = geom;
-});
-define('skylark-domx-transforms/transforms',[
-    "skylark-langx/skylark",
-    "skylark-langx/langx",
-    "skylark-domx-browser",
-    "skylark-domx-data",
-    "skylark-domx-styler"
-], function(skylark,langx,browser,datax,styler) {
-  var css3Transform = browser.normalizeCssProperty("transform");
-
-  function getMatrix(radian, x, y) {
-    var Cos = Math.cos(radian), Sin = Math.sin(radian);
-    return {
-      M11: Cos * x, 
-      M12: -Sin * y,
-      M21: Sin * x, 
-      M22: Cos * y
-    };
-  }
-
-  function getZoom(scale, zoom) {
-      return scale > 0 && scale > -zoom ? zoom :
-        scale < 0 && scale < zoom ? -zoom : 0;
-  }
-
-    function change(el,d) {
-      var matrix = getMatrix(d.radian, d.y, d.x);
-      styler.css(el,css3Transform, "matrix("
-        + matrix.M11.toFixed(16) + "," + matrix.M21.toFixed(16) + ","
-        + matrix.M12.toFixed(16) + "," + matrix.M22.toFixed(16) + ", 0, 0)"
-      );      
-  }
-
-  function transformData(el,d) {
-    if (d) {
-      datax.data(el,"transform",d);
-    } else {
-      d = datax.data(el,"transform") || {};
-      d.radian = d.radian || 0;
-      d.x = d.x || 1;
-      d.y = d.y || 1;
-      d.zoom = d.zoom || 1;
-      return d;     
-    }
-  }
-
-  var calcs = {
-    //Vertical flip
-    vertical : function (d) {
-        d.radian = Math.PI - d.radian; 
-        d.y *= -1;
-    },
-
-   //Horizontal flip
-    horizontal : function (d) {
-        d.radian = Math.PI - d.radian; 
-        d.x *= -1;
-    },
-
-    //Rotate according to angle
-    rotate : function (d,degress) {
-        d.radian = degress * Math.PI / 180;; 
-    },
-
-    //Turn left 90 degrees
-    left : function (d) {
-        d.radian -= Math.PI / 2; 
-    },
-
-    //Turn right 90 degrees
-    right : function (d) {
-        d.radian += Math.PI / 2; 
-    },
- 
-    //zoom
-    scale: function (d,zoom) {
-        var hZoom = getZoom(d.y, zoom), vZoom = getZoom(d.x, zoom);
-        if (hZoom && vZoom) {
-          d.y += hZoom; 
-          d.x += vZoom;
-        }
-    }, 
-
-    //zoom in
-    zoomin: function (d) { 
-      calcs.scale(d,0.1); 
-    },
-    
-    //zoom out
-    zoomout: function (d) { 
-      calcs.scale(d,-0.1); 
-    }
-
-  };
-  
-  
-  function _createApiMethod(calcFunc) {
-    return function() {
-      var args = langx.makeArray(arguments),
-        el = args.shift(),
-          d = transformData(el);
-        args.unshift(d);
-        calcFunc.apply(this,args)
-        change(el,d);
-        transformData(el,d);
-    }
-  }
-  
-  function transforms() {
-    return transforms;
-  }
-
-  ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout"].forEach(function(name){
-    transforms[name] = _createApiMethod(calcs[name]);
-  });
-
-  langx.mixin(transforms, {
-    reset : function(el) {
-      var d = {
-        x : 1,
-        y : 1,
-        radian : 0,
-      }
-      change(el,d);
-      transformData(el,d);
-    }
-  });
-
-
-  return skylark.attach("domx.transforms", transforms);
-});
-
-define('skylark-domx-transforms/main',[
-	"./transforms"
-],function(transforms){
-	return transforms;
-});
-define('skylark-domx-transforms', ['skylark-domx-transforms/main'], function (main) { return main; });
-
-define('skylark-domx-images/images',[
-    "skylark-langx/skylark",
-    "skylark-langx/langx",
-    "skylark-domx-eventer",
-    "skylark-domx-noder",
-    "skylark-domx-finder",
-    "skylark-domx-geom",
-    "skylark-domx-styler",
-    "skylark-domx-data",
-    "skylark-domx-transforms",
-    "skylark-domx-query"
-], function(skylark,langx,eventer,noder,finder,geom,styler,datax,transforms,$) {
-
-  function watch(imgs) {
-    if (!langx.isArray(imgs)) {
-      imgs = [imgs];
-    }
-    var totalCount = imgs.length,
-        progressedCount = 0,
-        successedCount = 0,
-        faileredCount = 0,
-        d = new langx.Deferred();
-
-
-    function complete() {
-
-      d.resolve({
-        "total" : totalCount,
-        "successed" : successedCount,
-        "failered" : faileredCount,
-        "imgs" : imgs 
-      });
-    }
-
-    function progress(img,isLoaded) {
-
-      progressedCount++;
-      if (isLoaded) {
-        successedCount ++ ; 
-      } else {
-        faileredCount ++ ;
-      }
-
-      // progress event
-      d.progress({
-        "img" : img,
-        "isLoaded" : isLoaded,
-        "progressed" : progressedCount,
-        "total" : totalCount,
-        "imgs" : imgs 
-      });
-
-      // check if completed
-      if ( progressedCount == totalCount ) {
-        complete();
-      }
-    }
-
-    function check() {
-      if (!imgs.length ) {
-        complete();
-        return;
-      }
-
-      imgs.forEach(function(img) {
-        if (isCompleted(img)) {
-          progress(img,isLoaded(img));
-        } else {
-          eventer.on(img,{
-            "load" : function() {
-              progress(img,true);
-            },
-
-            "error" : function() {
-              progress(img,false);
-            }
-          });      
-        }
-      });
-    }
-
-    langx.defer(check);
-
-    d.promise.totalCount = totalCount;
-    return d.promise;
-  }
-
-
-  function isCompleted(img) {
-     return img.complete && img.naturalWidth !== undefined;
-  }
-
-  function isLoaded(img) {
-    return img.complete && img.naturalWidth !== 0;
-  }
-
-  function loaded(elm,options) {
-    var imgs = [];
-
-    options = options || {};
-
-    function addBackgroundImage (elm1) {
-
-      var reURL = /url\((['"])?(.*?)\1\)/gi;
-      var matches = reURL.exec( styler.css(elm1,"background-image"));
-      var url = matches && matches[2];
-      if ( url ) {
-        var img = new Image();
-        img.src = url;
-        imgs.push(img);
-      }
-    }
-
-    // filter siblings
-    if ( elm.nodeName == 'IMG' ) {
-      imgs.push( elm );
-    } else {
-      // find children
-      var childImgs = finder.findAll(elm,'img');
-      // concat childElems to filterFound array
-      for ( var i=0; i < childImgs.length; i++ ) {
-        imgs.push(childImgs[i]);
-      }
-
-      // get background image on element
-      if ( options.background === true ) {
-        addBackgroundImage(elm);
-      } else  if ( typeof options.background == 'string' ) {
-        var children = finder.findAll(elm, options.background );
-        for ( i=0; i < children.length; i++ ) {
-          addBackgroundImage( children[i] );
-        }
-      }
-    }
-
-    return watch(imgs);
-  }
-
-  function preload(urls,options) {
-      if (langx.isString(urls)) {
-        urls = [urls];
-      }
-      var images = [];
-
-      urls.forEach(function(url){
-        var img = new Image();
-        img.src = url;
-        images.push(img);
-      });
-
-      return watch(images);
-  }
-
-
-  $.fn.imagesLoaded = function( options ) {
-    return loaded(this,options);
-  };
-
-
-  function viewer(el,options) {
-    var img ,
-        style = {},
-        clientSize = geom.clientSize(el),
-        loadedCallback = options.loaded,
-        faileredCallback = options.failered;
-
-    function onload() {
-        styler.css(img,{//居中
-          top: (clientSize.height - img.offsetHeight) / 2 + "px",
-          left: (clientSize.width - img.offsetWidth) / 2 + "px"
-        });
-
-        transforms.reset(img);
-
-        styler.css(img,{
-          visibility: "visible"
-        });
-
-        if (loadedCallback) {
-          loadedCallback();
-        }
-    }
-
-    function onerror() {
-
-    }
-    function _init() {
-      style = styler.css(el,["position","overflow"]);
-      if (style.position != "relative" && style.position != "absolute") { 
-        styler.css(el,"position", "relative" );
-      }
-      styler.css(el,"overflow", "hidden" );
-
-      img = new Image();
-
-      styler.css(img,{
-        position: "absolute",
-        border: 0, padding: 0, margin: 0, width: "auto", height: "auto",
-        visibility: "hidden"
-      });
-
-      img.onload = onload;
-      img.onerror = onerror;
-
-      noder.append(el,img);
-
-      if (options.url) {
-        _load(options.url);
-      }
-    }
-
-    function _load(url) {
-        img.style.visibility = "hidden";
-        img.src = url;
-    }
-
-    function _dispose() {
-        noder.remove(img);
-        styler.css(el,style);
-        img = img.onload = img.onerror = null;
-    }
-
-    _init();
-
-    var ret =  {
-      load : _load,
-      dispose : _dispose
-    };
-
-    ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout","reset"].forEach(
-      function(name){
-        ret[name] = function() {
-          var args = langx.makeArray(arguments);
-          args.unshift(img);
-          transforms[name].apply(null,args);
-        }
-      }
-    );
-
-    return ret;
-  }
-
-  $.fn.imagesViewer = function( options ) {
-    return viewer(this,options);
-  };
-
-  function images() {
-    return images;
-  }
-
-  images.transform = function (el,options) {
-  };
-
-  ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout","reset"].forEach(
-    function(name){
-      images.transform[name] = transforms[name];
-    }
-  );
-
-
-  langx.mixin(images, {
-    isCompleted : isCompleted,
-
-    isLoaded : isLoaded,
-
-    loaded : loaded,
-
-    preload : preload,
-
-    viewer : viewer
-  });
-
-  return skylark.attach("domx.images" , images);
-});
-
-define('skylark-domx-images/main',[
-	"./images"
-],function(images){
-	return images;
-});
-define('skylark-domx-images', ['skylark-domx-images/main'], function (main) { return main; });
-
-define('skylark-utils-dom/images',[
-    "./dom",
-    "skylark-domx-images"
-], function(dom,images) {
-  return dom.images = images;
-});
-
-define('skylark-utils-dom/noder',[
-    "./dom",
-    "skylark-domx-noder"
-], function(dom, noder) {
-
-    return dom.noder = noder;
-});
-define('skylark-utils-dom/plugins',[
-    "./dom",
-    "skylark-domx-plugins"
-], function(dom, plugins) {
-    "use strict";
-
-
-    return dom.plugins = plugins;
-});
-define('skylark-utils-dom/scripter',[
-    "./dom",
-    "skylark-domx-scripter"
-], function(dom, scripter) {
-
-    return dom.scripter = scripter;
-});
-define('skylark-utils-dom/styler',[
-    "./dom",
-    "skylark-domx-styler"
-], function(dom, styler) {
-
-    return dom.styler = styler;
-});
-define('skylark-utils-dom/transforms',[
-    "./dom",
-    "skylark-domx-transforms"
-], function(dom,transforms) {
-  return dom.transforms = transforms;
-});
-
-define('skylark-utils-dom/langx',[
-    "skylark-langx/langx"
-], function(langx) {
-    return langx;
-});
-
-define('skylark-utils-dom/elmx',[
-    "./dom",
-    "skylark-domx-velm"
-], function(dom, elmx) {
-     return dom.elmx = elmx;
-});
-define('skylark-utils-dom/main',[
-    "./dom",
-    "./browser",
-    "./css",
-    "./datax",
-    "./eventer",
-    "./finder",
-    "./fx",
-    "./geom",
-    "./images",
-    "./noder",
-    "./plugins",
-    "./query",
-    "./scripter",
-    "./styler",
-    "./transforms",
-    "./langx",
-    "./elmx"
-], function(dom) {
-    return dom;
-})
-;
-define('skylark-utils-dom', ['skylark-utils-dom/main'], function (main) { return main; });
 
 define('skylark-bootstrap3/bs3',[
   "skylark-langx/skylark",
@@ -19523,8 +18918,7 @@ define('skylark-widgets-swt/swt',[
   "skylark-domx-geom",
   "skylark-domx-query"
 ],function(skylark,langx,browser,eventer,noder,geom,$){
-	var ui = skylark.ui = skylark.ui || {};
-		sbswt = ui.sbswt = {};
+	var swt = {};
 
 	var CONST = {
 		BACKSPACE_KEYCODE: 8,
@@ -19564,7 +18958,7 @@ define('skylark-widgets-swt/swt',[
 		return $('<i>').text(questionableMarkup).html();
 	};
 
-	langx.mixin(ui, {
+	langx.mixin(swt, {
 		CONST: CONST,
 		cleanInput: cleanInput,
 		isBackspaceKey: isBackspaceKey,
@@ -19575,7 +18969,7 @@ define('skylark-widgets-swt/swt',[
 		isDownArrow: isDownArrow
 	});
 
-	return ui;
+	return skylark.attach("widgets.swt",swt);
 
 });
 
@@ -23891,8 +23285,6 @@ define('skylark-widgets-swt', ['skylark-widgets-swt/main'], function (main) { re
 define('skylark-widgets-shells/main',[
 	"./shells",
 	"./Shell",
-	"skylark-langx",
-	"skylark-utils-dom",
 	"skylark-bootstrap3",
 	"skylark-widgets-swt",
 	"skylark-visibility"
@@ -23900,6 +23292,349 @@ define('skylark-widgets-shells/main',[
 	return shells;
 });
 define('skylark-widgets-shells', ['skylark-widgets-shells/main'], function (main) { return main; });
+
+define('skylark-domx-forms/forms',[
+	"skylark-langx/skylark"
+],function(skylark){
+	return skylark.attach("domx.forms",{});
+});
+define('skylark-domx-forms/deserialize',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "./forms"
+],function(langx,$,forms){
+  /**
+   * Updates a key/valueArray with the given property and value. Values will always be stored as arrays.
+   *
+   * @param prop The property to add the value to.
+   * @param value The value to add.
+   * @param obj The object to update.
+   * @returns {object} Updated object.
+   */
+  function updateKeyValueArray( prop, value, obj ) {
+    var current = obj[ prop ];
+
+    if ( current === undefined ) {
+      obj[ prop ] = [ value ];
+    } else {
+      current.push( value );
+    }
+
+    return obj;
+  }
+
+  /**
+   * Get all of the fields contained within the given elements by name.
+   *
+   * @param formElm The form element.
+   * @param filter Custom filter to apply to the list of fields.
+   * @returns {object} All of the fields contained within the given elements, keyed by name.
+   */
+  function getFieldsByName(formElm, filter ) {
+    var elementsByName = {};
+
+    // Extract fields from elements
+    var fields = $(formElm)
+      .map(function convertFormToElements() {
+        return this.elements ? langx.makeArray( this.elements ) : this;
+      })
+      .filter( filter || ":input:not(:disabled)" )
+      .get();
+
+    langx.each( fields, function( index, field ) {
+      updateKeyValueArray( field.name, field, elementsByName );
+    });
+
+    return elementsByName;
+  }
+
+  /**
+   * Figure out the type of an element. Input type will be used first, falling back to nodeName.
+   *
+   * @param element DOM element to check type of.
+   * @returns {string} The element's type.
+   */
+  function getElementType( element ) {
+    return ( element.type || element.nodeName ).toLowerCase();
+  }
+
+  /**
+   * Normalize the provided data into a key/valueArray store.
+   *
+   * @param data The data provided by the user to the plugin.
+   * @returns {object} The data normalized into a key/valueArray store.
+   */
+  function normalizeData( data ) {
+    var normalized = {};
+    var rPlus = /\+/g;
+
+    // Convert data from .serializeObject() notation
+    if ( langx.isPlainObject( data ) ) {
+      langx.extend( normalized, data );
+
+      // Convert non-array values into an array
+      langx.each( normalized, function( name, value ) {
+        if ( !langx.isArray( value ) ) {
+          normalized[ name ] = [ value ];
+        }
+      });
+
+    // Convert data from .serializeArray() notation
+    } else if ( langx.isArray( data ) ) {
+      langx.each( data, function( index, field ) {
+        updateKeyValueArray( field.name, field.value, normalized );
+      });
+
+    // Convert data from .serialize() notation
+    } else if ( typeof data === "string" ) {
+      langx.each( data.split( "&" ), function( index, field ) {
+        var current = field.split( "=" );
+        var name = decodeURIComponent( current[ 0 ].replace( rPlus, "%20" ) );
+        var value = decodeURIComponent( current[ 1 ].replace( rPlus, "%20" ) );
+        updateKeyValueArray( name, value, normalized );
+      });
+    }
+
+    return normalized;
+  }
+
+  /**
+   * Map of property name -> element types.
+   *
+   * @type {object}
+   */
+  var updateTypes = {
+    checked: [
+      "radio",
+      "checkbox"
+    ],
+    selected: [
+      "option",
+      "select-one",
+      "select-multiple"
+    ],
+    value: [
+      "button",
+      "color",
+      "date",
+      "datetime",
+      "datetime-local",
+      "email",
+      "hidden",
+      "month",
+      "number",
+      "password",
+      "range",
+      "reset",
+      "search",
+      "submit",
+      "tel",
+      "text",
+      "textarea",
+      "time",
+      "url",
+      "week"
+    ]
+  };
+
+  /**
+   * Get the property to update on an element being updated.
+   *
+   * @param element The DOM element to get the property for.
+   * @returns The name of the property to update if element is supported, otherwise `undefined`.
+   */
+  function getPropertyToUpdate( element ) {
+    var type = getElementType( element );
+    var elementProperty = undefined;
+
+    langx.each( updateTypes, function( property, types ) {
+      if ( langx.inArray( type, types ) > -1 ) {
+        elementProperty = property;
+        return false;
+      }
+    });
+
+    return elementProperty;
+  }
+
+  /**
+   * Update the element based on the provided data.
+   *
+   * @param element The DOM element to update.
+   * @param elementIndex The index of this element in the list of elements with the same name.
+   * @param value The serialized element value.
+   * @param valueIndex The index of the value in the list of values for elements with the same name.
+   * @param callback A function to call if the value of an element was updated.
+   */
+  function update( element, elementIndex, value, valueIndex, callback ) {
+    var property = getPropertyToUpdate( element );
+
+    // Handle value inputs
+    // If there are multiple value inputs with the same name, they will be populated by matching indexes.
+    if ( property == "value" && elementIndex == valueIndex ) {
+      element.value = value;
+      callback.call( element, value );
+
+    // Handle select menus, checkboxes and radio buttons
+    } else if ( property == "checked" || property == "selected" ) {
+      var fields = [];
+
+      // Extract option fields from select menus
+      if ( element.options ) {
+        langx.each( element.options, function( index, option ) {
+          fields.push( option );
+        });
+
+      } else {
+        fields.push( element );
+      }
+
+      // #37: Remove selection from multiple select menus before deserialization
+      if ( element.multiple && valueIndex == 0 ) {
+        element.selectedIndex = -1;
+      }
+
+      langx.each( fields, function( index, field ) {
+        if ( field.value == value ) {
+          field[ property ] = true;
+          callback.call( field, value );
+        }
+      });
+    }
+  }
+
+  /**
+   * Default plugin options.
+   *
+   * @type {object}
+   */
+  var defaultOptions = {
+    change: langx.noop,
+    complete: langx.noop
+  };
+
+  /**
+   * The $.deserialize function.
+   *
+   * @param data The data to deserialize.
+   * @param options Additional options.
+   * @returns {jQuery} The jQuery object that was provided to the plugin.
+   */
+  function deserialize(formElm,data, options ) {
+
+    // Backwards compatible with old arguments: data, callback
+    if ( langx.isFunction( options ) ) {
+      options = { complete: options };
+    }
+
+    options = langx.extend( defaultOptions, options || {} );
+    data = normalizeData( data );
+
+    var elementsByName = getFieldsByName( formElm, options.filter );
+
+    langx.each( data, function( name, values ) {
+      langx.each( elementsByName[ name ], function( elementIndex, element ) {
+        langx.each( values, function( valueIndex, value ) {
+          update( element, elementIndex, value, valueIndex, options.change );
+        });
+      });
+    });
+
+    options.complete.call( formElm );
+
+    return this;
+  };
+
+  return forms.deserialize = deserialize;
+});
+define('skylark-domx-forms/serializeArray',[
+  "skylark-langx/langx",
+  "skylark-domx-data",
+  "./forms"
+],function(langx,datax,forms){
+    function serializeArray(formElm) {
+        var name, type, result = [],
+            add = function(value) {
+                if (value.forEach) return value.forEach(add)
+                result.push({ name: name, value: value })
+            }
+        langx.each(formElm.elements, function(_, field) {
+            type = field.type, name = field.name
+            if (name && field.nodeName.toLowerCase() != 'fieldset' &&
+                !field.disabled && type != 'submit' && type != 'reset' && type != 'button' && type != 'file' &&
+                ((type != 'radio' && type != 'checkbox') || field.checked))
+                add(datax.val(field))
+        })
+        return result
+    };
+
+    return forms.serializeArray = serializeArray;
+});
+
+define('skylark-domx-forms/serializeObject',[
+  "skylark-langx/langx",
+  "./forms",
+  "./serializeArray"
+],function(langx,forms,serializeArray){
+
+  function serializeObject(formElm){
+    var obj = {};
+    
+    langx.each(serializeArray(formElm), function(i,o){
+      var n = o.name,
+        v = o.value;
+        
+        obj[n] = obj[n] === undefined ? v
+          : langx.isArray( obj[n] ) ? obj[n].concat( v )
+          : [ obj[n], v ];
+    });
+    
+    return obj;
+  }
+
+  return forms.serializeObject = serializeObject;
+});  
+define('skylark-domx-forms/serialize',[
+  "skylark-langx/langx",
+  "./forms"
+],function(langx,forms){
+    function serialize(formElm) {
+        var result = []
+        serializeArray(formElm).forEach(function(elm) {
+            result.push(encodeURIComponent(elm.name) + '=' + encodeURIComponent(elm.value))
+        })
+        return result.join('&')
+    }
+
+    return forms.serialize = serialize;
+});
+define('skylark-domx-forms/main',[
+	"./forms",
+    "skylark-domx-velm",
+    "skylark-domx-query",
+    "./deserialize",
+    "./serializeArray",
+    "./serializeObject",
+    "./serialize"
+],function(forms,velm,$){
+
+    // from ./data
+    velm.delegate([
+        "deserialize",
+        "serializeArray",
+        "serializeObject",
+        "serialize"
+    ], forms);
+
+    $.fn.deserialize = $.wraps.wrapper_value(forms.deserialize, forms, forms.deserialize);
+    $.fn.serializeArray = $.wraps.wrapper_value(forms.serializeArray, forms, forms.serializeArray);
+    $.fn.serializeObject = $.wraps.wrapper_value(forms.serializeObject, forms, forms.serializeObject);
+    $.fn.serialize = $.wraps.wrapper_value(forms.serialize, forms, forms.serialize);
+
+
+	return forms;
+});
+define('skylark-domx-forms', ['skylark-domx-forms/main'], function (main) { return main; });
 
 define('skylark-jquery/core',[
 	"skylark-langx/skylark",
@@ -23909,10 +23644,11 @@ define('skylark-jquery/core',[
 	"skylark-domx-data",
 	"skylark-domx-eventer",
 	"skylark-domx-finder",
+	"skylark-domx-forms",
 	"skylark-domx-fx",
 	"skylark-domx-styler",
 	"skylark-domx-query"
-],function(skylark,langx,browser,noder,datax,eventer,finder,fx,styler,query){
+],function(skylark,langx,browser,noder,datax,eventer,finder,forms,fx,styler,query){
 	var filter = Array.prototype.filter,
 		slice = Array.prototype.slice;
 
@@ -23974,29 +23710,7 @@ define('skylark-jquery/core',[
 	        langx.mixin($.fn, props);
 	    };
 
-	    $.fn.serializeArray = function() {
-	        var name, type, result = [],
-	            add = function(value) {
-	                if (value.forEach) return value.forEach(add)
-	                result.push({ name: name, value: value })
-	            }
-	        if (this[0]) langx.each(this[0].elements, function(_, field) {
-	            type = field.type, name = field.name
-	            if (name && field.nodeName.toLowerCase() != 'fieldset' &&
-	                !field.disabled && type != 'submit' && type != 'reset' && type != 'button' && type != 'file' &&
-	                ((type != 'radio' && type != 'checkbox') || field.checked))
-	                add($(field).val())
-	        })
-	        return result
-	    };
 
-	    $.fn.serialize = function() {
-	        var result = []
-	        this.serializeArray().forEach(function(elm) {
-	            result.push(encodeURIComponent(elm.name) + '=' + encodeURIComponent(elm.value))
-	        })
-	        return result.join('&')
-	    };
     })(query);
 
     (function($){
@@ -24303,11 +24017,15 @@ define('skylark-jquery/ajax',[
         return deferred;
     }
 
-    $.ajaxSettings = Xhr.defaultOptions;
+    //$.ajaxSettings = Xhr.defaultOptions;
+    //$.ajaxSettings.xhr = function() {
+    //    return new window.XMLHttpRequest()
+    //};
 
-    $.ajaxSettings.xhr = function() {
-        return new window.XMLHttpRequest()
+    $.ajaxSettings = {
+        processData : true
     };
+
 
     $.ajax = function(url,options) {
         if (!url) {
@@ -24325,6 +24043,8 @@ define('skylark-jquery/ajax',[
         } else {
             options.url = url;
         }
+
+        options = langx.mixin({},$.ajaxSettings,options);
 
         if ('jsonp' == options.dataType) {
             var hasPlaceholder = /\?.+=\?/.test(options.url);
@@ -24407,6 +24127,10 @@ define('skylark-jquery/ajax',[
             selector,
             callback = options.success
         if (parts && parts.length > 1) options.url = parts[0], selector = parts[1]
+
+        if (options.data && typeof options.data === "object") {
+            options.type = "POST";
+        }
         options.success = function(response) {
             self.html(selector ?
                 $('<div>').html(response.replace(rscript, "")).find(selector) : response)
@@ -44962,6 +44686,10 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 
 	var jstree = skylark.jstree =  skylark.jstree || {};
 
+	var ajax = function(options) {
+        return langx.Xhr.request(options.url,options);
+    };
+	/*
 	$.ajax = $.ajax || function(options) {
         return langx.Xhr.request(options.url,options);
     };
@@ -45014,7 +44742,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
     $.fn.stop = function() {
     	return this;
     }
-
+	*/
 
 	/*!
 	 * jsTree {{VERSION}}
@@ -45298,7 +45026,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 * a callback called with a single object parameter in the instance's scope when something goes wrong (operation prevented, ajax failed, etc)
 		 * @name $.jstree.defaults.core.error
 		 */
-		error			: $.noop,
+		error			: langx.noop,
 		/**
 		 * the open / close animation duration in milliseconds - set this to `false` to disable the animation (default is `200`)
 		 * @name $.jstree.defaults.core.animation
@@ -45512,11 +45240,11 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 
 			var  opt = options,
 				tmp = this;
-			options = $.extend(true, {}, $.jstree.defaults, options);
+			options = langx.extend(true, {}, $.jstree.defaults, options);
 			if(opt && opt.plugins) {
 				options.plugins = opt.plugins;
 			}
-			$.each(options.plugins, function (i, k) {
+			langx.each(options.plugins, function (i, k) {
 				if(i !== 'core') {
 					tmp = tmp.plugin(k, options[k]);
 				}
@@ -45718,7 +45446,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							}
 						}
 					})
-				.on("mousedown.jstree", $.proxy(function (e) {
+				.on("mousedown.jstree", langx.proxy(function (e) {
 						if(e.target === this.element[0]) {
 							e.preventDefault(); // prevent losing focus when clicking scroll arrows (FF, Chrome)
 							was_click = +(new Date()); // ie does not allow to prevent losing focus
@@ -45727,21 +45455,21 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				.on("mousedown.jstree", ".jstree-ocl", function (e) {
 						e.preventDefault(); // prevent any node inside from losing focus when clicking the open/close icon
 					})
-				.on("click.jstree", ".jstree-ocl", $.proxy(function (e) {
+				.on("click.jstree", ".jstree-ocl", langx.proxy(function (e) {
 						this.toggle_node(e.target);
 					}, this))
-				.on("dblclick.jstree", ".jstree-anchor", $.proxy(function (e) {
+				.on("dblclick.jstree", ".jstree-anchor", langx.proxy(function (e) {
 						if(e.target.tagName && e.target.tagName.toLowerCase() === "input") { return true; }
 						if(this.settings.core.dblclick_toggle) {
 							this.toggle_node(e.target);
 						}
 					}, this))
-				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
+				.on("click.jstree", ".jstree-anchor", langx.proxy(function (e) {
 						e.preventDefault();
 						if(e.currentTarget !== document.activeElement) { $(e.currentTarget).focus(); }
 						this.activate_node(e.currentTarget, e);
 					}, this))
-				.on('keydown.jstree', '.jstree-anchor', $.proxy(function (e) {
+				.on('keydown.jstree', '.jstree-anchor', langx.proxy(function (e) {
 						if(e.target.tagName && e.target.tagName.toLowerCase() === "input") { return true; }
 						if(this._data.core.rtl) {
 							if(e.which === 37) { e.which = 39; }
@@ -45755,7 +45483,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							}
 						}
 					}, this))
-				.on("load_node.jstree", $.proxy(function (e, data) {
+				.on("load_node.jstree", langx.proxy(function (e, data) {
 						if(data.status) {
 							if(data.node.id === $.jstree.root && !this._data.core.loaded) {
 								this._data.core.loaded = true;
@@ -45770,7 +45498,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 								this.trigger("loaded");
 							}
 							if(!this._data.core.ready) {
-								setTimeout($.proxy(function() {
+								setTimeout(langx.proxy(function() {
 									if(this.element && !this.get_container_ul().find('.jstree-loading').length) {
 										this._data.core.ready = true;
 										if(this._data.core.selected.length) {
@@ -45798,7 +45526,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						}
 					}, this))
 				// quick searching when the tree is focused
-				.on('keypress.jstree', $.proxy(function (e) {
+				.on('keypress.jstree', langx.proxy(function (e) {
 						if(e.target.tagName && e.target.tagName.toLowerCase() === "input") { return true; }
 						if(tout) { clearTimeout(tout); }
 						tout = setTimeout(function () {
@@ -45813,7 +45541,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 
 						// match for whole word from current node down (including the current node)
 						if(word.length > 1) {
-							col.slice(ind).each($.proxy(function (i, v) {
+							col.slice(ind).each(langx.proxy(function (i, v) {
 								if($(v).text().toLowerCase().indexOf(word) === 0) {
 									$(v).focus();
 									end = true;
@@ -45823,7 +45551,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							if(end) { return; }
 
 							// match for whole word from the beginning of the tree
-							col.slice(0, ind).each($.proxy(function (i, v) {
+							col.slice(0, ind).each(langx.proxy(function (i, v) {
 								if($(v).text().toLowerCase().indexOf(word) === 0) {
 									$(v).focus();
 									end = true;
@@ -45835,7 +45563,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						// list nodes that start with that letter (only if word consists of a single char)
 						if(new RegExp('^' + chr.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '+$').test(word)) {
 							// search for the next node starting with that letter
-							col.slice(ind + 1).each($.proxy(function (i, v) {
+							col.slice(ind + 1).each(langx.proxy(function (i, v) {
 								if($(v).text().toLowerCase().charAt(0) === chr) {
 									$(v).focus();
 									end = true;
@@ -45845,7 +45573,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							if(end) { return; }
 
 							// search from the beginning
-							col.slice(0, ind + 1).each($.proxy(function (i, v) {
+							col.slice(0, ind + 1).each(langx.proxy(function (i, v) {
 								if($(v).text().toLowerCase().charAt(0) === chr) {
 									$(v).focus();
 									end = true;
@@ -45856,7 +45584,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						}
 					}, this))
 				// THEME RELATED
-				.on("init.jstree", $.proxy(function () {
+				.on("init.jstree", langx.proxy(function () {
 						var s = this.settings.core.themes;
 						this._data.core.themes.dots			= s.dots;
 						this._data.core.themes.stripes		= s.stripes;
@@ -45865,18 +45593,18 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						this.set_theme(s.name || "default", s.url);
 						this.set_theme_variant(s.variant);
 					}, this))
-				.on("loading.jstree", $.proxy(function () {
+				.on("loading.jstree", langx.proxy(function () {
 						this[ this._data.core.themes.dots ? "show_dots" : "hide_dots" ]();
 						this[ this._data.core.themes.icons ? "show_icons" : "hide_icons" ]();
 						this[ this._data.core.themes.stripes ? "show_stripes" : "hide_stripes" ]();
 						this[ this._data.core.themes.ellipsis ? "show_ellipsis" : "hide_ellipsis" ]();
 					}, this))
-				.on('blur.jstree', '.jstree-anchor', $.proxy(function (e) {
+				.on('blur.jstree', '.jstree-anchor', langx.proxy(function (e) {
 						this._data.core.focused = null;
 						$(e.currentTarget).filter('.jstree-hovered').mouseleave();
 						this.element.attr('tabindex', '0');
 					}, this))
-				.on('focus.jstree', '.jstree-anchor', $.proxy(function (e) {
+				.on('focus.jstree', '.jstree-anchor', langx.proxy(function (e) {
 						var tmp = this.get_node(e.currentTarget);
 						if(tmp && tmp.id) {
 							this._data.core.focused = tmp.id;
@@ -45885,7 +45613,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						$(e.currentTarget).mouseenter();
 						this.element.attr('tabindex', '-1');
 					}, this))
-				.on('focus.jstree', $.proxy(function () {
+				.on('focus.jstree', langx.proxy(function () {
 						if(+(new Date()) - was_click > 500 && !this._data.core.focused && this.settings.core.restore_focus) {
 							was_click = 0;
 							var act = this.get_node(this.element.attr('aria-activedescendant'), true);
@@ -45894,10 +45622,10 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							}
 						}
 					}, this))
-				.on('mouseenter.jstree', '.jstree-anchor', $.proxy(function (e) {
+				.on('mouseenter.jstree', '.jstree-anchor', langx.proxy(function (e) {
 						this.hover_node(e.currentTarget);
 					}, this))
-				.on('mouseleave.jstree', '.jstree-anchor', $.proxy(function (e) {
+				.on('mouseleave.jstree', '.jstree-anchor', langx.proxy(function (e) {
 						this.dehover_node(e.currentTarget);
 					}, this));
 		},
@@ -45950,7 +45678,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		get_string : function (key) {
 			var a = this.settings.core.strings;
-			if($.isFunction(a)) { return a.call(this, key); }
+			if(langx.isFunction(a)) { return a.call(this, key); }
 			if(a && a[key]) { return a[key]; }
 			return key;
 		},
@@ -46239,7 +45967,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		load_node : function (obj, callback) {
 			var k, l, i, j, c;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				this._load_nodes(obj.slice(), callback);
 				return true;
 			}
@@ -46253,7 +45981,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				obj.state.loaded = false;
 				for(i = 0, j = obj.parents.length; i < j; i++) {
 					this._model.data[obj.parents[i]].children_d = $.vakata.array_filter(this._model.data[obj.parents[i]].children_d, function (v) {
-						return $.inArray(v, obj.children_d) === -1;
+						return langx.inArray(v, obj.children_d) === -1;
 					});
 				}
 				for(k = 0, l = obj.children_d.length; k < l; k++) {
@@ -46264,7 +45992,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				}
 				if (c) {
 					this._data.core.selected = $.vakata.array_filter(this._data.core.selected, function (v) {
-						return $.inArray(v, obj.children_d) === -1;
+						return langx.inArray(v, obj.children_d) === -1;
 					});
 				}
 				obj.children = [];
@@ -46276,7 +46004,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			obj.state.failed = false;
 			obj.state.loading = true;
 			this.get_node(obj, true).addClass("jstree-loading").attr('aria-busy',true);
-			this._load_node(obj, $.proxy(function (status) {
+			this._load_node(obj, langx.proxy(function (status) {
 				obj = this._model.data[obj.id];
 				obj.state.loading = false;
 				obj.state.loaded = status;
@@ -46409,13 +46137,13 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				}
 				// return callback.call(this, obj.id === $.jstree.root ? this._append_html_data(obj, this._data.core.original_container_html.clone(true)) : false);
 			}
-			if($.isFunction(s)) {
-				return s.call(this, obj, $.proxy(function (d) {
+			if(langx.isFunction(s)) {
+				return s.call(this, obj, langx.proxy(function (d) {
 					if(d === false) {
 						callback.call(this, false);
 					}
 					else {
-						this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $($.parseHTML(d)).filter(notTextOrCommentNode) : d, function (status) {
+						this[typeof d === 'string' ? '_append_html_data' : '_append_json_data'](obj, typeof d === 'string' ? $(langx.parseHTML(d)).filter(notTextOrCommentNode) : d, function (status) {
 							callback.call(this, status);
 						});
 					}
@@ -46424,38 +46152,38 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if(typeof s === 'object') {
 				if(s.url) {
-					s = $.extend(true, {}, s);
-					if($.isFunction(s.url)) {
+					s = langx.extend(true, {}, s);
+					if(langx.isFunction(s.url)) {
 						s.url = s.url.call(this, obj);
 					}
-					if($.isFunction(s.data)) {
+					if(langx.isFunction(s.data)) {
 						s.data = s.data.call(this, obj);
 					}
-					return $.ajax(s)
-						.done($.proxy(function (d,t,x) {
+					return ajax(s)
+						.done(langx.proxy(function (d,t,x) {
 								var type = x.getResponseHeader('Content-Type');
 								if((type && type.indexOf('json') !== -1) || typeof d === "object") {
 									return this._append_json_data(obj, d, function (status) { callback.call(this, status); });
 									//return callback.call(this, this._append_json_data(obj, d));
 								}
 								if((type && type.indexOf('html') !== -1) || typeof d === "string") {
-									return this._append_html_data(obj, $($.parseHTML(d)).filter(notTextOrCommentNode), function (status) { callback.call(this, status); });
+									return this._append_html_data(obj, $(langx.parseHTML(d)).filter(notTextOrCommentNode), function (status) { callback.call(this, status); });
 									// return callback.call(this, this._append_html_data(obj, $(d)));
 								}
 								this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'core', 'id' : 'core_04', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id, 'xhr' : x }) };
 								this.settings.core.error.call(this, this._data.core.last_error);
 								return callback.call(this, false);
 							}, this))
-						.fail($.proxy(function (f) {
+						.fail(langx.proxy(function (f) {
 								this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'core', 'id' : 'core_04', 'reason' : 'Could not load node', 'data' : JSON.stringify({ 'id' : obj.id, 'xhr' : f }) };
 								callback.call(this, false);
 								this.settings.core.error.call(this, this._data.core.last_error);
 							}, this));
 				}
-				if ($.isArray(s)) {
-					t = $.extend(true, [], s);
-				} else if ($.isPlainObject(s)) {
-					t = $.extend(true, {}, s);
+				if (langx.isArray(s)) {
+					t = langx.extend(true, [], s);
+				} else if (langx.isPlainObject(s)) {
+					t = langx.extend(true, {}, s);
 				} else {
 					t = s;
 				}
@@ -46473,7 +46201,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if(typeof s === 'string') {
 				if(obj.id === $.jstree.root) {
-					return this._append_html_data(obj, $($.parseHTML(s)).filter(notTextOrCommentNode), function (status) {
+					return this._append_html_data(obj, $(langx.parseHTML(s)).filter(notTextOrCommentNode), function (status) {
 						callback.call(this, status);
 					});
 				}
@@ -46494,7 +46222,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		_node_changed : function (obj) {
 			obj = this.get_node(obj);
-      if (obj && $.inArray(obj.id, this._model.changed) === -1) {
+      if (obj && langx.inArray(obj.id, this._model.changed) === -1) {
 				this._model.changed.push(obj.id);
 			}
 		},
@@ -46518,7 +46246,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				p = m[par],
 				s = this._data.core.selected.length,
 				tmp, i, j;
-			dat.each($.proxy(function (i, v) {
+			dat.each(langx.proxy(function (i, v) {
 				tmp = this._parse_model_from_html($(v), par, p.parents.concat());
 				if(tmp) {
 					chd.push(tmp);
@@ -46575,7 +46303,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					data = JSON.parse(data);
 				}
 			}
-			if(!$.isArray(data)) { data = [data]; }
+			if(!langx.isArray(data)) { data = [data]; }
 			var w = null,
 				args = {
 					'df'	: this._model.default_state,
@@ -46884,13 +46612,13 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						if(r.length !== s.length || $.vakata.array_unique(r.concat(s)).length !== r.length) {
 							// deselect nodes that are no longer selected
 							for(i = 0, j = r.length; i < j; i++) {
-								if($.inArray(r[i], a) === -1 && $.inArray(r[i], s) === -1) {
+								if(langx.inArray(r[i], a) === -1 && langx.inArray(r[i], s) === -1) {
 									m[r[i]].state.selected = false;
 								}
 							}
 							// select nodes that were selected in the mean time
 							for(i = 0, j = s.length; i < j; i++) {
-								if($.inArray(s[i], r) === -1) {
+								if(langx.inArray(s[i], r) === -1) {
 									m[s[i]].state.selected = true;
 								}
 							}
@@ -46928,7 +46656,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					if(!this._data.core.working || force_processing) {
 						this._data.core.working = true;
 						w = new window.Worker(this._wrk);
-						w.onmessage = $.proxy(function (e) {
+						w.onmessage = langx.proxy(function (e) {
 							rslt.call(this, e.data, true);
 							try { w.terminate(); w = null; } catch(ignore) { }
 							if(this._data.core.worker_queue.length) {
@@ -47002,8 +46730,8 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				}
 			}
 			tmp = $.vakata.attributes(d, true);
-			$.each(tmp, function (i, v) {
-				v = $.trim(v);
+			langx.each(tmp, function (i, v) {
+				v = langx.trim(v);
 				if(!v.length) { return true; }
 				data.li_attr[i] = v;
 				if(i === 'id') {
@@ -47013,8 +46741,8 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			tmp = d.children('a').first();
 			if(tmp.length) {
 				tmp = $.vakata.attributes(tmp, true);
-				$.each(tmp, function (i, v) {
-					v = $.trim(v);
+				langx.each(tmp, function (i, v) {
+					v = langx.trim(v);
 					if(v.length) {
 						data.a_attr[i] = v;
 					}
@@ -47026,7 +46754,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			tmp = $('<div />').html(tmp);
 			data.text = this.settings.core.force_text ? tmp.text() : tmp.html();
 			tmp = d.data();
-			data.data = tmp ? $.extend(true, {}, tmp) : null;
+			data.data = tmp ? langx.extend(true, {}, tmp) : null;
 			data.state.opened = d.hasClass('jstree-open');
 			data.state.selected = d.children('a').hasClass('jstree-clicked');
 			data.state.disabled = d.children('a').hasClass('jstree-disabled');
@@ -47053,7 +46781,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			} while(m[tid]);
 			data.id = data.li_attr.id ? data.li_attr.id.toString() : tid;
 			if(tmp.length) {
-				tmp.each($.proxy(function (i, v) {
+				tmp.each(langx.proxy(function (i, v) {
 					c = this._parse_model_from_html($(v), data.id, ps);
 					e = this._model.data[c];
 					data.children.push(c);
@@ -47411,7 +47139,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					if(par !== null && (!par || !m[obj.parent].state.opened)) {
 						return false;
 					}
-					ind = $.inArray(obj.id, par === null ? m[$.jstree.root].children : m[obj.parent].children);
+					ind = langx.inArray(obj.id, par === null ? m[$.jstree.root].children : m[obj.parent].children);
 				}
 			}
 			else {
@@ -47467,7 +47195,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				}
 			}
 			if(obj.parent !== null && m[obj.parent] && !obj.state.hidden) {
-				i = $.inArray(obj.id, m[obj.parent].children);
+				i = langx.inArray(obj.id, m[obj.parent].children);
 				last_sibling = obj.id;
 				if(i !== -1) {
 					i++;
@@ -47585,7 +47313,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if(obj.state.opened && !obj.state.loaded) {
 				obj.state.opened = false;
-				setTimeout($.proxy(function () {
+				setTimeout(langx.proxy(function () {
 					this.open_node(obj.id, false, 0);
 				}, this), 0);
 			}
@@ -47601,7 +47329,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		open_node : function (obj, callback, animation) {
 			var t1, t2, d, t;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.open_node(obj[t1], callback, animation);
@@ -47621,7 +47349,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if(!this.is_loaded(obj)) {
 				if(this.is_loading(obj)) {
-					return setTimeout($.proxy(function () {
+					return setTimeout(langx.proxy(function () {
 						this.open_node(obj, callback, animation);
 					}, this), 500);
 				}
@@ -47719,7 +47447,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		close_node : function (obj, animation) {
 			var t1, t2, t, d;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.close_node(obj[t1], animation);
@@ -47781,7 +47509,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		toggle_node : function (obj) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.toggle_node(obj[t1]);
@@ -47882,7 +47610,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		enable_node : function (obj) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.enable_node(obj[t1]);
@@ -47911,7 +47639,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		disable_node : function (obj) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.disable_node(obj[t1]);
@@ -47950,7 +47678,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		hide_node : function (obj, skip_redraw) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.hide_node(obj[t1], true);
@@ -47988,7 +47716,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		show_node : function (obj, skip_redraw) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.show_node(obj[t1], true);
@@ -48200,7 +47928,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		select_node : function (obj, supress_event, prevent_open, e) {
 			var dom, t1, t2, th;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.select_node(obj[t1], supress_event, prevent_open, e);
@@ -48253,7 +47981,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		deselect_node : function (obj, supress_event, e) {
 			var t1, t2, dom;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.deselect_node(obj[t1], supress_event, e);
@@ -48358,7 +48086,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 * @return {Array}
 		 */
 		get_selected : function (full) {
-			return full ? $.map(this._data.core.selected, $.proxy(function (i) { return this.get_node(i); }, this)) : this._data.core.selected.slice();
+			return full ? langx.map(this._data.core.selected, langx.proxy(function (i) { return this.get_node(i); }, this)) : this._data.core.selected.slice();
 		},
 		/**
 		 * get an array of all top level selected nodes (ignoring children of selected nodes)
@@ -48385,7 +48113,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					tmp.push(i);
 				}
 			}
-			return full ? $.map(tmp, $.proxy(function (i) { return this.get_node(i); }, this)) : tmp;
+			return full ? langx.map(tmp, langx.proxy(function (i) { return this.get_node(i); }, this)) : tmp;
 		},
 		/**
 		 * get an array of all bottom level selected nodes (ignoring selected parents)
@@ -48401,7 +48129,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					obj.push(tmp[i].id);
 				}
 			}
-			return full ? $.map(obj, $.proxy(function (i) { return this.get_node(i); }, this)) : obj;
+			return full ? langx.map(obj, langx.proxy(function (i) { return this.get_node(i); }, this)) : obj;
 		},
 		/**
 		 * gets the current state of the tree so that it can be restored later with `set_state(state)`. Used internally.
@@ -48461,7 +48189,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				if(state.core) {
 					var res, n, t, _this, i;
 					if(state.core.loaded) {
-						if(!this.settings.core.loaded_state || !$.isArray(state.core.loaded) || !state.core.loaded.length) {
+						if(!this.settings.core.loaded_state || !langx.isArray(state.core.loaded) || !state.core.loaded.length) {
 							delete state.core.loaded;
 							this.set_state(state, callback);
 						}
@@ -48474,7 +48202,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						return false;
 					}
 					if(state.core.open) {
-						if(!$.isArray(state.core.open) || !state.core.open.length) {
+						if(!langx.isArray(state.core.open) || !state.core.open.length) {
 							delete state.core.open;
 							this.set_state(state, callback);
 						}
@@ -48504,7 +48232,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							state.core.initial_selection === this._data.core.selected.concat([]).sort().join(',')
 						) {
 							this.deselect_all();
-							$.each(state.core.selected, function (i, v) {
+							langx.each(state.core.selected, function (i, v) {
 								_this.select_node(v, false, true);
 							});
 						}
@@ -48514,17 +48242,17 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 						return false;
 					}
 					for(i in state) {
-						if(state.hasOwnProperty(i) && i !== "core" && $.inArray(i, this.settings.plugins) === -1) {
+						if(state.hasOwnProperty(i) && i !== "core" && langx.inArray(i, this.settings.plugins) === -1) {
 							delete state[i];
 						}
 					}
-					if($.isEmptyObject(state.core)) {
+					if(langx.isEmptyObject(state.core)) {
 						delete state.core;
 						this.set_state(state, callback);
 						return false;
 					}
 				}
-				if($.isEmptyObject(state)) {
+				if(langx.isEmptyObject(state)) {
 					state = null;
 					if(callback) { callback.call(this); }
 					/**
@@ -48548,7 +48276,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		refresh : function (skip_loading, forget_state) {
 			this._data.core.state = forget_state === true ? {} : this.get_state();
-			if(forget_state && $.isFunction(forget_state)) { this._data.core.state = forget_state.call(this, this._data.core.state); }
+			if(forget_state && langx.isFunction(forget_state)) { this._data.core.state = forget_state.call(this, this._data.core.state); }
 			this._cnt = 0;
 			this._model.data = {};
 			this._model.data[$.jstree.root] = {
@@ -48574,7 +48302,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					if(this._firstChild(this.get_container_ul()[0])) {
 						this.element.attr('aria-activedescendant',this._firstChild(this.get_container_ul()[0]).id);
 					}
-					this.set_state($.extend(true, {}, this._data.core.state), function () {
+					this.set_state(langx.extend(true, {}, this._data.core.state), function () {
 						/**
 						 * triggered when a `refresh` call completes
 						 * @event
@@ -48599,7 +48327,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			to_load.push(obj.id);
 			if(obj.state.opened === true) { opened.push(obj.id); }
 			this.get_node(obj, true).find('.jstree-open').each(function() { to_load.push(this.id); opened.push(this.id); });
-			this._load_nodes(to_load, $.proxy(function (nodes) {
+			this._load_nodes(to_load, langx.proxy(function (nodes) {
 				this.open_node(opened, false, 0);
 				this.select_node(s);
 				/**
@@ -48626,18 +48354,18 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			var i, j, m = this._model.data, old = obj.id;
 			id = id.toString();
 			// update parents (replace current ID with new one in children and children_d)
-			m[obj.parent].children[$.inArray(obj.id, m[obj.parent].children)] = id;
+			m[obj.parent].children[langx.inArray(obj.id, m[obj.parent].children)] = id;
 			for(i = 0, j = obj.parents.length; i < j; i++) {
-				m[obj.parents[i]].children_d[$.inArray(obj.id, m[obj.parents[i]].children_d)] = id;
+				m[obj.parents[i]].children_d[langx.inArray(obj.id, m[obj.parents[i]].children_d)] = id;
 			}
 			// update children (replace current ID with new one in parent and parents)
 			for(i = 0, j = obj.children.length; i < j; i++) {
 				m[obj.children[i]].parent = id;
 			}
 			for(i = 0, j = obj.children_d.length; i < j; i++) {
-				m[obj.children_d[i]].parents[$.inArray(obj.id, m[obj.children_d[i]].parents)] = id;
+				m[obj.children_d[i]].parents[langx.inArray(obj.id, m[obj.children_d[i]].parents)] = id;
 			}
-			i = $.inArray(obj.id, this._data.core.selected);
+			i = langx.inArray(obj.id, this._data.core.selected);
 			if(i !== -1) { this._data.core.selected[i] = id; }
 			// update model and obj itself (obj.id, this._model.data[KEY])
 			i = this.get_node(obj.id, true);
@@ -48682,7 +48410,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		set_text : function (obj, val) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.set_text(obj[t1], val);
@@ -48727,10 +48455,10 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				'id' : obj.id,
 				'text' : obj.text,
 				'icon' : this.get_icon(obj),
-				'li_attr' : $.extend(true, {}, obj.li_attr),
-				'a_attr' : $.extend(true, {}, obj.a_attr),
+				'li_attr' : langx.extend(true, {}, obj.li_attr),
+				'a_attr' : langx.extend(true, {}, obj.a_attr),
 				'state' : {},
-				'data' : options && options.no_data ? false : $.extend(true, $.isArray(obj.data)?[]:{}, obj.data)
+				'data' : options && options.no_data ? false : langx.extend(true, langx.isArray(obj.data)?[]:{}, obj.data)
 				//( this.get_node(obj, true).length ? this.get_node(obj, true).data() : obj.data ),
 			}, i, j;
 			if(options && options.flat) {
@@ -48801,7 +48529,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			if(typeof node === "string") {
 				node = { "text" : node };
 			} else {
-				node = $.extend(true, {}, node);
+				node = langx.extend(true, {}, node);
 			}
 			if(node.text === undefined) { node.text = this.get_string('New node'); }
 			var tmp, dpc, i, j;
@@ -48813,12 +48541,12 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			switch(pos) {
 				case "before":
 					tmp = this.get_node(par.parent);
-					pos = $.inArray(par.id, tmp.children);
+					pos = langx.inArray(par.id, tmp.children);
 					par = tmp;
 					break;
 				case "after" :
 					tmp = this.get_node(par.parent);
-					pos = $.inArray(par.id, tmp.children) + 1;
+					pos = langx.inArray(par.id, tmp.children) + 1;
 					par = tmp;
 					break;
 				case "inside":
@@ -48882,7 +48610,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		rename_node : function (obj, val) {
 			var t1, t2, old;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.rename_node(obj[t1], val);
@@ -48917,7 +48645,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		delete_node : function (obj) {
 			var t1, t2, par, pos, tmp, i, j, k, l, c, top, lft;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.delete_node(obj[t1]);
@@ -48927,7 +48655,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			obj = this.get_node(obj);
 			if(!obj || obj.id === $.jstree.root) { return false; }
 			par = this.get_node(obj.parent);
-			pos = $.inArray(obj.id, par.children);
+			pos = langx.inArray(obj.id, par.children);
 			c = false;
 			if(!this.check("delete_node", obj, par, pos)) {
 				this.settings.core.error.call(this, this._data.core.last_error);
@@ -48940,7 +48668,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			tmp.push(obj.id);
 			for(i = 0, j = obj.parents.length; i < j; i++) {
 				this._model.data[obj.parents[i]].children_d = $.vakata.array_filter(this._model.data[obj.parents[i]].children_d, function (v) {
-					return $.inArray(v, tmp) === -1;
+					return langx.inArray(v, tmp) === -1;
 				});
 			}
 			for(k = 0, l = tmp.length; k < l; k++) {
@@ -48951,7 +48679,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if (c) {
 				this._data.core.selected = $.vakata.array_filter(this._data.core.selected, function (v) {
-					return $.inArray(v, tmp) === -1;
+					return langx.inArray(v, tmp) === -1;
 				});
 			}
 			/**
@@ -48968,7 +48696,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			for(k = 0, l = tmp.length; k < l; k++) {
 				delete this._model.data[tmp[k]];
 			}
-			if($.inArray(this._data.core.focused, tmp) !== -1) {
+			if(langx.inArray(this._data.core.focused, tmp) !== -1) {
 				this._data.core.focused = null;
 				top = this.element[0].scrollTop;
 				lft = this.element[0].scrollLeft;
@@ -49003,7 +48731,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			var tmp = chk.match(/^move_node|copy_node|create_node$/i) ? par : obj,
 				chc = this.settings.core.check_callback;
 			if(chk === "move_node" || chk === "copy_node") {
-				if((!more || !more.is_multi) && (obj.id === par.id || (chk === "move_node" && $.inArray(obj.id, par.children) === pos) || $.inArray(par.id, obj.children_d) !== -1)) {
+				if((!more || !more.is_multi) && (obj.id === par.id || (chk === "move_node" && langx.inArray(obj.id, par.children) === pos) || langx.inArray(par.id, obj.children_d) !== -1)) {
 					this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_01', 'reason' : 'Moving parent inside child', 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 					return false;
 				}
@@ -49015,7 +48743,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				}
 				return tmp.functions[chk];
 			}
-			if(chc === false || ($.isFunction(chc) && chc.call(this, chk, obj, par, pos, more) === false) || (chc && chc[chk] === false)) {
+			if(chc === false || (langx.isFunction(chc) && chc.call(this, chk, obj, par, pos, more) === false) || (chc && chc[chk] === false)) {
 				this._data.core.last_error = { 'error' : 'check', 'plugin' : 'core', 'id' : 'core_03', 'reason' : 'User config for core.check_callback prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 				return false;
 			}
@@ -49051,7 +48779,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				return this.load_node(par, function () { this.move_node(obj, par, pos, callback, true, false, origin); });
 			}
 
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				if(obj.length === 1) {
 					obj = obj[0];
 				}
@@ -49075,7 +48803,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			new_par = (!pos.toString().match(/^(before|after)$/) || par.id === $.jstree.root) ? par : this.get_node(par.parent);
 			old_ins = origin ? origin : (this._model.data[obj.id] ? this : $.jstree.reference(obj.id));
 			is_multi = !old_ins || !old_ins._id || (this._id !== old_ins._id);
-			old_pos = old_ins && old_ins._id && old_par && old_ins._model.data[old_par] && old_ins._model.data[old_par].children ? $.inArray(obj.id, old_ins._model.data[old_par].children) : -1;
+			old_pos = old_ins && old_ins._id && old_par && old_ins._model.data[old_par] && old_ins._model.data[old_par].children ? langx.inArray(obj.id, old_ins._model.data[old_par].children) : -1;
 			if(old_ins && old_ins._id) {
 				obj = old_ins._model.data[obj.id];
 			}
@@ -49094,10 +48822,10 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			switch(pos) {
 				case "before":
-					pos = $.inArray(par.id, new_par.children);
+					pos = langx.inArray(par.id, new_par.children);
 					break;
 				case "after" :
-					pos = $.inArray(par.id, new_par.children) + 1;
+					pos = langx.inArray(par.id, new_par.children) + 1;
 					break;
 				case "inside":
 				case "first":
@@ -49117,7 +48845,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			if(obj.parent === new_par.id) {
 				dpc = new_par.children.concat();
-				tmp = $.inArray(obj.id, dpc);
+				tmp = langx.inArray(obj.id, dpc);
 				if(tmp !== -1) {
 					dpc = $.vakata.array_remove(dpc, tmp);
 					if(pos > tmp) { pos--; }
@@ -49139,7 +48867,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 					dpc = [];
 					p = old_ins._model.data[obj.parents[i]].children_d;
 					for(k = 0, l = p.length; k < l; k++) {
-						if($.inArray(p[k], tmp) === -1) {
+						if(langx.inArray(p[k], tmp) === -1) {
 							dpc.push(p[k]);
 						}
 					}
@@ -49224,7 +48952,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				return this.load_node(par, function () { this.copy_node(obj, par, pos, callback, true, false, origin); });
 			}
 
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				if(obj.length === 1) {
 					obj = obj[0];
 				}
@@ -49258,10 +48986,10 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			}
 			switch(pos) {
 				case "before":
-					pos = $.inArray(par.id, new_par.children);
+					pos = langx.inArray(par.id, new_par.children);
 					break;
 				case "after" :
-					pos = $.inArray(par.id, new_par.children) + 1;
+					pos = langx.inArray(par.id, new_par.children) + 1;
 					break;
 				case "inside":
 				case "first":
@@ -49328,7 +49056,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 			 * @param {jsTree} old_instance the instance the node came from
 			 * @param {jsTree} new_instance the instance of the new parent
 			 */
-			this.trigger('copy_node', { "node" : tmp, "original" : obj, "parent" : new_par.id, "position" : pos, "old_parent" : old_par, "old_position" : old_ins && old_ins._id && old_par && old_ins._model.data[old_par] && old_ins._model.data[old_par].children ? $.inArray(obj.id, old_ins._model.data[old_par].children) : -1,'is_multi' : (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign' : (!old_ins || !old_ins._id), 'old_instance' : old_ins, 'new_instance' : this });
+			this.trigger('copy_node', { "node" : tmp, "original" : obj, "parent" : new_par.id, "position" : pos, "old_parent" : old_par, "old_position" : old_ins && old_ins._id && old_par && old_ins._model.data[old_par] && old_ins._model.data[old_par].children ? langx.inArray(obj.id, old_ins._model.data[old_par].children) : -1,'is_multi' : (old_ins && old_ins._id && old_ins._id !== this._id), 'is_foreign' : (!old_ins || !old_ins._id), 'old_instance' : old_ins, 'new_instance' : this });
 			return tmp.id;
 		},
 		/**
@@ -49339,7 +49067,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		cut : function (obj) {
 			if(!obj) { obj = this._data.core.selected.concat(); }
-			if(!$.isArray(obj)) { obj = [obj]; }
+			if(!langx.isArray(obj)) { obj = [obj]; }
 			if(!obj.length) { return false; }
 			var tmp = [], o, t1, t2;
 			for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
@@ -49366,7 +49094,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		copy : function (obj) {
 			if(!obj) { obj = this._data.core.selected.concat(); }
-			if(!$.isArray(obj)) { obj = [obj]; }
+			if(!langx.isArray(obj)) { obj = [obj]; }
 			if(!obj.length) { return false; }
 			var tmp = [], o, t1, t2;
 			for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
@@ -49489,7 +49217,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							"lineHeight" : (this._data.core.li_height) + "px",
 							"width" : "150px" // will be set a bit further down
 						},
-						"blur" : $.proxy(function (e) {
+						"blur" : langx.proxy(function (e) {
 							e.stopImmediatePropagation();
 							e.preventDefault();
 							var i = s.children(".jstree-rename-input"),
@@ -49500,14 +49228,14 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 							h1.remove();
 							s.replaceWith(a);
 							s.remove();
-							t = f ? t : $('<div></div>').append($.parseHTML(t)).html();
+							t = f ? t : $('<div></div>').append(langx.parseHTML(t)).html();
 							this.set_text(obj, t);
-							nv = !!this.rename_node(obj, f ? $('<div></div>').text(v).text() : $('<div></div>').append($.parseHTML(v)).html());
+							nv = !!this.rename_node(obj, f ? $('<div></div>').text(v).text() : $('<div></div>').append(langx.parseHTML(v)).html());
 							if(!nv) {
 								this.set_text(obj, t); // move this up? and fix #483
 							}
 							this._data.core.focused = tmp.id;
-							setTimeout($.proxy(function () {
+							setTimeout(langx.proxy(function () {
 								var node = this.get_node(tmp.id, true);
 								if(node.length) {
 									this._data.core.focused = tmp.id;
@@ -49578,7 +49306,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 				if(!dir) { dir = $.jstree.path + '/themes'; }
 				theme_url = dir + '/' + theme_name + '/style.css';
 			}
-			if(theme_url && $.inArray(theme_url, themes_loaded) === -1) {
+			if(theme_url && langx.inArray(theme_url, themes_loaded) === -1) {
 				$('head').append('<'+'link rel="stylesheet" href="' + theme_url + '" type="text/css" />');
 				themes_loaded.push(theme_url);
 			}
@@ -49762,7 +49490,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		set_icon : function (obj, icon) {
 			var t1, t2, dom, old;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.set_icon(obj[t1], icon);
@@ -49811,7 +49539,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		hide_icon : function (obj) {
 			var t1, t2;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.hide_icon(obj[t1]);
@@ -49831,7 +49559,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		 */
 		show_icon : function (obj) {
 			var t1, t2, dom;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.show_icon(obj[t1]);
@@ -49972,9 +49700,9 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 		node = $(node)[0];
 		var attr = with_values ? {} : [];
 		if(node && node.attributes) {
-			$.each(node.attributes, function (i, v) {
-				if($.inArray(v.name.toLowerCase(),['style','contenteditable','hasfocus','tabindex']) !== -1) { return; }
-				if(v.value !== null && $.trim(v.value) !== '') {
+			langx.each(node.attributes, function (i, v) {
+				if(langx.inArray(v.name.toLowerCase(),['style','contenteditable','hasfocus','tabindex']) !== -1) { return; }
+				if(v.value !== null && langx.trim(v.value) !== '') {
 					if(with_values) { attr[v.name] = v.value; }
 					else { attr.push(v.name); }
 				}
@@ -50003,7 +49731,7 @@ define('skylark-widgets-hierarchy/Hierarchy',[
 	};
 	// remove item from array
 	$.vakata.array_remove_item = function(array, item) {
-		var tmp = $.inArray(item, array);
+		var tmp = langx.inArray(item, array);
 		return tmp !== -1 ? $.vakata.array_remove(array, tmp) : array;
 	};
 	$.vakata.array_filter = function(c,a,b,d,e) {
@@ -50170,7 +49898,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 				this.settings.checkbox.cascade = 'up+down+undetermined';
 			}
 			this.element
-				.on("init.jstree", $.proxy(function () {
+				.on("init.jstree", langx.proxy(function () {
 						this._data.checkbox.visible = this.settings.checkbox.visible;
 						if(!this.settings.checkbox.keep_selected_style) {
 							this.element.addClass('jstree-checkbox-no-clicked');
@@ -50179,20 +49907,20 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 							this.element.addClass('jstree-checkbox-selection');
 						}
 					}, this))
-				.on("loading.jstree", $.proxy(function () {
+				.on("loading.jstree", langx.proxy(function () {
 						this[ this._data.checkbox.visible ? 'show_checkboxes' : 'hide_checkboxes' ]();
 					}, this));
 			if(this.settings.checkbox.cascade.indexOf('undetermined') !== -1) {
 				this.element
-					.on('changed.jstree uncheck_node.jstree check_node.jstree uncheck_all.jstree check_all.jstree move_node.jstree copy_node.jstree redraw.jstree open_node.jstree', $.proxy(function () {
+					.on('changed.jstree uncheck_node.jstree check_node.jstree uncheck_all.jstree check_all.jstree move_node.jstree copy_node.jstree redraw.jstree open_node.jstree', langx.proxy(function () {
 							// only if undetermined is in setting
 							if(this._data.checkbox.uto) { clearTimeout(this._data.checkbox.uto); }
-							this._data.checkbox.uto = setTimeout($.proxy(this._undetermined, this), 50);
+							this._data.checkbox.uto = setTimeout(langx.proxy(this._undetermined, this), 50);
 						}, this));
 			}
 			if(!this.settings.checkbox.tie_selection) {
 				this.element
-					.on('model.jstree', $.proxy(function (e, data) {
+					.on('model.jstree', langx.proxy(function (e, data) {
 						var m = this._model.data,
 							p = m[data.parent],
 							dpc = data.nodes,
@@ -50207,7 +49935,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 			}
 			if(this.settings.checkbox.cascade.indexOf('up') !== -1 || this.settings.checkbox.cascade.indexOf('down') !== -1) {
 				this.element
-					.on('model.jstree', $.proxy(function (e, data) {
+					.on('model.jstree', langx.proxy(function (e, data) {
 							var m = this._model.data,
 								p = m[data.parent],
 								dpc = data.nodes,
@@ -50268,7 +49996,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 
 							this._data[ t ? 'core' : 'checkbox' ].selected = $.vakata.array_unique(this._data[ t ? 'core' : 'checkbox' ].selected);
 						}, this))
-					.on(this.settings.checkbox.tie_selection ? 'select_node.jstree' : 'check_node.jstree', $.proxy(function (e, data) {
+					.on(this.settings.checkbox.tie_selection ? 'select_node.jstree' : 'check_node.jstree', langx.proxy(function (e, data) {
 							var self = this,
 								obj = data.node,
 								m = this._model.data,
@@ -50326,7 +50054,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 							}
 							this._data[ t ? 'core' : 'checkbox' ].selected = cur;
 						}, this))
-					.on(this.settings.checkbox.tie_selection ? 'deselect_all.jstree' : 'uncheck_all.jstree', $.proxy(function (e, data) {
+					.on(this.settings.checkbox.tie_selection ? 'deselect_all.jstree' : 'uncheck_all.jstree', langx.proxy(function (e, data) {
 							var obj = this.get_node($.jstree.root),
 								m = this._model.data,
 								i, j, tmp;
@@ -50337,7 +50065,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 								}
 							}
 						}, this))
-					.on(this.settings.checkbox.tie_selection ? 'deselect_node.jstree' : 'uncheck_node.jstree', $.proxy(function (e, data) {
+					.on(this.settings.checkbox.tie_selection ? 'deselect_node.jstree' : 'uncheck_node.jstree', langx.proxy(function (e, data) {
 							var self = this,
 								obj = data.node,
 								dom = this.get_node(obj, true),
@@ -50380,7 +50108,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 			}
 			if(this.settings.checkbox.cascade.indexOf('up') !== -1) {
 				this.element
-					.on('delete_node.jstree', $.proxy(function (e, data) {
+					.on('delete_node.jstree', langx.proxy(function (e, data) {
 							// apply up (whole handler)
 							var p = this.get_node(data.parent),
 								m = this._model.data,
@@ -50404,7 +50132,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 								p = this.get_node(p.parent);
 							}
 						}, this))
-					.on('move_node.jstree', $.proxy(function (e, data) {
+					.on('move_node.jstree', langx.proxy(function (e, data) {
 							// apply up (whole handler)
 							var is_multi = data.is_multi,
 								old_par = data.old_parent,
@@ -50574,7 +50302,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 			}
 			if(!is_callback && this.settings.checkbox.cascade.indexOf('undetermined') !== -1) {
 				if(this._data.checkbox.uto) { clearTimeout(this._data.checkbox.uto); }
-				this._data.checkbox.uto = setTimeout($.proxy(this._undetermined, this), 50);
+				this._data.checkbox.uto = setTimeout(langx.proxy(this._undetermined, this), 50);
 			}
 			return obj;
 		};
@@ -50612,7 +50340,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 				return true;
 			}
 			for(i = 0, j = obj.children_d.length; i < j; i++) {
-				if($.inArray(obj.children_d[i], d) !== -1 || (!m[obj.children_d[i]].state.loaded && m[obj.children_d[i]].original.state.undetermined)) {
+				if(langx.inArray(obj.children_d[i], d) !== -1 || (!m[obj.children_d[i]].state.loaded && m[obj.children_d[i]].original.state.undetermined)) {
 					return true;
 				}
 			}
@@ -50627,7 +50355,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 		 */
 		this.disable_checkbox = function (obj) {
 			var t1, t2, dom;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.disable_checkbox(obj[t1]);
@@ -50663,7 +50391,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 		 */
 		this.enable_checkbox = function (obj) {
 			var t1, t2, dom;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.enable_checkbox(obj[t1]);
@@ -50811,7 +50539,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 		this.check_node = function (obj, e) {
 			if(this.settings.checkbox.tie_selection) { return this.select_node(obj, false, true, e); }
 			var dom, t1, t2, th;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.check_node(obj[t1], e);
@@ -50851,7 +50579,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 		this.uncheck_node = function (obj, e) {
 			if(this.settings.checkbox.tie_selection) { return this.deselect_node(obj, false, e); }
 			var t1, t2, dom;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.uncheck_node(obj[t1], e);
@@ -50955,7 +50683,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 		 */
 		this.get_checked = function (full) {
 			if(this.settings.checkbox.tie_selection) { return this.get_selected(full); }
-			return full ? $.map(this._data.checkbox.selected, $.proxy(function (i) { return this.get_node(i); }, this)) : this._data.checkbox.selected;
+			return full ? langx.map(this._data.checkbox.selected, langx.proxy(function (i) { return this.get_node(i); }, this)) : this._data.checkbox.selected;
 		};
 		/**
 		 * get an array of all top level checked nodes (ignoring children of checked nodes) (if tie_selection is on in the settings this function will return the same as get_top_selected)
@@ -50984,7 +50712,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 					tmp.push(i);
 				}
 			}
-			return full ? $.map(tmp, $.proxy(function (i) { return this.get_node(i); }, this)) : tmp;
+			return full ? langx.map(tmp, langx.proxy(function (i) { return this.get_node(i); }, this)) : tmp;
 		};
 		/**
 		 * get an array of all bottom level checked nodes (ignoring selected parents) (if tie_selection is on in the settings this function will return the same as get_bottom_selected)
@@ -51002,11 +50730,11 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 					obj.push(tmp[i].id);
 				}
 			}
-			return full ? $.map(obj, $.proxy(function (i) { return this.get_node(i); }, this)) : obj;
+			return full ? langx.map(obj, langx.proxy(function (i) { return this.get_node(i); }, this)) : obj;
 		};
 		this.load_node = function (obj, callback) {
 			var k, l, i, j, c, tmp;
-			if(!$.isArray(obj) && !this.settings.checkbox.tie_selection) {
+			if(!langx.isArray(obj) && !this.settings.checkbox.tie_selection) {
 				tmp = this.get_node(obj);
 				if(tmp && tmp.state.loaded) {
 					for(k = 0, l = tmp.children_d.length; k < l; k++) {
@@ -51031,7 +50759,7 @@ define('skylark-widgets-hierarchy/addons/checkbox',[
 				if(!this.settings.checkbox.tie_selection) {
 					this.uncheck_all();
 					var _this = this;
-					$.each(state.checkbox, function (i, v) {
+					langx.each(state.checkbox, function (i, v) {
 						_this.check_node(v);
 					});
 				}
@@ -51624,10 +51352,10 @@ define('skylark-widgets-hierarchy/addons/contextmenu',[
 
 			var last_ts = 0, cto = null, ex, ey;
 			this.element
-				.on("init.jstree loading.jstree ready.jstree", $.proxy(function () {
+				.on("init.jstree loading.jstree ready.jstree", langx.proxy(function () {
 						this.get_container_ul().addClass('jstree-contextmenu');
 					}, this))
-				.on("contextmenu.jstree", ".jstree-anchor", $.proxy(function (e, data) {
+				.on("contextmenu.jstree", ".jstree-anchor", langx.proxy(function (e, data) {
 						if (e.target.tagName.toLowerCase() === 'input') {
 							return;
 						}
@@ -51643,7 +51371,7 @@ define('skylark-widgets-hierarchy/addons/contextmenu',[
 							this.show_contextmenu(e.currentTarget, e.pageX, e.pageY, e);
 						}
 					}, this))
-				.on("click.jstree", ".jstree-anchor", $.proxy(function (e) {
+				.on("click.jstree", ".jstree-anchor", langx.proxy(function (e) {
 						if(this._data.contextmenu.visible && (!last_ts || (+new Date()) - last_ts > 250)) { // work around safari & macOS ctrl+click
 							menu.hide();
 						}
@@ -51692,7 +51420,7 @@ define('skylark-widgets-hierarchy/addons/contextmenu',[
 					});
 			}
 			*/
-			$(document).on("context_hide.sbswt.popup", $.proxy(function (e, data) {
+			$(document).on("context_hide.sbswt.popup", langx.proxy(function (e, data) {
 				this._data.contextmenu.visible = false;
 				$(data.reference).removeClass('jstree-context');
 			}, this));
@@ -51732,12 +51460,12 @@ define('skylark-widgets-hierarchy/addons/contextmenu',[
 			}
 
 			i = s.items;
-			if($.isFunction(i)) {
-				i = i.call(this, obj, $.proxy(function (i) {
+			if(langx.isFunction(i)) {
+				i = i.call(this, obj, langx.proxy(function (i) {
 					this._show_contextmenu(obj, x, y, i);
 				}, this));
 			}
-			if($.isPlainObject(i)) {
+			if(langx.isPlainObject(i)) {
 				this._show_contextmenu(obj, x, y, i);
 			}
 		};
@@ -51755,7 +51483,7 @@ define('skylark-widgets-hierarchy/addons/contextmenu',[
 		this._show_contextmenu = function (obj, x, y, i) {
 			var d = this.get_node(obj, true),
 				a = d.children(".jstree-anchor");
-			$(document).one("context_show.sbswt.popup", $.proxy(function (e, data) {
+			$(document).one("context_show.sbswt.popup", langx.proxy(function (e, data) {
 				var cls = 'jstree-contextmenu jstree-' + this.get_theme() + '-contextmenu';
 				$(data.element).addClass(cls);
 				a.addClass('jstree-context');
@@ -51880,7 +51608,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 			parent.bind.call(this);
 
 			this.element
-				.on(this.settings.dnd.use_html5 ? 'dragstart.jstree' : 'mousedown.jstree touchstart.jstree', this.settings.dnd.large_drag_target ? '.jstree-node' : '.jstree-anchor', $.proxy(function (e) {
+				.on(this.settings.dnd.use_html5 ? 'dragstart.jstree' : 'mousedown.jstree touchstart.jstree', this.settings.dnd.large_drag_target ? '.jstree-node' : '.jstree-anchor', langx.proxy(function (e) {
 						if(this.settings.dnd.large_drag_target && $(e.target).closest('.jstree-node')[0] !== e.currentTarget) {
 							return true;
 						}
@@ -51894,7 +51622,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 							txt = $.vakata.html.escape(txt);
 						}
 						if(obj && obj.id && obj.id !== $.jstree.root && (e.which === 1 || e.type === "touchstart" || e.type === "dragstart") &&
-							(this.settings.dnd.is_draggable === true || ($.isFunction(this.settings.dnd.is_draggable) && this.settings.dnd.is_draggable.call(this, (mlt > 1 ? this.get_top_selected(true) : [obj]), e)))
+							(this.settings.dnd.is_draggable === true || (langx.isFunction(this.settings.dnd.is_draggable) && this.settings.dnd.is_draggable.call(this, (mlt > 1 ? this.get_top_selected(true) : [obj]), e)))
 						) {
 							drg = { 'jstree' : true, 'origin' : this, 'obj' : this.get_node(obj,true), 'nodes' : mlt > 1 ? this.get_top_selected() : [obj.id] };
 							elm = e.currentTarget;
@@ -51918,7 +51646,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 					//		$.vakata.dnd._trigger('move', e, { 'helper': $(), 'element': elm, 'data': drg });
 					//		return false;
 					//	}, this))
-					.on('drop.jstree', $.proxy(function (e) {
+					.on('drop.jstree', langx.proxy(function (e) {
 							e.preventDefault();
 							$.vakata.dnd._trigger('stop', e, { 'helper': $(), 'element': elm, 'data': drg });
 							return false;
@@ -52024,7 +51752,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 							else {
 								o = rel > h / 2 ? ['i', 'a', 'b'] : ['i', 'b', 'a'];
 							}
-							$.each(o, function (j, v) {
+							langx.each(o, function (j, v) {
 								switch(v) {
 									case 'b':
 										l = off.left - 6;
@@ -52053,7 +51781,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 									ps = i;
 									if(op === "move_node" && v === 'a' && (data.data.origin && data.data.origin === ins) && p === ins.get_parent(data.data.nodes[t1])) {
 										pr = ins.get_node(p);
-										if(ps > $.inArray(data.data.nodes[t1], pr.children)) {
+										if(ps > langx.inArray(data.data.nodes[t1], pr.children)) {
 											ps -= 1;
 										}
 									}
@@ -52160,7 +51888,7 @@ define('skylark-widgets-hierarchy/addons/dnd',[
 				return $.vakata.html.div.text(str).html();
 			},
 			strip : function (str) {
-				return $.vakata.html.div.empty().append($.parseHTML(str)).text();
+				return $.vakata.html.div.empty().append(langx.parseHTML(str)).text();
 			}
 		};
 		// private variable
@@ -52490,8 +52218,8 @@ define('skylark-widgets-hierarchy/addons/massload',[
 				}
 				this._data.massload = {};
 				if (toLoad.length) {
-					if($.isFunction(s)) {
-						return s.call(this, toLoad, $.proxy(function (data) {
+					if(langx.isFunction(s)) {
+						return s.call(this, toLoad, langx.proxy(function (data) {
 							var i, j;
 							if(data) {
 								for(i in data) {
@@ -52510,15 +52238,15 @@ define('skylark-widgets-hierarchy/addons/massload',[
 						}, this));
 					}
 					if(typeof s === 'object' && s && s.url) {
-						s = $.extend(true, {}, s);
-						if($.isFunction(s.url)) {
+						s = langx.extend(true, {}, s);
+						if(langx.isFunction(s.url)) {
 							s.url = s.url.call(this, toLoad);
 						}
-						if($.isFunction(s.data)) {
+						if(langx.isFunction(s.data)) {
 							s.data = s.data.call(this, toLoad);
 						}
-						return $.ajax(s)
-							.done($.proxy(function (data,t,x) {
+						return ajax(s)
+							.done(langx.proxy(function (data,t,x) {
 									var i, j;
 									if(data) {
 										for(i in data) {
@@ -52535,7 +52263,7 @@ define('skylark-widgets-hierarchy/addons/massload',[
 									}
 									parent._load_nodes.call(this, nodes, callback, is_callback, force_reload);
 								}, this))
-							.fail($.proxy(function (f) {
+							.fail(langx.proxy(function (f) {
 									parent._load_nodes.call(this, nodes, callback, is_callback, force_reload);
 								}, this));
 					}
@@ -52549,7 +52277,7 @@ define('skylark-widgets-hierarchy/addons/massload',[
 			if(data) {
 				rslt = this[typeof data === 'string' ? '_append_html_data' : '_append_json_data'](
 					obj,
-					typeof data === 'string' ? $($.parseHTML(data)).filter(function () { return this.nodeType !== 3; }) : data,
+					typeof data === 'string' ? $(langx.parseHTML(data)).filter(function () { return this.nodeType !== 3; }) : data,
 					function (status) { callback.call(this, status); }
 				);
 				dom = this.get_node(obj.id, true);
@@ -52677,7 +52405,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 							this.redraw(true);
 						}
 					}, this))
-				.on("clear_search.jstree", $.proxy(function (e, data) {
+				.on("clear_search.jstree", langx.proxy(function (e, data) {
 						if(this._data.search.som && data.res.length) {
 							this.show_node(this._data.search.hdn, true);
 							this.redraw(true);
@@ -52696,7 +52424,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 		 * @trigger search.jstree
 		 */
 		this.search = function (str, skip_async, show_only_matches, inside, append, show_only_matches_children) {
-			if(str === false || $.trim(str.toString()) === "") {
+			if(str === false || langx.trim(str.toString()) === "") {
 				return this.clear_search();
 			}
 			inside = this.get_node(inside);
@@ -52718,16 +52446,16 @@ define('skylark-widgets-hierarchy/addons/search',[
 				show_only_matches_children = s.show_only_matches_children;
 			}
 			if(!skip_async && a !== false) {
-				if($.isFunction(a)) {
-					return a.call(this, str, $.proxy(function (d) {
+				if(langx.isFunction(a)) {
+					return a.call(this, str, langx.proxy(function (d) {
 							if(d && d.d) { d = d.d; }
-							this._load_nodes(!$.isArray(d) ? [] : $.vakata.array_unique(d), function () {
+							this._load_nodes(!langx.isArray(d) ? [] : $.vakata.array_unique(d), function () {
 								this.search(str, true, show_only_matches, inside, append, show_only_matches_children);
 							});
 						}, this), inside);
 				}
 				else {
-					a = $.extend({}, a);
+					a = langx.extend({}, a);
 					if(!a.data) { a.data = {}; }
 					a.data.str = str;
 					if(inside) {
@@ -52736,14 +52464,14 @@ define('skylark-widgets-hierarchy/addons/search',[
 					if (this._data.search.lastRequest) {
 						this._data.search.lastRequest.abort();
 					}
-					this._data.search.lastRequest = $.ajax(a)
-						.fail($.proxy(function () {
+					this._data.search.lastRequest = ajax(a)
+						.fail(langx.proxy(function () {
 							this._data.core.last_error = { 'error' : 'ajax', 'plugin' : 'search', 'id' : 'search_01', 'reason' : 'Could not load search parents', 'data' : JSON.stringify(a) };
 							this.settings.core.error.call(this, this._data.core.last_error);
 						}, this))
-						.done($.proxy(function (d) {
+						.done(langx.proxy(function (d) {
 							if(d && d.d) { d = d.d; }
-							this._load_nodes(!$.isArray(d) ? [] : $.vakata.array_unique(d), function () {
+							this._load_nodes(!langx.isArray(d) ? [] : $.vakata.array_unique(d), function () {
 								this.search(str, true, show_only_matches, inside, append, show_only_matches_children);
 							});
 						}, this));
@@ -52760,7 +52488,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 			}
 
 			f = new $.vakata.search(str, true, { caseSensitive : s.case_sensitive, fuzzy : s.fuzzy });
-			$.each(m[inside ? inside : $.jstree.root].children_d, function (ii, i) {
+			langx.each(m[inside ? inside : $.jstree.root].children_d, function (ii, i) {
 				var v = m[i];
 				if(v.text && !v.state.hidden && (!s.search_leaves_only || (v.state.loaded && v.children.length === 0)) && ( (s.search_callback && s.search_callback.call(this, str, v)) || (!s.search_callback && f.search(v.text).isMatch) ) ) {
 					r.push(i);
@@ -52775,11 +52503,11 @@ define('skylark-widgets-hierarchy/addons/search',[
 					}
 				}
 				if(!append) {
-					this._data.search.dom = $(this.element[0].querySelectorAll('#' + $.map(r, function (v) { return "0123456789".indexOf(v[0]) !== -1 ? '\\3' + v[0] + ' ' + v.substr(1).replace($.jstree.idregex,'\\$&') : v.replace($.jstree.idregex,'\\$&'); }).join(', #')));
+					this._data.search.dom = $(this.element[0].querySelectorAll('#' + langx.map(r, function (v) { return "0123456789".indexOf(v[0]) !== -1 ? '\\3' + v[0] + ' ' + v.substr(1).replace($.jstree.idregex,'\\$&') : v.replace($.jstree.idregex,'\\$&'); }).join(', #')));
 					this._data.search.res = r;
 				}
 				else {
-					this._data.search.dom = this._data.search.dom.add($(this.element[0].querySelectorAll('#' + $.map(r, function (v) { return "0123456789".indexOf(v[0]) !== -1 ? '\\3' + v[0] + ' ' + v.substr(1).replace($.jstree.idregex,'\\$&') : v.replace($.jstree.idregex,'\\$&'); }).join(', #'))));
+					this._data.search.dom = this._data.search.dom.add($(this.element[0].querySelectorAll('#' + langx.map(r, function (v) { return "0123456789".indexOf(v[0]) !== -1 ? '\\3' + v[0] + ' ' + v.substr(1).replace($.jstree.idregex,'\\$&') : v.replace($.jstree.idregex,'\\$&'); }).join(', #'))));
 					this._data.search.res = $.vakata.array_unique(this._data.search.res.concat(r));
 				}
 				this._data.search.dom.children(".jstree-anchor").addClass('jstree-search');
@@ -52816,7 +52544,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 			 */
 			this.trigger('clear_search', { 'nodes' : this._data.search.dom, str : this._data.search.str, res : this._data.search.res });
 			if(this._data.search.res.length) {
-				this._data.search.dom = $(this.element[0].querySelectorAll('#' + $.map(this._data.search.res, function (v) {
+				this._data.search.dom = $(this.element[0].querySelectorAll('#' + langx.map(this._data.search.res, function (v) {
 					return "0123456789".indexOf(v[0]) !== -1 ? '\\3' + v[0] + ' ' + v.substr(1).replace($.jstree.idregex,'\\$&') : v.replace($.jstree.idregex,'\\$&');
 				}).join(', #')));
 				this._data.search.dom.children(".jstree-anchor").removeClass("jstree-search");
@@ -52830,7 +52558,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 		this.redraw_node = function(obj, deep, callback, force_render) {
 			obj = parent.redraw_node.apply(this, arguments);
 			if(obj) {
-				if($.inArray(obj.id, this._data.search.res) !== -1) {
+				if(langx.inArray(obj.id, this._data.search.res) !== -1) {
 					var i, j, tmp = null;
 					for(i = 0, j = obj.childNodes.length; i < j; i++) {
 						if(obj.childNodes[i] && obj.childNodes[i].className && obj.childNodes[i].className.indexOf("jstree-anchor") !== -1) {
@@ -52852,7 +52580,7 @@ define('skylark-widgets-hierarchy/addons/search',[
 		// from http://kiro.me/projects/fuse.html
 		$.vakata.search = function(pattern, txt, options) {
 			options = options || {};
-			options = $.extend({}, $.vakata.search.defaults, options);
+			options = langx.extend({}, $.vakata.search.defaults, options);
 			if(options.fuzzy !== false) {
 				options.fuzzy = true;
 			}
@@ -53011,14 +52739,14 @@ define('skylark-widgets-hierarchy/addons/sort',[
 		this.bind = function () {
 			parent.bind.call(this);
 			this.element
-				.on("model.jstree", $.proxy(function (e, data) {
+				.on("model.jstree", langx.proxy(function (e, data) {
 						this.sort(data.parent, true);
 					}, this))
-				.on("rename_node.jstree create_node.jstree", $.proxy(function (e, data) {
+				.on("rename_node.jstree create_node.jstree", langx.proxy(function (e, data) {
 						this.sort(data.parent || data.node.parent, false);
 						this.redraw_node(data.parent || data.node.parent, true);
 					}, this))
-				.on("move_node.jstree copy_node.jstree", $.proxy(function (e, data) {
+				.on("move_node.jstree copy_node.jstree", langx.proxy(function (e, data) {
 						this.sort(data.parent, false);
 						this.redraw_node(data.parent, true);
 					}, this));
@@ -53036,7 +52764,7 @@ define('skylark-widgets-hierarchy/addons/sort',[
 			var i, j;
 			obj = this.get_node(obj);
 			if(obj && obj.children && obj.children.length) {
-				obj.children.sort($.proxy(this.settings.sort, this));
+				obj.children.sort(langx.proxy(this.settings.sort, this));
 				if(deep) {
 					for(i = 0, j = obj.children_d.length; i < j; i++) {
 						this.sort(obj.children_d[i], false);
@@ -53107,10 +52835,10 @@ define('skylark-widgets-hierarchy/addons/state',[
 	$.jstree.plugins.state = function (options, parent) {
 		this.bind = function () {
 			parent.bind.call(this);
-			var bind = $.proxy(function () {
-				this.element.on(this.settings.state.events, $.proxy(function () {
+			var bind = langx.proxy(function () {
+				this.element.on(this.settings.state.events, langx.proxy(function () {
 					if(to) { clearTimeout(to); }
-					to = setTimeout($.proxy(function () { this.save_state(); }, this), 100);
+					to = setTimeout(langx.proxy(function () { this.save_state(); }, this), 100);
 				}, this));
 				/**
 				 * triggered when the state plugin is finished restoring the state (and immediately after ready if there is no state to restore).
@@ -53121,7 +52849,7 @@ define('skylark-widgets-hierarchy/addons/state',[
 				this.trigger('state_ready');
 			}, this);
 			this.element
-				.on("ready.jstree", $.proxy(function (e, data) {
+				.on("ready.jstree", langx.proxy(function (e, data) {
 						this.element.one("restore_state.jstree", bind);
 						if(!this.restore_state()) { bind(); }
 					}, this));
@@ -53149,12 +52877,12 @@ define('skylark-widgets-hierarchy/addons/state',[
 			if(!!k) { try { k = JSON.parse(k); } catch(ex) { return false; } }
 			if(!!k && k.ttl && k.sec && +(new Date()) - k.sec > k.ttl) { return false; }
 			if(!!k && k.state) { k = k.state; }
-			if(!!k && $.isFunction(this.settings.state.filter)) { k = this.settings.state.filter.call(this, k); }
+			if(!!k && langx.isFunction(this.settings.state.filter)) { k = this.settings.state.filter.call(this, k); }
 			if(!!k) {
 				if (!this.settings.state.preserve_loaded) {
 					delete k.core.loaded;
 				}
-				this.element.one("set_state.jstree", function (e, data) { data.instance.trigger('restore_state', { 'state' : $.extend(true, {}, k) }); });
+				this.element.one("set_state.jstree", function (e, data) { data.instance.trigger('restore_state', { 'state' : langx.extend(true, {}, k) }); });
 				this.set_state(k);
 				return true;
 			}
@@ -53211,7 +52939,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
             return ("jstree_" + tree + "_grid_" + escapeId(id) + "_col");
         },
         getIds = function(nodes) {
-            return $.makeArray(nodes.map(function() {
+            return langx.makeArray(nodes.map(function() {
                 return this.id;
             }));
         },
@@ -53290,7 +53018,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
 
         copyData = function(fromtree, from, totree, to, recurse) {
             var i, j;
-            to.data = $.extend(true, {}, from.data);
+            to.data = langx.extend(true, {}, from.data);
             if (from && from.children_d && recurse) {
                 for (i = 0, j = from.children_d.length; i < j; i++) {
                     copyData(fromtree, fromtree.get_node(from.children_d[i]), totree, totree.get_node(to.children_d[i]), recurse);
@@ -53480,7 +53208,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                 }
 
                 // copy original sort function
-                var defaultSort = $.proxy(this.settings.sort, this);
+                var defaultSort = langx.proxy(this.settings.sort, this);
 
                 // override sort function
                 this.settings.sort = function(a, b) {
@@ -53647,14 +53375,14 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
             parent.bind.call(this);
             this._initialize();
             this.element
-                .on("move_node.jstree create_node.jstree clean_node.jstree change_node.jstree", $.proxy(function(e, data) {
+                .on("move_node.jstree create_node.jstree clean_node.jstree change_node.jstree", langx.proxy(function(e, data) {
                     var target = this.get_node(data || "#", true);
                     var id = _guid();
                     this._detachColumns(id);
                     this._prepare_grid(target);
                     this._reattachColumns(id);
                 }, this))
-                .on("delete_node.jstree", $.proxy(function(e, data) {
+                .on("delete_node.jstree", langx.proxy(function(e, data) {
                     if (data.node.id !== undefined) {
                         var grid = this.gridWrapper,
                             removeNodes = [data.node.id],
@@ -53666,22 +53394,22 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                         findDataCell(this.uniq, removeNodes, this._gridSettings.gridcols).remove();
                     }
                 }, this))
-                .on("show_node.jstree", $.proxy(function(e, data) {
+                .on("show_node.jstree", langx.proxy(function(e, data) {
                     this._hideOrShowTree(data.node, false);
                 }, this))
-                .on("hide_node.jstree", $.proxy(function(e, data) {
+                .on("hide_node.jstree", langx.proxy(function(e, data) {
                     this._hideOrShowTree(data.node, true);
                 }, this))
-                .on("close_node.jstree", $.proxy(function(e, data) {
+                .on("close_node.jstree", langx.proxy(function(e, data) {
                     this._hide_grid(data.node);
                 }, this))
-                .on("open_node.jstree", $.proxy(function(e, data) {}, this))
-                .on("load_node.jstree", $.proxy(function(e, data) {}, this))
-                .on("loaded.jstree", $.proxy(function(e) {
+                .on("open_node.jstree", langx.proxy(function(e, data) {}, this))
+                .on("load_node.jstree", langx.proxy(function(e, data) {}, this))
+                .on("loaded.jstree", langx.proxy(function(e) {
                     this._prepare_headers();
                     this.element.trigger("loaded_grid.jstree");
                 }, this))
-                .on("ready.jstree", $.proxy(function(e, data) {
+                .on("ready.jstree", langx.proxy(function(e, data) {
                     // find the line-height of the first known node
                     var anchorHeight = this.element.find("[class~='jstree-anchor']:first").outerHeight(),
                         q,
@@ -53696,16 +53424,16 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                     this.gridWrapper.addClass(q.join(" "));
 
                 }, this))
-                .on("move_node.jstree", $.proxy(function(e, data) {
+                .on("move_node.jstree", langx.proxy(function(e, data) {
                     var node = data.new_instance.element;
                     //renderAWidth(node,this);
                     // check all the children, because we could drag a tree over
-                    node.find("li > a").each($.proxy(function(i, elm) {
+                    node.find("li > a").each(langx.proxy(function(i, elm) {
                         //renderAWidth($(elm),this);
                     }, this));
 
                 }, this))
-                .on("hover_node.jstree", $.proxy(function(node, selected, event) {
+                .on("hover_node.jstree", langx.proxy(function(node, selected, event) {
                     var id = selected.node.id;
                     if (this._hover_node !== null && this._hover_node !== undefined) {
                         findDataCell(this.uniq, this._hover_node, this._gridSettings.gridcols).removeClass("jstree-hovered");
@@ -53713,27 +53441,27 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                     this._hover_node = id;
                     findDataCell(this.uniq, id, this._gridSettings.gridcols).addClass("jstree-hovered");
                 }, this))
-                .on("dehover_node.jstree", $.proxy(function(node, selected, event) {
+                .on("dehover_node.jstree", langx.proxy(function(node, selected, event) {
                     var id = selected.node.id;
                     this._hover_node = null;
                     findDataCell(this.uniq, id, this._gridSettings.gridcols).removeClass("jstree-hovered");
                 }, this))
-                .on("select_node.jstree", $.proxy(function(node, selected, event) {
+                .on("select_node.jstree", langx.proxy(function(node, selected, event) {
                     var id = selected.node.id;
                     findDataCell(this.uniq, id, this._gridSettings.gridcols).addClass("jstree-clicked");
                     this.get_node(selected.node.id, true).children("div.jstree-grid-cell").addClass("jstree-clicked");
                 }, this))
-                .on("deselect_node.jstree", $.proxy(function(node, selected, event) {
+                .on("deselect_node.jstree", langx.proxy(function(node, selected, event) {
                     var id = selected.node.id;
                     findDataCell(this.uniq, id, this._gridSettings.gridcols).removeClass("jstree-clicked");
                 }, this))
-                .on("deselect_all.jstree", $.proxy(function(node, selected, event) {
+                .on("deselect_all.jstree", langx.proxy(function(node, selected, event) {
                     // get all of the ids that were unselected
                     var ids = selected.node || [],
                         i;
                     findDataCell(this.uniq, ids, this._gridSettings.gridcols).removeClass("jstree-clicked");
                 }, this))
-                .on("search.jstree", $.proxy(function(e, data) {
+                .on("search.jstree", langx.proxy(function(e, data) {
                     // search sometimes filters, so we need to hide all of the appropriate grid cells as well, and show only the matches
                     var grid = this.gridWrapper,
                         that = this,
@@ -53784,7 +53512,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                     }
                     return true;
                 }, this))
-                .on("clear_search.jstree", $.proxy(function(e, data) {
+                .on("clear_search.jstree", langx.proxy(function(e, data) {
                     // search has been cleared, so we need to show all rows
                     var grid = this.gridWrapper,
                         ids = getIds(data.nodes.filter(".jstree-node"));
@@ -53802,33 +53530,33 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                     newtree._reattachColumns(obj.id);
                     return true;
                 })
-                .on("show_ellipsis.jstree", $.proxy(function(e, data) {
+                .on("show_ellipsis.jstree", langx.proxy(function(e, data) {
                     this.gridWrapper.find(".jstree-grid-cell").add(".jstree-grid-header", this.gridWrapper).addClass("jstree-grid-ellipsis");
                     return true;
                 }, this))
-                .on("hide_ellipsis.jstree", $.proxy(function(e, data) {
+                .on("hide_ellipsis.jstree", langx.proxy(function(e, data) {
                     this.gridWrapper.find(".jstree-grid-cell").add(".jstree-grid-header", this.gridWrapper).removeClass("jstree-grid-ellipsis");
                     return true;
                 }, this));
             if (this._gridSettings.isThemeroller) {
                 this.element
-                    .on("select_node.jstree", $.proxy(function(e, data) {
+                    .on("select_node.jstree", langx.proxy(function(e, data) {
                         data.rslt.obj.children("[class~='jstree-anchor']").nextAll("div").addClass("ui-state-active");
                     }, this))
-                    .on("deselect_node.jstree deselect_all.jstree", $.proxy(function(e, data) {
+                    .on("deselect_node.jstree deselect_all.jstree", langx.proxy(function(e, data) {
                         data.rslt.obj.children("[class~='jstree-anchor']").nextAll("div").removeClass("ui-state-active");
                     }, this))
-                    .on("hover_node.jstree", $.proxy(function(e, data) {
+                    .on("hover_node.jstree", langx.proxy(function(e, data) {
                         data.rslt.obj.children("[class~='jstree-anchor']").nextAll("div").addClass("ui-state-hover");
                     }, this))
-                    .on("dehover_node.jstree", $.proxy(function(e, data) {
+                    .on("dehover_node.jstree", langx.proxy(function(e, data) {
                         data.rslt.obj.children("[class~='jstree-anchor']").nextAll("div").removeClass("ui-state-hover");
                     }, this));
             }
 
             if (this._gridSettings.stateful) {
                 this.element
-                    .on("resize_column.jstree-grid", $.proxy(function(e, col, width) {
+                    .on("resize_column.jstree-grid", langx.proxy(function(e, col, width) {
                         localStorage['jstree-root-' + this.rootid + '-column-' + col] = width;
                     }, this));
             }
@@ -54131,7 +53859,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
          * Override open_node to detach the columns before redrawing child-nodes, and do reattach them afterwarts
          */
         this.open_node = function(obj, callback, animation) {
-            var isArray = $.isArray(obj);
+            var isArray = langx.isArray(obj);
             var node = null;
             if (!isArray) {
                 node = this.get_node(obj);
@@ -54150,7 +53878,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
          * Override redraw_node to correctly insert the grid
          */
         this.redraw_node = function(obj, deep, is_callback, force_render) {
-            var id = $.isArray(obj) ? _guid() : this.get_node(obj).id;
+            var id = langx.isArray(obj) ? _guid() : this.get_node(obj).id;
             // we detach the columns once
             this._detachColumns(id);
             // first allow the parent to redraw the node
@@ -54315,7 +54043,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                         "lineHeight": (this._data.core.li_height) + "px",
                         "width": "150px" // will be set a bit further down
                     },
-                    "blur": $.proxy(function() {
+                    "blur": langx.proxy(function() {
                         var v = h2.val();
                         // save the value if changed
                         if (v === "" || v === t) {
@@ -54445,7 +54173,7 @@ define('skylark-widgets-hierarchy/addons/treegrid',[
                 highlightSearch, isClicked,
                 peers = this.get_node(objData.parent).children,
                 // find my position in the list of peers. "peers" is the list of everyone at my level under my parent, in order
-                pos = $.inArray(lid, peers),
+                pos = langx.inArray(lid, peers),
                 hc = this.holdingCells,
                 rendered = false,
                 closed;
@@ -54724,7 +54452,7 @@ define('skylark-widgets-hierarchy/addons/types',[
 		};
 		this.bind = function () {
 			this.element
-				.on('model.jstree', $.proxy(function (e, data) {
+				.on('model.jstree', langx.proxy(function (e, data) {
 						var m = this._model.data,
 							dpc = data.nodes,
 							t = this.settings.types,
@@ -54782,10 +54510,10 @@ define('skylark-widgets-hierarchy/addons/types',[
 		this.get_json = function (obj, options, flat) {
 			var i, j,
 				m = this._model.data,
-				opt = options ? $.extend(true, {}, options, {no_id:false}) : {},
+				opt = options ? langx.extend(true, {}, options, {no_id:false}) : {},
 				tmp = parent.get_json.call(this, obj, opt, flat);
 			if(tmp === false) { return false; }
-			if($.isArray(tmp)) {
+			if(langx.isArray(tmp)) {
 				for(i = 0, j = tmp.length; i < j; i++) {
 					tmp[i].type = tmp[i].id && m[tmp[i].id] && m[tmp[i].id].type ? m[tmp[i].id].type : "default";
 					if(options && options.no_id) {
@@ -54808,7 +54536,7 @@ define('skylark-widgets-hierarchy/addons/types',[
 			return tmp;
 		};
 		this._delete_ids = function (tmp) {
-			if($.isArray(tmp)) {
+			if(langx.isArray(tmp)) {
 				for(var i = 0, j = tmp.length; i < j; i++) {
 					tmp[i] = this._delete_ids(tmp[i]);
 				}
@@ -54821,7 +54549,7 @@ define('skylark-widgets-hierarchy/addons/types',[
 			if(tmp.a_attr && tmp.a_attr.id) {
 				delete tmp.a_attr.id;
 			}
-			if(tmp.children && $.isArray(tmp.children)) {
+			if(tmp.children && langx.isArray(tmp.children)) {
 				tmp.children = this._delete_ids(tmp.children);
 			}
 			return tmp;
@@ -54836,13 +54564,13 @@ define('skylark-widgets-hierarchy/addons/types',[
 				case "create_node":
 				case "move_node":
 				case "copy_node":
-					if(chk !== 'move_node' || $.inArray(obj.id, par.children) === -1) {
+					if(chk !== 'move_node' || langx.inArray(obj.id, par.children) === -1) {
 						tmp = this.get_rules(par);
 						if(tmp.max_children !== undefined && tmp.max_children !== -1 && tmp.max_children === par.children.length) {
 							this._data.core.last_error = { 'error' : 'check', 'plugin' : 'types', 'id' : 'types_01', 'reason' : 'max_children prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 							return false;
 						}
-						if(tmp.valid_children !== undefined && tmp.valid_children !== -1 && $.inArray((obj.type || 'default'), tmp.valid_children) === -1) {
+						if(tmp.valid_children !== undefined && tmp.valid_children !== -1 && langx.inArray((obj.type || 'default'), tmp.valid_children) === -1) {
 							this._data.core.last_error = { 'error' : 'check', 'plugin' : 'types', 'id' : 'types_02', 'reason' : 'valid_children prevents function: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 							return false;
 						}
@@ -54894,7 +54622,7 @@ define('skylark-widgets-hierarchy/addons/types',[
 		 */
 		this.get_type = function (obj, rules) {
 			obj = this.get_node(obj);
-			return (!obj) ? false : ( rules ? $.extend({ 'type' : obj.type }, this.settings.types[obj.type]) : obj.type);
+			return (!obj) ? false : ( rules ? langx.extend({ 'type' : obj.type }, this.settings.types[obj.type]) : obj.type);
 		};
 		/**
 		 * used to change a node's type
@@ -54905,7 +54633,7 @@ define('skylark-widgets-hierarchy/addons/types',[
 		 */
 		this.set_type = function (obj, type) {
 			var m = this._model.data, t, t1, t2, old_type, old_icon, k, d, a;
-			if($.isArray(obj)) {
+			if(langx.isArray(obj)) {
 				obj = obj.slice();
 				for(t1 = 0, t2 = obj.length; t1 < t2; t1++) {
 					this.set_type(obj[t1], type);
@@ -55106,25 +54834,25 @@ define('skylark-widgets-hierarchy/addons/unique',[
 					if (w) {
 						t = t.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
 					}
-					i = ($.inArray(n, c) === -1 || (obj.text && t === n));
+					i = (langx.inArray(n, c) === -1 || (obj.text && t === n));
 					if(!i) {
 						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_01', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 					}
 					return i;
 				case "create_node":
-					i = ($.inArray(n, c) === -1);
+					i = (langx.inArray(n, c) === -1);
 					if(!i) {
 						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_04', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 					}
 					return i;
 				case "copy_node":
-					i = ($.inArray(n, c) === -1);
+					i = (langx.inArray(n, c) === -1);
 					if(!i) {
 						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_02', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 					}
 					return i;
 				case "move_node":
-					i = ( (obj.parent === par.id && (!more || !more.is_multi)) || $.inArray(n, c) === -1);
+					i = ( (obj.parent === par.id && (!more || !more.is_multi)) || langx.inArray(n, c) === -1);
 					if(!i) {
 						this._data.core.last_error = { 'error' : 'check', 'plugin' : 'unique', 'id' : 'unique_03', 'reason' : 'Child with name ' + n + ' already exists. Preventing: ' + chk, 'data' : JSON.stringify({ 'chk' : chk, 'pos' : pos, 'obj' : obj && obj.id ? obj.id : false, 'par' : par && par.id ? par.id : false }) };
 					}
@@ -55167,7 +54895,7 @@ define('skylark-widgets-hierarchy/addons/unique',[
 				if (w) {
 					t = t.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
 				}
-				while($.inArray(t, dpc) !== -1) {
+				while(langx.inArray(t, dpc) !== -1) {
 					n = cb.call(this, tmp, (++i)).toString();
 					t = n;
 					if (!s) {
@@ -55212,17 +54940,17 @@ define('skylark-widgets-hierarchy/addons/wholerow',[
 			parent.bind.call(this);
 
 			this.element
-				.on('ready.jstree set_state.jstree', $.proxy(function () {
+				.on('ready.jstree set_state.jstree', langx.proxy(function () {
 						this.hide_dots();
 					}, this))
-				.on("init.jstree loading.jstree ready.jstree", $.proxy(function () {
+				.on("init.jstree loading.jstree ready.jstree", langx.proxy(function () {
 						//div.style.height = this._data.core.li_height + 'px';
 						this.get_container_ul().addClass('jstree-wholerow-ul');
 					}, this))
-				.on("deselect_all.jstree", $.proxy(function (e, data) {
+				.on("deselect_all.jstree", langx.proxy(function (e, data) {
 						this.element.find('.jstree-wholerow-clicked').removeClass('jstree-wholerow-clicked');
 					}, this))
-				.on("changed.jstree", $.proxy(function (e, data) {
+				.on("changed.jstree", langx.proxy(function (e, data) {
 						this.element.find('.jstree-wholerow-clicked').removeClass('jstree-wholerow-clicked');
 						var tmp = false, i, j;
 						for(i = 0, j = data.selected.length; i < j; i++) {
@@ -55232,14 +54960,14 @@ define('skylark-widgets-hierarchy/addons/wholerow',[
 							}
 						}
 					}, this))
-				.on("open_node.jstree", $.proxy(function (e, data) {
+				.on("open_node.jstree", langx.proxy(function (e, data) {
 						this.get_node(data.node, true).find('.jstree-clicked').parent().children('.jstree-wholerow').addClass('jstree-wholerow-clicked');
 					}, this))
-				.on("hover_node.jstree dehover_node.jstree", $.proxy(function (e, data) {
+				.on("hover_node.jstree dehover_node.jstree", langx.proxy(function (e, data) {
 						if(e.type === "hover_node" && this.is_disabled(data.node)) { return; }
 						this.get_node(data.node, true).children('.jstree-wholerow')[e.type === "hover_node"?"addClass":"removeClass"]('jstree-wholerow-hovered');
 					}, this))
-				.on("contextmenu.jstree", ".jstree-wholerow", $.proxy(function (e) {
+				.on("contextmenu.jstree", ".jstree-wholerow", langx.proxy(function (e) {
 						if (this._data.contextmenu) {
 							e.preventDefault();
 							var tmp = $.Event('contextmenu', { metaKey : e.metaKey, ctrlKey : e.ctrlKey, altKey : e.altKey, shiftKey : e.shiftKey, pageX : e.pageX, pageY : e.pageY });
@@ -55265,19 +54993,19 @@ define('skylark-widgets-hierarchy/addons/wholerow',[
 						var tmp = $.Event('dblclick', { metaKey : e.metaKey, ctrlKey : e.ctrlKey, altKey : e.altKey, shiftKey : e.shiftKey });
 						$(e.currentTarget).closest(".jstree-node").children(".jstree-anchor").first().trigger(tmp).focus();
 					})
-				.on("click.jstree", ".jstree-leaf > .jstree-ocl", $.proxy(function (e) {
+				.on("click.jstree", ".jstree-leaf > .jstree-ocl", langx.proxy(function (e) {
 						e.stopImmediatePropagation();
 						var tmp = $.Event('click', { metaKey : e.metaKey, ctrlKey : e.ctrlKey, altKey : e.altKey, shiftKey : e.shiftKey });
 						$(e.currentTarget).closest(".jstree-node").children(".jstree-anchor").first().trigger(tmp).focus();
 					}, this))
-				.on("mouseover.jstree", ".jstree-wholerow, .jstree-icon", $.proxy(function (e) {
+				.on("mouseover.jstree", ".jstree-wholerow, .jstree-icon", langx.proxy(function (e) {
 						e.stopImmediatePropagation();
 						if(!this.is_disabled(e.currentTarget)) {
 							this.hover_node(e.currentTarget);
 						}
 						return false;
 					}, this))
-				.on("mouseleave.jstree", ".jstree-node", $.proxy(function (e) {
+				.on("mouseleave.jstree", ".jstree-node", langx.proxy(function (e) {
 						this.dehover_node(e.currentTarget);
 					}, this));
 		};
@@ -55292,7 +55020,7 @@ define('skylark-widgets-hierarchy/addons/wholerow',[
 			if(obj) {
 				var tmp = div.cloneNode(true);
 				//tmp.style.height = this._data.core.li_height + 'px';
-				if($.inArray(obj.id, this._data.core.selected) !== -1) { tmp.className += ' jstree-wholerow-clicked'; }
+				if(langx.inArray(obj.id, this._data.core.selected) !== -1) { tmp.className += ' jstree-wholerow-clicked'; }
 				if(this._data.core.focused && this._data.core.focused === obj.id) { tmp.className += ' jstree-wholerow-hovered'; }
 				obj.insertBefore(tmp, obj.childNodes[0]);
 			}
@@ -60335,7 +60063,7 @@ define('skylark-widgets-iconpicker/IconPicker',[
     };
 
 
-    return skylark.attach("iwidgets.IconPicker",IconPicker);
+    return skylark.attach("widgets.IconPicker",IconPicker);
 });
 
 define('skylark-widgets-iconpicker/main',[
@@ -83675,6 +83403,68 @@ define('skylark-widgets-textpad/textpad',[
 ],function(skylark){
 	return skylark.attach("widgets.textpad",{});
 });
+define('skylark-utils-dom/skylark',["skylark-langx/skylark"], function(skylark) {
+    return skylark;
+});
+
+define('skylark-utils-dom/dom',["./skylark"], function(skylark) {
+	return skylark.dom = skylark.attach("dom",{});
+});
+
+define('skylark-utils-dom/browser',[
+    "./dom",
+    "skylark-domx-browser"
+], function(dom,browser) {
+    "use strict";
+
+    return dom.browser = browser;
+});
+
+define('skylark-utils-dom/noder',[
+    "./dom",
+    "skylark-domx-noder"
+], function(dom, noder) {
+
+    return dom.noder = noder;
+});
+define('skylark-utils-dom/eventer',[
+    "./dom",
+    "skylark-domx-eventer"
+], function(dom, eventer) {
+ 
+    return dom.eventer = eventer;
+});
+define('skylark-utils-dom/finder',[
+    "./dom",
+    "skylark-domx-finder"
+], function(dom, finder) {
+
+    return dom.finder = finder;
+});
+define('skylark-utils-dom/datax',[
+    "./dom",
+    "skylark-domx-data"
+], function(dom, datax) {
+ 
+    return dom.datax = datax;
+});
+define('skylark-utils-dom/query',[
+    "./dom",
+    "skylark-domx-query"
+], function(dom, query) {
+
+    return dom.query = query;
+
+});
+define('skylark-utils-dom/plugins',[
+    "./dom",
+    "skylark-domx-plugins"
+], function(dom, plugins) {
+    "use strict";
+
+
+    return dom.plugins = plugins;
+});
 define('skylark-easyeditor/EasyEditor',[
   "skylark-langx/skylark",
   "skylark-langx/langx",
@@ -91971,10 +91761,10 @@ return $.datepicker;
 });
 
 define( 'skylark-jqueryui-interact/Mouse',[
-	"skylark-utils-dom/browser",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-domx-browser",
+	"skylark-domx-data",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"skylark-jquery/JqueryPlugin"
 ],function(browser, datax, $, plugins, JqPlugin) {
 
@@ -92217,7 +92007,7 @@ define('skylark-jqueryui-interact/patch',[
 });
 
 define('skylark-jqueryui-interact/ddmanager',[
-	"skylark-utils-dom/langx"
+	"skylark-langx/langx"
 ],function(langx) {
 	/*
 	 * This manager tracks offsets of draggables and droppables
@@ -92425,11 +92215,11 @@ define('skylark-jqueryui-interact/ddmanager',[
 	return ddmanager;
 });
 define( 'skylark-jqueryui-interact/Draggable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./patch",
 	"./ddmanager",
@@ -93704,12 +93494,12 @@ define( 'skylark-jqueryui/widgets/mouse',[
 });
 
 define( 'skylark-jqueryui-interact/Resizable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./patch",
 	"./ddmanager",
@@ -95854,11 +95644,11 @@ return $.ui.dialog;
 });
 
 define( 'skylark-jqueryui-interact/Droppable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"skylark-jquery/JqueryPlugin",
 	"./patch",
 	"./ddmanager",
@@ -96291,12 +96081,12 @@ return $.widget( "ui.progressbar", {
 });
 
 define( 'skylark-jqueryui-interact/Selectable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse"
 ],function(langx, datax, eventer, noder, $, plugins, Mouse) {
 
@@ -98037,12 +97827,12 @@ return $.widget( "ui.slider", $.ui.mouse, {
 });
 
 define( 'skylark-jqueryui-interact/Sortable',[
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./ddmanager",
 ],function(langx, datax, eventer, noder, $, plugins, Mouse, ddmanager) {
@@ -104456,12 +104246,16 @@ define('skylark-jqueryui', ['skylark-jqueryui/main'], function (main) { return m
 
 define('slax-skydoku/main',[
    "skylark-slax-runtime",
+   "skylark-bootstrap3/loadedInit",
    "skylark-widgets-coder",
    "skylark-widgets-textpad",
    "skylark-jqueryui"
-],function(slax){
+],function(slax,bsInit){
+	bsInit();
 	return slax;
-});
+})
+
+;
 define('slax-skydoku', ['slax-skydoku/main'], function (main) { return main; });
 
 

@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","particles"],"mappings":";;;;;;;AAAAA,QAAQ,eAAe,SAASC,GAC/B,OAAOA","file":"../main.js","sourcesContent":["define([\"./particles\"],function(particles){\r\n\treturn particles;\r\n});"]}

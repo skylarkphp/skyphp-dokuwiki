@@ -1,0 +1,9 @@
+/**
+ * skylark-domx-forms - The skylark html form library for dom api extension.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(["skylark-langx/langx","skylark-domx-query","./forms"],function(e,n,t){function a(e,n,t){var a=t[e];return void 0===a?t[e]=[n]:a.push(n),t}var c={checked:["radio","checkbox"],selected:["option","select-one","select-multiple"],value:["button","color","date","datetime","datetime-local","email","hidden","month","number","password","range","reset","search","submit","tel","text","textarea","time","url","week"]};function i(n,t,a,i,o){var r=function(n){var t=function(e){return(e.type||e.nodeName).toLowerCase()}(n),a=void 0;return e.each(c,function(n,c){if(e.inArray(t,c)>-1)return a=n,!1}),a}(n);if("value"==r&&t==i)n.value=a,o.call(n,a);else if("checked"==r||"selected"==r){var l=[];n.options?e.each(n.options,function(e,n){l.push(n)}):l.push(n),n.multiple&&0==i&&(n.selectedIndex=-1),e.each(l,function(e,n){n.value==a&&(n[r]=!0,o.call(n,a))})}}var o={change:e.noop,complete:e.noop};return t.deserialize=function(t,c,r){e.isFunction(r)&&(r={complete:r}),r=e.extend(o,r||{}),c=function(n){var t={},c=/\+/g;return e.isPlainObject(n)?(e.extend(t,n),e.each(t,function(n,a){e.isArray(a)||(t[n]=[a])})):e.isArray(n)?e.each(n,function(e,n){a(n.name,n.value,t)}):"string"==typeof n&&e.each(n.split("&"),function(e,n){var i=n.split("=");a(decodeURIComponent(i[0].replace(c,"%20")),decodeURIComponent(i[1].replace(c,"%20")),t)}),t}(c);var l=function(t,c){var i={},o=n(t).map(function(){return this.elements?e.makeArray(this.elements):this}).filter(c||":input:not(:disabled)").get();return e.each(o,function(e,n){a(n.name,n,i)}),i}(t,r.filter);return e.each(c,function(n,t){e.each(l[n],function(n,a){e.each(t,function(e,t){i(a,n,t,e,r.change)})})}),r.complete.call(t),this}});
+//# sourceMappingURL=sourcemaps/deserialize.js.map

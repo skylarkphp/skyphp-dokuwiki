@@ -7,7 +7,7 @@ define([
 	"skylark-widgets-swt/Widget",
 	"skylark-nprogress",
 	"skylark-bootbox4",
-  "skylark-visibility",
+    "skylark-visibility",
   "skylark-tinycon",
 	"./shells"
 ],function(langx, css, scripter, finder,$,Widget,nprogress,bootbox,Visibility, Tinycon,shells){

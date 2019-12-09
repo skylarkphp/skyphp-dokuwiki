@@ -2,7 +2,7 @@
  * skylark-bootbox4 - A version of bootbox4 that ported to running on skylarkjs
  * @author Hudaokeji, Inc.
  * @version v0.9.2
- * @link https://github.com/skylarkui/skylark-bootbox4/
+ * @link https://github.com/skylark-integration/skylark-bootbox4/
  * @license MIT
  */
 (function(factory,globals) {
@@ -89,7 +89,9 @@
 define('skylark-bootbox4/bootbox',[
   "skylark-langx/skylark",
   "skylark-langx/langx",
-  "skylark-utils-dom/query"
+  "skylark-domx-query",
+  "skylark-domx-data",
+  "skylark-domx-styler"
 ],function(skylark,langx,$) {
 
   "use strict";

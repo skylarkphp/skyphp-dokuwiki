@@ -1,10 +1,10 @@
 define( [
-	"skylark-utils-dom/langx",
-	"skylark-utils-dom/datax",
-	"skylark-utils-dom/eventer",
-	"skylark-utils-dom/noder",
-	"skylark-utils-dom/query",
-	"skylark-utils-dom/plugins",
+	"skylark-langx/langx",
+	"skylark-domx-data",
+	"skylark-domx-eventer",
+	"skylark-domx-noder",
+	"skylark-domx-query",
+	"skylark-domx-plugins",
 	"./Mouse",
 	"./ddmanager",
 ],function(langx, datax, eventer, noder, $, plugins, Mouse, ddmanager) {

@@ -16,6 +16,7 @@
     "skylark-jqueryui": "git+https://github.com/skylark-integration/skylark-jqueryui.git#master",
     "skylark-jqueryui-interact": "git+https://github.com/skylark-integration/skylark-jqueryui-interact.git#master",
     "skylark-langx": "git+https://github.com/skylark-langx/skylark-langx.git#master",
+    "skylark-particles": "git+https://github.com/skylark-integration/skylark-particles.git#master",
     "skylark-slax-runtime": "git+https://github.com/skylark-slax/skylark-slax-runtime.git#master",
     "skylark-widgets-coder": "git+https://github.com/skylark-widgets/skylark-widgets-coder.git#master",
     "skylark-widgets-textpad": "git+https://github.com/skylark-widgets/skylark-widgets-textpad.git#master"

@@ -8,7 +8,7 @@ define([
      render : function() {
       var $option, k, lang, len, ref;
       this._tpl = "<div class=\"code-settings\">\n  <div class=\"settings-field\">\n    <select class=\"select-lang\">\n      <option value=\"-1\">" + (this._t('selectLanguage')) + "</option>\n    </select>\n  </div>\n</div>";
-      this.langs = this.editor.opts.codeLanguages || [
+      this.langs = this.editor.options.codeLanguages || [
         {
           name: 'Bash',
           value: 'bash'

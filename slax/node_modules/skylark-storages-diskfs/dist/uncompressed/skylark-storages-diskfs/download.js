@@ -1,6 +1,7 @@
 define([
+    "skylark-langx/types",
     "./diskfs"
-],function(diskfs){
+],function(types,diskfs){
 
     function downloadFile(data, name) {
         if (window.navigator.msSaveBlob) {

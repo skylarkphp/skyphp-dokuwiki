@@ -1,0 +1,1 @@
+{"version":3,"sources":["Lint.js"],"names":["define","js","JSLint","Lint"],"mappings":";;;;;;;AAAAA,QACI,OACA,uBACD,SAASC,EAAIC,GAEf,OAAOD,EAAGE,KAAOD","file":"../Lint.js","sourcesContent":["define([\r\n    \"./js\",\r\n    \"./primitives/jshint\"\r\n], function(js, JSLint) {\r\n\r\n\treturn js.Lint = JSLint;\r\n});"]}

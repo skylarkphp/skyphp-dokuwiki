@@ -389,8 +389,9 @@ define('skylark-domx-forms/serializeObject',[
 });  
 define('skylark-domx-forms/serialize',[
   "skylark-langx/langx",
-  "./forms"
-],function(langx,forms){
+  "./forms",
+  "./serializeArray"
+],function(langx,forms,serializeArray){
     function serialize(formElm) {
         var result = []
         serializeArray(formElm).forEach(function(elm) {

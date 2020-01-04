@@ -97,7 +97,7 @@ $meta['googleAnalyticsTrackActions'] = array('onoff');
 // Browser Title
 $meta['browserTitle']          = array('string');
 $meta['browserTitleShowNS']    = array('onoff');
-$meta['browserTitleCharSepNS'] = array('multichoice', '_choices' => array('-', '|', ',', '/', '>'));
+$meta['browserTitleCharSepNS'] = array('multichoice', '_choices' => array('-', '|', ',', '/', '>','<'));
 $meta['browserTitleOrderNS']   = array('multichoice', '_choices' => array('normal', 'reverse'));
 
 // Page

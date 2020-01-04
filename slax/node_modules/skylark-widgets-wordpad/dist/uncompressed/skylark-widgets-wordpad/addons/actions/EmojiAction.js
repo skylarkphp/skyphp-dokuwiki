@@ -7,7 +7,7 @@ define([
   var EmojiAction = Action.inherit({
     name : 'emoji',
 
-    icon : 'smile-o',
+    icon : 'emoji',
 
     menu : true,
 

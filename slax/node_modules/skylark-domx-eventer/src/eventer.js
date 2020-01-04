@@ -44,99 +44,101 @@ define([
         };
     }
 
+
+    var NativeEventCtors = [
+            window["CustomEvent"], // 0 default
+            window["CompositionEvent"], // 1
+            window["DragEvent"], // 2
+            window["Event"], // 3
+            window["FocusEvent"], // 4
+            window["KeyboardEvent"], // 5
+            window["MessageEvent"], // 6
+            window["MouseEvent"], // 7
+            window["MouseScrollEvent"], // 8
+            window["MouseWheelEvent"], // 9
+            window["MutationEvent"], // 10
+            window["ProgressEvent"], // 11
+            window["TextEvent"], // 12
+            window["TouchEvent"], // 13
+            window["UIEvent"], // 14
+            window["WheelEvent"], // 15
+            window["ClipboardEvent"] // 16
+        ],
+        NativeEvents = {
+            "compositionstart": 1, // CompositionEvent
+            "compositionend": 1, // CompositionEvent
+            "compositionupdate": 1, // CompositionEvent
+
+            "beforecopy": 16, // ClipboardEvent
+            "beforecut": 16, // ClipboardEvent
+            "beforepaste": 16, // ClipboardEvent
+            "copy": 16, // ClipboardEvent
+            "cut": 16, // ClipboardEvent
+            "paste": 16, // ClipboardEvent
+
+            "drag": 2, // DragEvent
+            "dragend": 2, // DragEvent
+            "dragenter": 2, // DragEvent
+            "dragexit": 2, // DragEvent
+            "dragleave": 2, // DragEvent
+            "dragover": 2, // DragEvent
+            "dragstart": 2, // DragEvent
+            "drop": 2, // DragEvent
+
+            "abort": 3, // Event
+            "change": 3, // Event
+            "error": 3, // Event
+            "selectionchange": 3, // Event
+            "submit": 3, // Event
+            "reset": 3, // Event
+
+            "focus": 4, // FocusEvent
+            "blur": 4, // FocusEvent
+            "focusin": 4, // FocusEvent
+            "focusout": 4, // FocusEvent
+
+            "keydown": 5, // KeyboardEvent
+            "keypress": 5, // KeyboardEvent
+            "keyup": 5, // KeyboardEvent
+
+            "message": 6, // MessageEvent
+
+            "click": 7, // MouseEvent
+            "contextmenu": 7, // MouseEvent
+            "dblclick": 7, // MouseEvent
+            "mousedown": 7, // MouseEvent
+            "mouseup": 7, // MouseEvent
+            "mousemove": 7, // MouseEvent
+            "mouseover": 7, // MouseEvent
+            "mouseout": 7, // MouseEvent
+            "mouseenter": 7, // MouseEvent
+            "mouseleave": 7, // MouseEvent
+
+
+            "textInput": 12, // TextEvent
+
+            "touchstart": 13, // TouchEvent
+            "touchmove": 13, // TouchEvent
+            "touchend": 13, // TouchEvent
+
+            "load": 14, // UIEvent
+            "resize": 14, // UIEvent
+            "select": 14, // UIEvent
+            "scroll": 14, // UIEvent
+            "unload": 14, // UIEvent,
+
+            "wheel": 15 // WheelEvent
+        };
+
     //create a custom dom event
     var createEvent = (function() {
-        var EventCtors = [
-                window["CustomEvent"], // 0 default
-                window["CompositionEvent"], // 1
-                window["DragEvent"], // 2
-                window["Event"], // 3
-                window["FocusEvent"], // 4
-                window["KeyboardEvent"], // 5
-                window["MessageEvent"], // 6
-                window["MouseEvent"], // 7
-                window["MouseScrollEvent"], // 8
-                window["MouseWheelEvent"], // 9
-                window["MutationEvent"], // 10
-                window["ProgressEvent"], // 11
-                window["TextEvent"], // 12
-                window["TouchEvent"], // 13
-                window["UIEvent"], // 14
-                window["WheelEvent"], // 15
-                window["ClipboardEvent"] // 16
-            ],
-            NativeEvents = {
-                "compositionstart": 1, // CompositionEvent
-                "compositionend": 1, // CompositionEvent
-                "compositionupdate": 1, // CompositionEvent
-
-                "beforecopy": 16, // ClipboardEvent
-                "beforecut": 16, // ClipboardEvent
-                "beforepaste": 16, // ClipboardEvent
-                "copy": 16, // ClipboardEvent
-                "cut": 16, // ClipboardEvent
-                "paste": 16, // ClipboardEvent
-
-                "drag": 2, // DragEvent
-                "dragend": 2, // DragEvent
-                "dragenter": 2, // DragEvent
-                "dragexit": 2, // DragEvent
-                "dragleave": 2, // DragEvent
-                "dragover": 2, // DragEvent
-                "dragstart": 2, // DragEvent
-                "drop": 2, // DragEvent
-
-                "abort": 3, // Event
-                "change": 3, // Event
-                "error": 3, // Event
-                "selectionchange": 3, // Event
-                "submit": 3, // Event
-                "reset": 3, // Event
-
-                "focus": 4, // FocusEvent
-                "blur": 4, // FocusEvent
-                "focusin": 4, // FocusEvent
-                "focusout": 4, // FocusEvent
-
-                "keydown": 5, // KeyboardEvent
-                "keypress": 5, // KeyboardEvent
-                "keyup": 5, // KeyboardEvent
-
-                "message": 6, // MessageEvent
-
-                "click": 7, // MouseEvent
-                "contextmenu": 7, // MouseEvent
-                "dblclick": 7, // MouseEvent
-                "mousedown": 7, // MouseEvent
-                "mouseup": 7, // MouseEvent
-                "mousemove": 7, // MouseEvent
-                "mouseover": 7, // MouseEvent
-                "mouseout": 7, // MouseEvent
-                "mouseenter": 7, // MouseEvent
-                "mouseleave": 7, // MouseEvent
-
-
-                "textInput": 12, // TextEvent
-
-                "touchstart": 13, // TouchEvent
-                "touchmove": 13, // TouchEvent
-                "touchend": 13, // TouchEvent
-
-                "load": 14, // UIEvent
-                "resize": 14, // UIEvent
-                "select": 14, // UIEvent
-                "scroll": 14, // UIEvent
-                "unload": 14, // UIEvent,
-
-                "wheel": 15 // WheelEvent
-            };
 
         function getEventCtor(type) {
             var idx = NativeEvents[type];
             if (!idx) {
                 idx = 0;
             }
-            return EventCtors[idx];
+            return NativeEventCtors[idx];
         }
 
         return function(type, props) {
@@ -655,6 +657,8 @@ define([
     }
 
     langx.mixin(eventer, {
+        NativeEvents : NativeEvents,
+        
         create: createEvent,
 
         keys: keyCodeLookup,
@@ -677,6 +681,32 @@ define([
 
         trigger: trigger
 
+    });
+
+    each(NativeEvents,function(name){
+        eventer[name] = function(elm,selector,data,callback) {
+            if (arguments.length>1) {
+                return this.on(elm,name,selector,data,callback);
+            } else {
+                if (name == "focus") {
+                    if (elm.focus) {
+                        elm.focus();
+                    }
+                } else if (name == "blur") {
+                    if (elm.blur) {
+                        elm.blur();
+                    }
+                } else if (name == "click") {
+                    if (elm.click) {
+                        elm.click();
+                    }
+                } else {
+                    this.trigger(elm,name);
+                }
+
+                return this;
+            }
+        };
     });
 
     return skylark.attach("domx.eventer",eventer);

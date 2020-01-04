@@ -10,7 +10,7 @@ define([
 
     _init : function() {
       var hotkey;
-      hotkey = this.editor.opts.tabIndent === false ? '' : ' (Shift + Tab)';
+      hotkey = this.editor.options.tabIndent === false ? '' : ' (Shift + Tab)';
       this.title = this._t(this.name) + hotkey;
       return Action.prototype._init.call(this);
     },

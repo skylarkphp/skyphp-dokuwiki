@@ -142,7 +142,7 @@ define([
     if (this._index < 1 || this._stack.length < 2) {
       return;
     }
-    this.editable.hidePopover();
+    //this.editable.hidePopover();
     this._index -= 1;
     state = this._stack[this._index];
     this.editable.body.get(0).innerHTML = state.html;
@@ -157,7 +157,7 @@ define([
     if (this._index < 0 || this._stack.length < this._index + 2) {
       return;
     }
-    this.editable.hidePopover();
+    //this.editable.hidePopover();
     this._index += 1;
     state = this._stack[this._index];
     this.editable.body.get(0).innerHTML = state.html;

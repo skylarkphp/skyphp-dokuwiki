@@ -1,0 +1,1 @@
+{"version":3,"sources":["html.js"],"names":["define","skylark","attach"],"mappings":";;;;;;;AAAAA,QACI,yBACD,SAASC,GACX,OAAOA,EAAQC,OAAO","file":"../html.js","sourcesContent":["define([\r\n    \"skylark-langx/skylark\"\r\n], function(skylark) {\r\n\treturn skylark.attach(\"domx.html\",{});\r\n});"]}

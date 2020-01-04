@@ -5,5 +5,5 @@
  * @link skydoku.hudaokeji.com
  * @license 
  */
-define(["skylark-slax-runtime","skylark-bootstrap3/loadedInit","skylark-widgets-coder","skylark-widgets-textpad","skylark-jqueryui"],function(r,e){return e(),r});
+define(["skylark-slax-runtime","skylark-bootstrap3/loadedInit","skylark-widgets-coder","skylark-widgets-textpad","skylark-jqueryui","skylark-particles"],function(r,k){return k(),r});
 //# sourceMappingURL=sourcemaps/main.js.map

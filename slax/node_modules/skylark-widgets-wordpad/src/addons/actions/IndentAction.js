@@ -11,7 +11,7 @@ define([
 
       _init : function() {
         var hotkey;
-        hotkey = this.editor.opts.tabIndent === false ? '' : ' (Tab)';
+        hotkey = this.editor.options.tabIndent === false ? '' : ' (Tab)';
         this.title = this._t(this.name) + hotkey;
         return Action.prototype._init.call(this);
       },

@@ -9,7 +9,7 @@ define([
    var ColorAction = Action.inherit({
     name : 'color',
 
-    icon : 'tint',
+    icon : 'fontColor',
 
     disableTag : 'pre',
 

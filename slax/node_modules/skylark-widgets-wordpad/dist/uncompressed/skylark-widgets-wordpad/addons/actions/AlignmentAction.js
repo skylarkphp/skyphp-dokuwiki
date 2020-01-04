@@ -7,7 +7,7 @@ define([
   var AlignmentAction = Action.inherit({
     name : "alignment",
 
-    icon : 'align-left',
+    icon : 'alignLeft',
     
     htmlTag : 'p, h1, h2, h3, h4, td, th',
 
@@ -17,17 +17,17 @@ define([
           {
             name: 'left',
             text: i18n.translate('alignLeft'),
-            icon: 'align-left',
+            icon: 'alignLeft',
             param: 'left'
           }, {
             name: 'center',
             text: i18n.translate('alignCenter'),
-            icon: 'align-center',
+            icon: 'alignCenter',
             param: 'center'
           }, {
             name: 'right',
             text: i18n.translate('alignRight'),
-            icon: 'align-right',
+            icon: 'alignRight',
             param: 'right'
           }
       ] ;    

@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-widgets/skylark-widgets-wordpad/
  * @license MIT
  */
-define(["skylark-langx/langx","skylark-domx-query","../../addons","../../Action"],function(i,t,e,n){var o=n.inherit({name:"emoji",icon:"smile-o",menu:!0,_init:function(){n.prototype._init.apply(this),i.merge(this.editor.editable.formatter._allowedAttributes.img,["data-emoji","alt"])}});return e.actions.emoji=o,o});
+define(["skylark-langx/langx","skylark-domx-query","../../addons","../../Action"],function(i,t,e,n){var o=n.inherit({name:"emoji",icon:"emoji",menu:!0,_init:function(){n.prototype._init.apply(this),i.merge(this.editor.editable.formatter._allowedAttributes.img,["data-emoji","alt"])}});return e.actions.emoji=o,o});
 //# sourceMappingURL=../../sourcemaps/addons/actions/EmojiAction.js.map

@@ -8,7 +8,7 @@ define([
   var FontScaleAction = Action.inherit({
     name : 'fontScale',
 
-    icon : 'font',
+    icon : 'fontScale',
 
     htmlTag : 'span',
 

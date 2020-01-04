@@ -8,7 +8,7 @@ define([
 
 	  name : 'hr',
 
-	  icon : 'minus',
+	  icon : 'hr',
 
 	  htmlTag : 'hr',
 

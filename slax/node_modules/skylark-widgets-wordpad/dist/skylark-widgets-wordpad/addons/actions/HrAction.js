@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-widgets/skylark-widgets-wordpad/
  * @license MIT
  */
-define(["skylark-domx-query","../../addons","../../Action"],function(n,t,e){var i=e.inherit({name:"hr",icon:"minus",htmlTag:"hr",_status:function(){},_execute:function(){return this.editor.editable.hr()}});return t.actions.hr=i,i});
+define(["skylark-domx-query","../../addons","../../Action"],function(n,t,r){var e=r.inherit({name:"hr",icon:"hr",htmlTag:"hr",_status:function(){},_execute:function(){return this.editor.editable.hr()}});return t.actions.hr=e,e});
 //# sourceMappingURL=../../sourcemaps/addons/actions/HrAction.js.map

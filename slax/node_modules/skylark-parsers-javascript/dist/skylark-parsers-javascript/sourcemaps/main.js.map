@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","js"],"mappings":";;;;;;;AAAAA,QACI,OACA,aACA,SACA,YACD,SAASC,GACR,OAAOA","file":"../main.js","sourcesContent":["define([\r\n    \"./js\",\r\n    \"./beautify\",\r\n    \"./Lint\",\r\n    \"./Parser\",\r\n], function(js) {\r\n    return js;\r\n});\r\n"]}

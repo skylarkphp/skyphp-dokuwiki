@@ -8,7 +8,7 @@ define([
 
       name : 'ul',
 
-      icon : 'list-ul',
+      icon : 'listul',
 
       htmlTag : 'ul',
 

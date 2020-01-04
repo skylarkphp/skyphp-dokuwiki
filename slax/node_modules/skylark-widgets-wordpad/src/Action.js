@@ -136,7 +136,8 @@ define([
 
   Action.prototype._t = i18n.translate;
 
-
+  Action.i18n = i18n;
+  
   return Action;
 
 });

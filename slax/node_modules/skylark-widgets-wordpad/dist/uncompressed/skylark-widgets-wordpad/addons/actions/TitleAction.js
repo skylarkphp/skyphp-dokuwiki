@@ -9,6 +9,8 @@ define([
 
     htmlTag : 'h1, h2, h3, h4, h5',
 
+    icon : "header",
+
     disableTag : 'pre, table',
 
     _init : function() {

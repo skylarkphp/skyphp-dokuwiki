@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","html"],"mappings":";;;;;;;AAAAA,QACI,SACA,cACD,SAASC,GACR,OAAOA","file":"../main.js","sourcesContent":["define([\r\n    \"./html\",\r\n    \"./beautify\"\r\n], function(html) {\r\n    return html;\r\n});\r\n"]}

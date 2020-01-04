@@ -8,7 +8,7 @@ define([
 
     name : 'ol',
 
-    icon : 'list-ol',
+    icon : 'listol',
 
     htmlTag : 'ol',
 

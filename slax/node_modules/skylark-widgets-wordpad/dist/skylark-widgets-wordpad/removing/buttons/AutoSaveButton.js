@@ -1,9 +1,0 @@
-/**
- * skylark-widgets-wordpad - The skylark richeditor widget
- * @author Hudaokeji, Inc.
- * @version v0.9.0
- * @link https://github.com/skylark-widgets/skylark-widgets-wordpad/
- * @license MIT
- */
-define(["skylark-domx-query","../Toolbar","../Wordpad","../Button","../i18n"],function(t,e,o,a,s){var r=a.inherit({name:"autosave",needFocus:!1,_init:function(){var e,o,s,r;if((a.prototype._init.call(this),this.editor=this._module,this.opts.autosave)&&(this.name="string"==typeof this.opts.autosave?this.opts.autosave:"simditor",this.opts.autosavePath?this.path=this.opts.autosavePath:(e=t("<a/>",{href:location.href}),o=this.editor.textarea.data("autosave")||this.name,this.path="/"+e[0].pathname.replace(/\/$/g,"").replace(/^\//g,"")+"/autosave/"+o+"/"),this.path&&(this.editor.on("valuechanged",(r=this,function(){return r.storage.set(r.path,r.editor.getValue())})),this.editor.el.closest("form").on("ajax:success.simditor-"+this.editor.id,function(t){return function(e){return t.storage.remove(t.path)}}(this)),(s=this.storage.get(this.path))&&s!==this.editor.textarea.val())))return this.editor.textarea.is("[data-autosave-confirm]")?confirm(this.editor.textarea.data("autosave-confirm")||"Are you sure to restore unsaved changes?")?this.editor.setValue(s):this.storage.remove(this.path):this.editor.setValue(s)}});return r.pluginName="Autosave",r.prototype.opts={autosave:!0,autosavePath:null},r.prototype.storage={supported:function(){try{return localStorage.setItem("_storageSupported","yes"),localStorage.removeItem("_storageSupported"),!0}catch(t){return t,!1}},set:function(t,e,o){if(null==o&&(o=!1),this.supported())return(o?sessionStorage:localStorage).setItem(t,e)},get:function(t,e){if(null==e&&(e=!1),this.supported())return(e?sessionStorage:localStorage)[t]},remove:function(t,e){if(null==e&&(e=!1),this.supported())return(e?sessionStorage:localStorage).removeItem(t)}},r});
-//# sourceMappingURL=../../sourcemaps/removing/buttons/AutoSaveButton.js.map

@@ -2411,8 +2411,10 @@ define('skylark-net-http/Xhr',[
             // Whether the browser should be allowed to cache GET responses
             cache: true,
 
+            traditional : false,
+            
             xhrFields : {
-                withCredentials : true
+                withCredentials : false
             }
         };
 
@@ -5143,6 +5145,9 @@ define('skylark-domx-finder/finder',[
 
         'visible': function(elm) {
             return elm.offsetWidth && elm.offsetWidth
+        },
+        'empty': function(elm) {
+            return !elm.hasChildNodes();
         }
     };
 
@@ -6820,7 +6825,8 @@ define('skylark-domx-query/query',[
                 return this.before(newContent).remove();
             },
 
-            wrap: function(structure) {
+            wrap: function(html) {
+                /*
                 var func = isFunction(structure)
                 if (this[0] && !func)
                     var dom = $(structure).get(0),
@@ -6832,9 +6838,16 @@ define('skylark-domx-query/query',[
                         clone ? dom.cloneNode(true) : dom
                     )
                 })
+                */
+                var htmlIsFunction = typeof html === "function";
+
+                return this.each( function( i ) {
+                    $( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
+                } );                
             },
 
-            wrapAll: function(wrappingElement) {
+            wrapAll: function(html) {
+                /*
                 if (this[0]) {
                     $(this[0]).before(wrappingElement = $(wrappingElement));
                     var children;
@@ -6845,9 +6858,38 @@ define('skylark-domx-query/query',[
                     $(wrappingElement).append(this);
                 }
                 return this
+                */
+                var wrap;
+
+                if ( this[ 0 ] ) {
+                    if ( typeof html === "function" ) {
+                        html = html.call( this[ 0 ] );
+                    }
+
+                    // The elements to wrap the target around
+                    wrap = $( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+                    if ( this[ 0 ].parentNode ) {
+                        wrap.insertBefore( this[ 0 ] );
+                    }
+
+                    wrap.map( function() {
+                        var elem = this;
+
+                        while ( elem.firstElementChild ) {
+                            elem = elem.firstElementChild;
+                        }
+
+                        return elem;
+                    } ).append( this );
+                }
+
+                return this;
+
             },
 
-            wrapInner: function(wrappingElement) {
+            wrapInner: function(html) {
+                /*
                 var func = isFunction(wrappingElement)
                 return this.each(function(index,node) {
                     var self = $(this),
@@ -6855,9 +6897,29 @@ define('skylark-domx-query/query',[
                         dom = func ? wrappingElement.call(this, index,node) : wrappingElement
                     contents.length ? contents.wrapAll(dom) : self.append(dom)
                 })
+                */
+                if ( typeof html === "function" ) {
+                    return this.each( function( i ) {
+                        $( this ).wrapInner( html.call( this, i ) );
+                    } );
+                }
+
+                return this.each( function() {
+                    var self = $( this ),
+                        contents = self.contents();
+
+                    if ( contents.length ) {
+                        contents.wrapAll( html );
+
+                    } else {
+                        self.append( html );
+                    }
+                } );
+
             },
 
             unwrap: function(selector) {
+                /*
                 if (this.parent().children().length === 0) {
                     // remove dom without text
                     this.parent(selector).not("body").each(function() {
@@ -6869,6 +6931,12 @@ define('skylark-domx-query/query',[
                     });
                 }
                 return this
+                */
+                this.parent(selector).not("body").each( function() {
+                    $(this).replaceWith(this.childNodes);
+                });
+                return this;
+
             },
 
             clone: function() {
@@ -7427,99 +7495,101 @@ define('skylark-domx-eventer/eventer',[
         };
     }
 
+
+    var NativeEventCtors = [
+            window["CustomEvent"], // 0 default
+            window["CompositionEvent"], // 1
+            window["DragEvent"], // 2
+            window["Event"], // 3
+            window["FocusEvent"], // 4
+            window["KeyboardEvent"], // 5
+            window["MessageEvent"], // 6
+            window["MouseEvent"], // 7
+            window["MouseScrollEvent"], // 8
+            window["MouseWheelEvent"], // 9
+            window["MutationEvent"], // 10
+            window["ProgressEvent"], // 11
+            window["TextEvent"], // 12
+            window["TouchEvent"], // 13
+            window["UIEvent"], // 14
+            window["WheelEvent"], // 15
+            window["ClipboardEvent"] // 16
+        ],
+        NativeEvents = {
+            "compositionstart": 1, // CompositionEvent
+            "compositionend": 1, // CompositionEvent
+            "compositionupdate": 1, // CompositionEvent
+
+            "beforecopy": 16, // ClipboardEvent
+            "beforecut": 16, // ClipboardEvent
+            "beforepaste": 16, // ClipboardEvent
+            "copy": 16, // ClipboardEvent
+            "cut": 16, // ClipboardEvent
+            "paste": 16, // ClipboardEvent
+
+            "drag": 2, // DragEvent
+            "dragend": 2, // DragEvent
+            "dragenter": 2, // DragEvent
+            "dragexit": 2, // DragEvent
+            "dragleave": 2, // DragEvent
+            "dragover": 2, // DragEvent
+            "dragstart": 2, // DragEvent
+            "drop": 2, // DragEvent
+
+            "abort": 3, // Event
+            "change": 3, // Event
+            "error": 3, // Event
+            "selectionchange": 3, // Event
+            "submit": 3, // Event
+            "reset": 3, // Event
+
+            "focus": 4, // FocusEvent
+            "blur": 4, // FocusEvent
+            "focusin": 4, // FocusEvent
+            "focusout": 4, // FocusEvent
+
+            "keydown": 5, // KeyboardEvent
+            "keypress": 5, // KeyboardEvent
+            "keyup": 5, // KeyboardEvent
+
+            "message": 6, // MessageEvent
+
+            "click": 7, // MouseEvent
+            "contextmenu": 7, // MouseEvent
+            "dblclick": 7, // MouseEvent
+            "mousedown": 7, // MouseEvent
+            "mouseup": 7, // MouseEvent
+            "mousemove": 7, // MouseEvent
+            "mouseover": 7, // MouseEvent
+            "mouseout": 7, // MouseEvent
+            "mouseenter": 7, // MouseEvent
+            "mouseleave": 7, // MouseEvent
+
+
+            "textInput": 12, // TextEvent
+
+            "touchstart": 13, // TouchEvent
+            "touchmove": 13, // TouchEvent
+            "touchend": 13, // TouchEvent
+
+            "load": 14, // UIEvent
+            "resize": 14, // UIEvent
+            "select": 14, // UIEvent
+            "scroll": 14, // UIEvent
+            "unload": 14, // UIEvent,
+
+            "wheel": 15 // WheelEvent
+        };
+
     //create a custom dom event
     var createEvent = (function() {
-        var EventCtors = [
-                window["CustomEvent"], // 0 default
-                window["CompositionEvent"], // 1
-                window["DragEvent"], // 2
-                window["Event"], // 3
-                window["FocusEvent"], // 4
-                window["KeyboardEvent"], // 5
-                window["MessageEvent"], // 6
-                window["MouseEvent"], // 7
-                window["MouseScrollEvent"], // 8
-                window["MouseWheelEvent"], // 9
-                window["MutationEvent"], // 10
-                window["ProgressEvent"], // 11
-                window["TextEvent"], // 12
-                window["TouchEvent"], // 13
-                window["UIEvent"], // 14
-                window["WheelEvent"], // 15
-                window["ClipboardEvent"] // 16
-            ],
-            NativeEvents = {
-                "compositionstart": 1, // CompositionEvent
-                "compositionend": 1, // CompositionEvent
-                "compositionupdate": 1, // CompositionEvent
-
-                "beforecopy": 16, // ClipboardEvent
-                "beforecut": 16, // ClipboardEvent
-                "beforepaste": 16, // ClipboardEvent
-                "copy": 16, // ClipboardEvent
-                "cut": 16, // ClipboardEvent
-                "paste": 16, // ClipboardEvent
-
-                "drag": 2, // DragEvent
-                "dragend": 2, // DragEvent
-                "dragenter": 2, // DragEvent
-                "dragexit": 2, // DragEvent
-                "dragleave": 2, // DragEvent
-                "dragover": 2, // DragEvent
-                "dragstart": 2, // DragEvent
-                "drop": 2, // DragEvent
-
-                "abort": 3, // Event
-                "change": 3, // Event
-                "error": 3, // Event
-                "selectionchange": 3, // Event
-                "submit": 3, // Event
-                "reset": 3, // Event
-
-                "focus": 4, // FocusEvent
-                "blur": 4, // FocusEvent
-                "focusin": 4, // FocusEvent
-                "focusout": 4, // FocusEvent
-
-                "keydown": 5, // KeyboardEvent
-                "keypress": 5, // KeyboardEvent
-                "keyup": 5, // KeyboardEvent
-
-                "message": 6, // MessageEvent
-
-                "click": 7, // MouseEvent
-                "contextmenu": 7, // MouseEvent
-                "dblclick": 7, // MouseEvent
-                "mousedown": 7, // MouseEvent
-                "mouseup": 7, // MouseEvent
-                "mousemove": 7, // MouseEvent
-                "mouseover": 7, // MouseEvent
-                "mouseout": 7, // MouseEvent
-                "mouseenter": 7, // MouseEvent
-                "mouseleave": 7, // MouseEvent
-
-
-                "textInput": 12, // TextEvent
-
-                "touchstart": 13, // TouchEvent
-                "touchmove": 13, // TouchEvent
-                "touchend": 13, // TouchEvent
-
-                "load": 14, // UIEvent
-                "resize": 14, // UIEvent
-                "select": 14, // UIEvent
-                "scroll": 14, // UIEvent
-                "unload": 14, // UIEvent,
-
-                "wheel": 15 // WheelEvent
-            };
 
         function getEventCtor(type) {
             var idx = NativeEvents[type];
             if (!idx) {
                 idx = 0;
             }
-            return EventCtors[idx];
+            return NativeEventCtors[idx];
         }
 
         return function(type, props) {
@@ -8038,6 +8108,8 @@ define('skylark-domx-eventer/eventer',[
     }
 
     langx.mixin(eventer, {
+        NativeEvents : NativeEvents,
+        
         create: createEvent,
 
         keys: keyCodeLookup,
@@ -8062,6 +8134,32 @@ define('skylark-domx-eventer/eventer',[
 
     });
 
+    each(NativeEvents,function(name){
+        eventer[name] = function(elm,selector,data,callback) {
+            if (arguments.length>1) {
+                return this.on(elm,name,selector,data,callback);
+            } else {
+                if (name == "focus") {
+                    if (elm.focus) {
+                        elm.focus();
+                    }
+                } else if (name == "blur") {
+                    if (elm.blur) {
+                        elm.blur();
+                    }
+                } else if (name == "click") {
+                    if (elm.click) {
+                        elm.click();
+                    }
+                } else {
+                    this.trigger(elm,name);
+                }
+
+                return this;
+            }
+        };
+    });
+
     return skylark.attach("domx.eventer",eventer);
 });
 define('skylark-domx-eventer/main',[
@@ -8071,31 +8169,26 @@ define('skylark-domx-eventer/main',[
     "skylark-domx-query"        
 ],function(langx,eventer,velm,$){
 
-    // from ./eventer
-    velm.delegate([
+    var delegateMethodNames = [
         "off",
         "on",
         "one",
-        "shortcuts",
         "trigger"
-    ], eventer);
+    ];
 
-    // events
-    var events = [ 'keyUp', 'keyDown', 'mouseOver', 'mouseOut', 'click', 'dblClick', 'change' ];
-
-    events.forEach( function ( event ) {
-
-        var method = event;
-
-        velm.VisualElement.prototype[method ] = function ( callback ) {
-
-            this.on( event.toLowerCase(), callback);
-
-            return this;
-        };
-
+    langx.each(eventer.NativeEvents,function(name){
+        delegateMethodNames.push(name);
     });
 
+    // from ./eventer
+    velm.delegate(delegateMethodNames, eventer);
+
+    langx.each(delegateMethodNames,function(i,name){
+        $.fn[name] = $.wraps.wrapper_every_act(eventer[name],eventer);
+    });
+
+
+    /*
     $.fn.on = $.wraps.wrapper_every_act(eventer.on, eventer);
 
     $.fn.off = $.wraps.wrapper_every_act(eventer.off, eventer);
@@ -8105,11 +8198,7 @@ define('skylark-domx-eventer/main',[
     ('focusin focusout focus blur load resize scroll unload click dblclick ' +
         'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave ' +
         'change select keydown keypress keyup error transitionEnd').split(' ').forEach(function(event) {
-        $.fn[event] = function(data, callback) {
-            return (0 in arguments) ?
-                this.on(event, data, callback) :
-                this.trigger(event)
-        }
+        $.fn[event] = $.wraps.wrapper_every_act(eventer[event],eventer);
     });
 
     $.fn.one = function(event, selector, data, callback) {
@@ -8126,6 +8215,7 @@ define('skylark-domx-eventer/main',[
 
         return this.on(event, selector, data, callback, 1)
     }; 
+    */
 
     $.ready = eventer.ready;
 
@@ -9832,6 +9922,8 @@ define('skylark-storages-diskfs/select',[
         params = params || {};
         var directory = params.directory || false,
             multiple = params.multiple || false,
+            accept = params.accept || "", //'image/gif,image/jpeg,image/jpg,image/png,image/svg'
+            title = params.title || "",
             fileSelected = params.picked;
         if (!fileInput) {
             var input = fileInput = document.createElement("input");
@@ -9867,6 +9959,9 @@ define('skylark-storages-diskfs/select',[
             };
         }
         fileInput.multiple = multiple;
+        fileInput.accept = accept;
+        fileInput.title = title;
+
         fileInput.webkitdirectory = directory;
         fileInput.click();
     }
@@ -23596,8 +23691,9 @@ define('skylark-domx-forms/serializeObject',[
 });  
 define('skylark-domx-forms/serialize',[
   "skylark-langx/langx",
-  "./forms"
-],function(langx,forms){
+  "./forms",
+  "./serializeArray"
+],function(langx,forms,serializeArray){
     function serialize(formElm) {
         var result = []
         serializeArray(formElm).forEach(function(elm) {
@@ -24823,9 +24919,6 @@ define('skylark-jquery/JqueryPlugin',[
             //this.options = langx.mixin( {}, this.options );
 
             element = $( element || this.defaultElement || this )[ 0 ];
-
-            this.overrided(element,options);
-            
             this.element = $( element );
             this.uuid = pluginUuid++;
             this.eventNamespace = "." + this.pluginName + this.uuid;
@@ -24855,6 +24948,8 @@ define('skylark-jquery/JqueryPlugin',[
                 this.window = $( this.document[ 0 ].defaultView || this.document[ 0 ].parentWindow );
             }
 
+            this.overrided(element,options);
+
 //            this.options = langx.mixin( {},
 //                this.options,
 //                this._getCreateOptions(),
@@ -24867,11 +24962,30 @@ define('skylark-jquery/JqueryPlugin',[
             this._init();
         },
 
-//        _getCreateOptions: function() {
-//            return {};
-//        },
+
+	     _initOptions : function(options) {
+	     	options = langx.mixin(this._getCreateOptions(),options);
+
+			this.overrided(options);
+		},
+
+        _getCreateOptions: function() {
+            return {};
+        },
 
         _getCreateEventData: langx.noop,
+
+		_super : function() {
+			if (this.overrided) {
+				return this.overrided.apply(this,arguments);
+			}
+		},
+
+		_superApply : function ( args ) {
+			if (this.overrided) {
+				return this.overrided.apply(this,args);
+			}
+		},
 
         _create: langx.noop,
 
@@ -25321,33 +25435,9 @@ define( 'skylark-jquery/widget',[
 			create: null
 		},
 
-	     _initOptions : function(options) {
-	     	options = langx.mixin(this._createOptions(),options);
-
-			this.overrided(options);
-		},
-
-		_createOptions : function() {
-			return {};
-		},
-
-		_super : function() {
-			if (this.overrided) {
-				return this.overrided.apply(this,arguments);
-			}
-		},
-
-		_superApply : function ( args ) {
-			if (this.overrided) {
-				return this.overrided.apply(this,args);
-			}
-		},
-
-
 		widget: function() {
 			return this.element;
 		},
-
 
 		_setOption: function( key, value ) {
 			if ( key === "classes" ) {
@@ -40917,415 +41007,425 @@ define('skylark-data-zip/main',[
 
 define('skylark-data-zip', ['skylark-data-zip/main'], function (main) { return main; });
 
-define('skylark-net-http/Restful',[
-    "skylark-langx-objects",
-    "skylark-langx-strings",
-    "skylark-langx-emitter/Evented",    
-    "./Xhr"
-],function(objects,strings,Evented,Xhr){
-    var mixin = objects.mixin,
-        substitute = strings.substitute;
+define('skylark-domx-transforms/transforms',[
+    "skylark-langx/skylark",
+    "skylark-langx/langx",
+    "skylark-domx-browser",
+    "skylark-domx-data",
+    "skylark-domx-styler"
+], function(skylark,langx,browser,datax,styler) {
+  var css3Transform = browser.normalizeCssProperty("transform");
 
-    var Restful = Evented.inherit({
-        "klassName" : "Restful",
+  function getMatrix(radian, x, y) {
+    var Cos = Math.cos(radian), Sin = Math.sin(radian);
+    return {
+      M11: Cos * x, 
+      M12: -Sin * y,
+      M21: Sin * x, 
+      M22: Cos * y
+    };
+  }
 
-        "idAttribute": "id",
-        
-        getBaseUrl : function(args) {
-            //$$baseEndpoint : "/files/${fileId}/comments",
-            var baseEndpoint = substitute(this.baseEndpoint,args),
-                baseUrl = this.server + this.basePath + baseEndpoint;
-            if (args[this.idAttribute]!==undefined) {
-                baseUrl = baseUrl + "/" + args[this.idAttribute]; 
-            }
-            return baseUrl;
-        },
-        _head : function(args) {
-            //get resource metadata .
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, required
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}
-        },
-        _get : function(args) {
-            //get resource ,one or list .
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, null if list
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}
-            return Xhr.get(this.getBaseUrl(args),args);
-        },
-        _post  : function(args,verb) {
-            //create or move resource .
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, required
-            //  "data" : body // the own data,required
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}
-            //verb : the verb ,ex: copy,touch,trash,untrash,watch
-            var url = this.getBaseUrl(args);
-            if (verb) {
-                url = url + "/" + verb;
-            }
-            return Xhr.post(url, args);
-        },
+  function getZoom(scale, zoom) {
+      return scale > 0 && scale > -zoom ? zoom :
+        scale < 0 && scale < zoom ? -zoom : 0;
+  }
 
-        _put  : function(args,verb) {
-            //update resource .
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, required
-            //  "data" : body // the own data,required
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}
-            //verb : the verb ,ex: copy,touch,trash,untrash,watch
-            var url = this.getBaseUrl(args);
-            if (verb) {
-                url = url + "/" + verb;
-            }
-            return Xhr.put(url, args);
-        },
+    function change(el,d) {
+      var matrix = getMatrix(d.radian, d.y, d.x);
+      styler.css(el,css3Transform, "matrix("
+        + matrix.M11.toFixed(16) + "," + matrix.M21.toFixed(16) + ","
+        + matrix.M12.toFixed(16) + "," + matrix.M22.toFixed(16) + ", 0, 0)"
+      );      
+  }
 
-        _delete : function(args) {
-            //delete resource . 
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, required
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}         
+  function transformData(el,d) {
+    if (d) {
+      datax.data(el,"transform",d);
+    } else {
+      d = datax.data(el,"transform") || {};
+      d.radian = d.radian || 0;
+      d.x = d.x || 1;
+      d.y = d.y || 1;
+      d.zoom = d.zoom || 1;
+      return d;     
+    }
+  }
 
-            // HTTP request : DELETE http://center.utilhub.com/registry/v1/apps/{appid}
-            var url = this.getBaseUrl(args);
-            return Xhr.del(url);
-        },
+  var calcs = {
+    //Vertical flip
+    vertical : function (d) {
+        d.radian = Math.PI - d.radian; 
+        d.y *= -1;
+    },
 
-        _patch : function(args){
-            //update resource metadata. 
-            //args : id and other info for the resource ,ex
-            //{
-            //  "id" : 234,  // the own id, required
-            //  "data" : body // the own data,required
-            //  "fileId"   : 2 // the parent resource id, option by resource
-            //}
-            var url = this.getBaseUrl(args);
-            return Xhr.patch(url, args);
-        },
-        query: function(params) {
-            
-            return this._post(params);
-        },
+   //Horizontal flip
+    horizontal : function (d) {
+        d.radian = Math.PI - d.radian; 
+        d.x *= -1;
+    },
 
-        retrieve: function(params) {
-            return this._get(params);
-        },
+    //Rotate according to angle
+    rotate : function (d,degress) {
+        d.radian = degress * Math.PI / 180;; 
+    },
 
-        create: function(params) {
-            return this._post(params);
-        },
+    //Turn left 90 degrees
+    left : function (d) {
+        d.radian -= Math.PI / 2; 
+    },
 
-        update: function(params) {
-            return this._put(params);
-        },
-
-        delete: function(params) {
-            // HTTP request : DELETE http://center.utilhub.com/registry/v1/apps/{appid}
-            return this._delete(params);
-        },
-
-        patch: function(params) {
-           // HTTP request : PATCH http://center.utilhub.com/registry/v1/apps/{appid}
-            return this._patch(params);
-        },
-        init: function(params) {
-            mixin(this,params);
- //           this._xhr = XHRx();
-       }
-    });
-
-    return Restful;
-});
-define('skylark-net-http/Upload',[
-    "skylark-langx-types",
-    "skylark-langx-objects",
-    "skylark-langx-arrays",
-    "skylark-langx-async/Deferred",
-    "skylark-langx-emitter/Evented",    
-    "./Xhr",
-    "./http"
-],function(types, objects, arrays, Deferred, Evented,Xhr, http){
-
-    var blobSlice = Blob.prototype.slice || Blob.prototype.webkitSlice || Blob.prototype.mozSlice;
-
-
-    /*
-     *Class for uploading files using xhr.
-     */
-    var Upload = Evented.inherit({
-        klassName : "Upload",
-
-        _construct : function(options) {
-            this._options = objects.mixin({
-                debug: false,
-                url: '/upload',
-                // maximum number of concurrent uploads
-                maxConnections: 999,
-                // To upload large files in smaller chunks, set the following option
-                // to a preferred maximum chunk size. If set to 0, null or undefined,
-                // or the browser does not support the required Blob API, files will
-                // be uploaded as a whole.
-                maxChunkSize: undefined,
-
-                onProgress: function(id, fileName, loaded, total){
-                },
-                onComplete: function(id, fileName){
-                },
-                onCancel: function(id, fileName){
-                },
-                onFailure : function(id,fileName,e) {                    
-                }
-            },options);
-
-            this._queue = [];
-            // params for files in queue
-            this._params = [];
-
-            this._files = [];
-            this._xhrs = [];
-
-            // current loaded size in bytes for each file
-            this._loaded = [];
-
-        },
-
-        /**
-         * Adds file to the queue
-         * Returns id to use with upload, cancel
-         **/
-        add: function(file){
-            return this._files.push(file) - 1;
-        },
-
-        /**
-         * Sends the file identified by id and additional query params to the server.
-         */
-        send: function(id, params){
-            if (!this._files[id]) {
-                // Already sended or canceled
-                return ;
-            }
-            if (this._queue.indexOf(id)>-1) {
-                // Already in the queue
-                return;
-            }
-            var len = this._queue.push(id);
-
-            var copy = objects.clone(params);
-
-            this._params[id] = copy;
-
-            // if too many active uploads, wait...
-            if (len <= this._options.maxConnections){
-                this._send(id, this._params[id]);
-            }     
-        },
-
-        /**
-         * Sends all files  and additional query params to the server.
-         */
-        sendAll: function(params){
-           for( var id = 0; id <this._files.length; id++) {
-                this.send(id,params);
-            }
-        },
-
-        /**
-         * Cancels file upload by id
-         */
-        cancel: function(id){
-            this._cancel(id);
-            this._dequeue(id);
-        },
-
-        /**
-         * Cancells all uploads
-         */
-        cancelAll: function(){
-            for (var i=0; i<this._queue.length; i++){
-                this._cancel(this._queue[i]);
-            }
-            this._queue = [];
-        },
-
-        getName: function(id){
-            var file = this._files[id];
-            return file.fileName != null ? file.fileName : file.name;
-        },
-
-        getSize: function(id){
-            var file = this._files[id];
-            return file.fileSize != null ? file.fileSize : file.size;
-        },
-
-        /**
-         * Returns uploaded bytes for file identified by id
-         */
-        getLoaded: function(id){
-            return this._loaded[id] || 0;
-        },
-
-
-        /**
-         * Sends the file identified by id and additional query params to the server
-         * @param {Object} params name-value string pairs
-         */
-        _send: function(id, params){
-            var options = this._options,
-                name = this.getName(id),
-                size = this.getSize(id),
-                chunkSize = options.maxChunkSize || 0,
-                curUploadingSize,
-                curLoadedSize = 0,
-                file = this._files[id],
-                args = {
-                    headers : {
-                    }                    
-                };
-
-            this._loaded[id] = this._loaded[id] || 0;
-
-            var xhr = this._xhrs[id] = new Xhr({
-                url : options.url
-            });
-
-            if (chunkSize)  {
-
-                args.data = blobSlice.call(
-                    file,
-                    this._loaded[id],
-                    this._loaded[id] + chunkSize,
-                    file.type
-                );
-                // Store the current chunk size, as the blob itself
-                // will be dereferenced after data processing:
-                curUploadingSize = args.data.size;
-                // Expose the chunk bytes position range:
-                args.headers["content-range"] = 'bytes ' + this._loaded[id] + '-' +
-                    (this._loaded[id] + curUploadingSize - 1) + '/' + size;
-                args.headers["Content-Type"] = "application/octet-stream";
-            }  else {
-                curUploadingSize = size;
-                var formParamName =  params.formParamName,
-                    formData = params.formData;
-
-                if (formParamName) {
-                    if (!formData) {
-                        formData = new FormData();
-                    }
-                    formData.append(formParamName,file);
-                    args.data = formData;
-    
-                } else {
-                    args.headers["Content-Type"] = file.type || "application/octet-stream";
-                    args.data = file;
-                }
-            }
-
-
-            var self = this;
-            xhr.post(
-                args
-            ).progress(function(e){
-                if (e.lengthComputable){
-                    curLoadedSize = curLoadedSize + e.loaded;
-                    self._loaded[id] = self._loaded[id] + e.loaded;
-                    self._options.onProgress(id, name, self._loaded[id], size);
-                }
-            }).then(function(){
-                if (!self._files[id]) {
-                    // the request was aborted/cancelled
-                    return;
-                }
-
-                if (curLoadedSize < curUploadingSize) {
-                    // Create a progress event if no final progress event
-                    // with loaded equaling total has been triggered
-                    // for this chunk:
-                    self._loaded[id] = self._loaded[id] + curUploadingSize - curLoadedSize;
-                    self._options.onProgress(id, name, self._loaded[id], size);                    
-                }
-
-                if (self._loaded[id] <size) {
-                    // File upload not yet complete,
-                    // continue with the next chunk:
-                    self._send(id,params);
-                } else {
-                    self._options.onComplete(id,name);
-
-                    self._files[id] = null;
-                    self._xhrs[id] = null;
-                    self._dequeue(id);
-                }
-
-
-            }).catch(function(e){
-                self._options.onFailure(id,name,e);
-
-                self._files[id] = null;
-                self._xhrs[id] = null;
-                self._dequeue(id);
-            });
-        },
-
-        _cancel: function(id){
-            this._options.onCancel(id, this.getName(id));
-
-            this._files[id] = null;
-
-            if (this._xhrs[id]){
-                this._xhrs[id].abort();
-                this._xhrs[id] = null;
-            }
-        },
-
-        /**
-         * Returns id of files being uploaded or
-         * waiting for their turn
-         */
-        getQueue: function(){
-            return this._queue;
-        },
-
-
-        /**
-         * Removes element from queue, starts upload of next
-         */
-        _dequeue: function(id){
-            var i = arrays.inArray(id,this._queue);
-            this._queue.splice(i, 1);
-
-            var max = this._options.maxConnections;
-
-            if (this._queue.length >= max && i < max){
-                var nextId = this._queue[max-1];
-                this._send(nextId, this._params[nextId]);
-            }
+    //Turn right 90 degrees
+    right : function (d) {
+        d.radian += Math.PI / 2; 
+    },
+ 
+    //zoom
+    scale: function (d,zoom) {
+        var hZoom = getZoom(d.y, zoom), vZoom = getZoom(d.x, zoom);
+        if (hZoom && vZoom) {
+          d.y += hZoom; 
+          d.x += vZoom;
         }
-    });
+    }, 
 
-    return http.Upload = Upload;    
+    //zoom in
+    zoomin: function (d) { 
+      calcs.scale(d,0.1); 
+    },
+    
+    //zoom out
+    zoomout: function (d) { 
+      calcs.scale(d,-0.1); 
+    }
+
+  };
+  
+  
+  function _createApiMethod(calcFunc) {
+    return function() {
+      var args = langx.makeArray(arguments),
+        el = args.shift(),
+          d = transformData(el);
+        args.unshift(d);
+        calcFunc.apply(this,args)
+        change(el,d);
+        transformData(el,d);
+    }
+  }
+  
+  function transforms() {
+    return transforms;
+  }
+
+  ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout"].forEach(function(name){
+    transforms[name] = _createApiMethod(calcs[name]);
+  });
+
+  langx.mixin(transforms, {
+    reset : function(el) {
+      var d = {
+        x : 1,
+        y : 1,
+        radian : 0,
+      }
+      change(el,d);
+      transformData(el,d);
+    }
+  });
+
+
+  return skylark.attach("domx.transforms", transforms);
 });
-define('skylark-net-http/main',[
-	"./http",
-	"./Restful",
-	"./Xhr",
-	"./Upload"
-],function(http){
-	return http;
+
+define('skylark-domx-transforms/main',[
+	"./transforms"
+],function(transforms){
+	return transforms;
 });
-define('skylark-net-http', ['skylark-net-http/main'], function (main) { return main; });
+define('skylark-domx-transforms', ['skylark-domx-transforms/main'], function (main) { return main; });
+
+define('skylark-domx-images/images',[
+    "skylark-langx/skylark",
+    "skylark-langx/langx",
+    "skylark-domx-eventer",
+    "skylark-domx-noder",
+    "skylark-domx-finder",
+    "skylark-domx-geom",
+    "skylark-domx-styler",
+    "skylark-domx-data",
+    "skylark-domx-transforms",
+    "skylark-domx-query"
+], function(skylark,langx,eventer,noder,finder,geom,styler,datax,transforms,$) {
+
+  function watch(imgs) {
+    if (!langx.isArray(imgs)) {
+      imgs = [imgs];
+    }
+    var totalCount = imgs.length,
+        progressedCount = 0,
+        successedCount = 0,
+        faileredCount = 0,
+        d = new langx.Deferred();
+
+
+    function complete() {
+
+      d.resolve({
+        "total" : totalCount,
+        "successed" : successedCount,
+        "failered" : faileredCount,
+        "imgs" : imgs 
+      });
+    }
+
+    function progress(img,isLoaded) {
+
+      progressedCount++;
+      if (isLoaded) {
+        successedCount ++ ; 
+      } else {
+        faileredCount ++ ;
+      }
+
+      // progress event
+      d.progress({
+        "img" : img,
+        "isLoaded" : isLoaded,
+        "progressed" : progressedCount,
+        "total" : totalCount,
+        "imgs" : imgs 
+      });
+
+      // check if completed
+      if ( progressedCount == totalCount ) {
+        complete();
+      }
+    }
+
+    function check() {
+      if (!imgs.length ) {
+        complete();
+        return;
+      }
+
+      imgs.forEach(function(img) {
+        if (isCompleted(img)) {
+          progress(img,isLoaded(img));
+        } else {
+          eventer.on(img,{
+            "load" : function() {
+              progress(img,true);
+            },
+
+            "error" : function() {
+              progress(img,false);
+            }
+          });      
+        }
+      });
+    }
+
+    langx.defer(check);
+
+    d.promise.totalCount = totalCount;
+    return d.promise;
+  }
+
+
+  function isCompleted(img) {
+     return img.complete && img.naturalWidth !== undefined;
+  }
+
+  function isLoaded(img) {
+    return img.complete && img.naturalWidth !== 0;
+  }
+
+  function loaded(elm,options) {
+    var imgs = [];
+
+    options = options || {};
+
+    function addBackgroundImage (elm1) {
+
+      var reURL = /url\((['"])?(.*?)\1\)/gi;
+      var matches = reURL.exec( styler.css(elm1,"background-image"));
+      var url = matches && matches[2];
+      if ( url ) {
+        var img = new Image();
+        img.src = url;
+        imgs.push(img);
+      }
+    }
+
+    // filter siblings
+    if ( elm.nodeName == 'IMG' ) {
+      imgs.push( elm );
+    } else {
+      // find children
+      var childImgs = finder.findAll(elm,'img');
+      // concat childElems to filterFound array
+      for ( var i=0; i < childImgs.length; i++ ) {
+        imgs.push(childImgs[i]);
+      }
+
+      // get background image on element
+      if ( options.background === true ) {
+        addBackgroundImage(elm);
+      } else  if ( typeof options.background == 'string' ) {
+        var children = finder.findAll(elm, options.background );
+        for ( i=0; i < children.length; i++ ) {
+          addBackgroundImage( children[i] );
+        }
+      }
+    }
+
+    return watch(imgs);
+  }
+
+  function preload(urls,options) {
+      if (langx.isString(urls)) {
+        urls = [urls];
+      }
+      var images = [];
+
+      urls.forEach(function(url){
+        var img = new Image();
+        img.src = url;
+        images.push(img);
+      });
+
+      return watch(images);
+  }
+
+
+  $.fn.imagesLoaded = function( options ) {
+    return loaded(this,options);
+  };
+
+
+  function viewer(el,options) {
+    var img ,
+        style = {},
+        clientSize = geom.clientSize(el),
+        loadedCallback = options.loaded,
+        faileredCallback = options.failered;
+
+    function onload() {
+        styler.css(img,{//居中
+          top: (clientSize.height - img.offsetHeight) / 2 + "px",
+          left: (clientSize.width - img.offsetWidth) / 2 + "px"
+        });
+
+        transforms.reset(img);
+
+        styler.css(img,{
+          visibility: "visible"
+        });
+
+        if (loadedCallback) {
+          loadedCallback();
+        }
+    }
+
+    function onerror() {
+
+    }
+    function _init() {
+      style = styler.css(el,["position","overflow"]);
+      if (style.position != "relative" && style.position != "absolute") { 
+        styler.css(el,"position", "relative" );
+      }
+      styler.css(el,"overflow", "hidden" );
+
+      img = new Image();
+
+      styler.css(img,{
+        position: "absolute",
+        border: 0, padding: 0, margin: 0, width: "auto", height: "auto",
+        visibility: "hidden"
+      });
+
+      img.onload = onload;
+      img.onerror = onerror;
+
+      noder.append(el,img);
+
+      if (options.url) {
+        _load(options.url);
+      }
+    }
+
+    function _load(url) {
+        img.style.visibility = "hidden";
+        img.src = url;
+    }
+
+    function _dispose() {
+        noder.remove(img);
+        styler.css(el,style);
+        img = img.onload = img.onerror = null;
+    }
+
+    _init();
+
+    var ret =  {
+      load : _load,
+      dispose : _dispose
+    };
+
+    ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout","reset"].forEach(
+      function(name){
+        ret[name] = function() {
+          var args = langx.makeArray(arguments);
+          args.unshift(img);
+          transforms[name].apply(null,args);
+        }
+      }
+    );
+
+    return ret;
+  }
+
+  $.fn.imagesViewer = function( options ) {
+    return viewer(this,options);
+  };
+
+  function images() {
+    return images;
+  }
+
+  images.transform = function (el,options) {
+  };
+
+  ["vertical","horizontal","rotate","left","right","scale","zoom","zoomin","zoomout","reset"].forEach(
+    function(name){
+      images.transform[name] = transforms[name];
+    }
+  );
+
+
+  langx.mixin(images, {
+    isCompleted : isCompleted,
+
+    isLoaded : isLoaded,
+
+    loaded : loaded,
+
+    preload : preload,
+
+    viewer : viewer
+  });
+
+  return skylark.attach("domx.images" , images);
+});
+
+define('skylark-domx-images/main',[
+	"./images"
+],function(images){
+	return images;
+});
+define('skylark-domx-images', ['skylark-domx-images/main'], function (main) { return main; });
 
 define('skylark-data-color/colors',[
     "skylark-langx/skylark",
@@ -63866,6 +63966,276 @@ define('skylark-widgets-uploads/uploads',[
 ],function(skylark){
 	return skylark.attach("widgets.updates",{});
 });
+define('skylark-net-http/Upload',[
+    "skylark-langx-types",
+    "skylark-langx-objects",
+    "skylark-langx-arrays",
+    "skylark-langx-async/Deferred",
+    "skylark-langx-emitter/Evented",    
+    "./Xhr",
+    "./http"
+],function(types, objects, arrays, Deferred, Evented,Xhr, http){
+
+    var blobSlice = Blob.prototype.slice || Blob.prototype.webkitSlice || Blob.prototype.mozSlice;
+
+
+    /*
+     *Class for uploading files using xhr.
+     */
+    var Upload = Evented.inherit({
+        klassName : "Upload",
+
+        _construct : function(options) {
+            this._options = objects.mixin({
+                debug: false,
+                url: '/upload',
+                // maximum number of concurrent uploads
+                maxConnections: 999,
+                // To upload large files in smaller chunks, set the following option
+                // to a preferred maximum chunk size. If set to 0, null or undefined,
+                // or the browser does not support the required Blob API, files will
+                // be uploaded as a whole.
+                maxChunkSize: undefined,
+
+                onProgress: function(id, fileName, loaded, total){
+                },
+                onComplete: function(id, fileName){
+                },
+                onCancel: function(id, fileName){
+                },
+                onFailure : function(id,fileName,e) {                    
+                }
+            },options);
+
+            this._queue = [];
+            // params for files in queue
+            this._params = [];
+
+            this._files = [];
+            this._xhrs = [];
+
+            // current loaded size in bytes for each file
+            this._loaded = [];
+
+        },
+
+        /**
+         * Adds file to the queue
+         * Returns id to use with upload, cancel
+         **/
+        add: function(file){
+            return this._files.push(file) - 1;
+        },
+
+        /**
+         * Sends the file identified by id and additional query params to the server.
+         */
+        send: function(id, params){
+            if (!this._files[id]) {
+                // Already sended or canceled
+                return ;
+            }
+            if (this._queue.indexOf(id)>-1) {
+                // Already in the queue
+                return;
+            }
+            var len = this._queue.push(id);
+
+            var copy = objects.clone(params);
+
+            this._params[id] = copy;
+
+            // if too many active uploads, wait...
+            if (len <= this._options.maxConnections){
+                this._send(id, this._params[id]);
+            }     
+        },
+
+        /**
+         * Sends all files  and additional query params to the server.
+         */
+        sendAll: function(params){
+           for( var id = 0; id <this._files.length; id++) {
+                this.send(id,params);
+            }
+        },
+
+        /**
+         * Cancels file upload by id
+         */
+        cancel: function(id){
+            this._cancel(id);
+            this._dequeue(id);
+        },
+
+        /**
+         * Cancells all uploads
+         */
+        cancelAll: function(){
+            for (var i=0; i<this._queue.length; i++){
+                this._cancel(this._queue[i]);
+            }
+            this._queue = [];
+        },
+
+        getName: function(id){
+            var file = this._files[id];
+            return file.fileName != null ? file.fileName : file.name;
+        },
+
+        getSize: function(id){
+            var file = this._files[id];
+            return file.fileSize != null ? file.fileSize : file.size;
+        },
+
+        /**
+         * Returns uploaded bytes for file identified by id
+         */
+        getLoaded: function(id){
+            return this._loaded[id] || 0;
+        },
+
+
+        /**
+         * Sends the file identified by id and additional query params to the server
+         * @param {Object} params name-value string pairs
+         */
+        _send: function(id, params){
+            var options = this._options,
+                name = this.getName(id),
+                size = this.getSize(id),
+                chunkSize = options.maxChunkSize || 0,
+                curUploadingSize,
+                curLoadedSize = 0,
+                file = this._files[id],
+                args = {
+                    headers : {
+                    }                    
+                };
+
+            this._loaded[id] = this._loaded[id] || 0;
+
+            var xhr = this._xhrs[id] = new Xhr({
+                url : options.url
+            });
+
+            if (chunkSize)  {
+
+                args.data = blobSlice.call(
+                    file,
+                    this._loaded[id],
+                    this._loaded[id] + chunkSize,
+                    file.type
+                );
+                // Store the current chunk size, as the blob itself
+                // will be dereferenced after data processing:
+                curUploadingSize = args.data.size;
+                // Expose the chunk bytes position range:
+                args.headers["content-range"] = 'bytes ' + this._loaded[id] + '-' +
+                    (this._loaded[id] + curUploadingSize - 1) + '/' + size;
+                args.headers["Content-Type"] = "application/octet-stream";
+            }  else {
+                curUploadingSize = size;
+                var formParamName =  params.formParamName,
+                    formData = params.formData;
+
+                if (formParamName) {
+                    if (!formData) {
+                        formData = new FormData();
+                    }
+                    formData.append(formParamName,file);
+                    args.data = formData;
+    
+                } else {
+                    args.headers["Content-Type"] = file.type || "application/octet-stream";
+                    args.data = file;
+                }
+            }
+
+
+            var self = this;
+            xhr.post(
+                args
+            ).progress(function(e){
+                if (e.lengthComputable){
+                    curLoadedSize = curLoadedSize + e.loaded;
+                    self._loaded[id] = self._loaded[id] + e.loaded;
+                    self._options.onProgress(id, name, self._loaded[id], size);
+                }
+            }).then(function(){
+                if (!self._files[id]) {
+                    // the request was aborted/cancelled
+                    return;
+                }
+
+                if (curLoadedSize < curUploadingSize) {
+                    // Create a progress event if no final progress event
+                    // with loaded equaling total has been triggered
+                    // for this chunk:
+                    self._loaded[id] = self._loaded[id] + curUploadingSize - curLoadedSize;
+                    self._options.onProgress(id, name, self._loaded[id], size);                    
+                }
+
+                if (self._loaded[id] <size) {
+                    // File upload not yet complete,
+                    // continue with the next chunk:
+                    self._send(id,params);
+                } else {
+                    self._options.onComplete(id,name);
+
+                    self._files[id] = null;
+                    self._xhrs[id] = null;
+                    self._dequeue(id);
+                }
+
+
+            }).catch(function(e){
+                self._options.onFailure(id,name,e);
+
+                self._files[id] = null;
+                self._xhrs[id] = null;
+                self._dequeue(id);
+            });
+        },
+
+        _cancel: function(id){
+            this._options.onCancel(id, this.getName(id));
+
+            this._files[id] = null;
+
+            if (this._xhrs[id]){
+                this._xhrs[id].abort();
+                this._xhrs[id] = null;
+            }
+        },
+
+        /**
+         * Returns id of files being uploaded or
+         * waiting for their turn
+         */
+        getQueue: function(){
+            return this._queue;
+        },
+
+
+        /**
+         * Removes element from queue, starts upload of next
+         */
+        _dequeue: function(id){
+            var i = arrays.inArray(id,this._queue);
+            this._queue.splice(i, 1);
+
+            var max = this._options.maxConnections;
+
+            if (this._queue.length >= max && i < max){
+                var nextId = this._queue[max-1];
+                this._send(nextId, this._params[nextId]);
+            }
+        }
+    });
+
+    return http.Upload = Upload;    
+});
 define('skylark-widgets-uploads/MultiUploader',[
   "skylark-langx/skylark",
   "skylark-langx/langx",
@@ -65675,7 +66045,7 @@ define('skylark-domx-contents/UndoManager',[
     if (this._index < 1 || this._stack.length < 2) {
       return;
     }
-    this.editable.hidePopover();
+    //this.editable.hidePopover();
     this._index -= 1;
     state = this._stack[this._index];
     this.editable.body.get(0).innerHTML = state.html;
@@ -65690,7 +66060,7 @@ define('skylark-domx-contents/UndoManager',[
     if (this._index < 0 || this._stack.length < this._index + 2) {
       return;
     }
-    this.editable.hidePopover();
+    //this.editable.hidePopover();
     this._index += 1;
     state = this._stack[this._index];
     this.editable.body.get(0).innerHTML = state.html;
@@ -65948,12 +66318,12 @@ define('skylark-domx-contents/Keystroke',[
           return true;
         }
         $blockEl = _this.editable.selection.blockNodes().last();
-        if ($blockEl.is('.' + this.opts.classPrefix + 'resize-handle') && $rootBlock.is('.' + this.opts.classPrefix + 'table')) {
+        if ($blockEl.is('.' + _this.opts.classPrefix + 'resize-handle') && $rootBlock.is('.' + _this.opts.classPrefix + 'table')) {
           e.preventDefault();
           $rootBlock.remove();
           _this.editable.selection.setRangeAtEndOf($prevBlockEl);
         }
-        if ($prevBlockEl.is('.' + this.opts.classPrefix + 'table') && !$blockEl.is('table') && _this.editable.util.isEmptyNode($blockEl)) {
+        if ($prevBlockEl.is('.' + _this.opts.classPrefix + 'table') && !$blockEl.is('table') && _this.editable.util.isEmptyNode($blockEl)) {
           e.preventDefault();
           $blockEl.remove();
           _this.editable.selection.setRangeAtEndOf($prevBlockEl);
@@ -65970,9 +66340,9 @@ define('skylark-domx-contents/Keystroke',[
     this.add('enter', 'div', (function(_this) {
       return function(e, $node) {
         var $blockEl, $p;
-        if ($node.is('.' + this.opts.classPrefix + 'table')) {
+        if ($node.is('.' + _this.opts.classPrefix + 'table')) {
           $blockEl = _this.editable.selection.blockNodes().last();
-          if ($blockEl.is('.' + this.opts.classPrefix + 'resize-handle')) {
+          if ($blockEl.is('.' + _this.opts.classPrefix + 'resize-handle')) {
             e.preventDefault();
             $p = $('<p/>').append(_this.editable.util.phBr).insertAfter($node);
             return _this.editable.selection.setRangeAtStartOf($p);
@@ -66171,7 +66541,7 @@ define('skylark-domx-contents/Formatter',[
       this._allowedTags = langx.merge(['br', 'span', 'a', 'img', 'b', 'strong', 'i', 'strike', 'u', 'font', 'p', 'ul', 'ol', 'li', 'blockquote', 'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'hr'], this.opts.allowedTags);
       this._allowedAttributes = langx.extend({
         img: ['src', 'alt', 'width', 'height', 'data-non-image'],
-        a: ['href', 'target'],
+        a: ['href', 'target','download'],
         font: ['color'],
         code: ['class']
       }, this.opts.allowedAttributes);
@@ -66452,18 +66822,19 @@ define('skylark-domx-contents/Formatter',[
     },
 
     beautify : function($contents) {
-      var uselessP;
+      var uselessP,
+          _this = this;
       uselessP = function($el) {
         return !!($el.is('p') && !$el.text() && $el.children(':not(br)').length < 1);
       };
       return $contents.each(function(i, el) {
         var $el, invalid;
         $el = $(el);
-        invalid = $el.is(':not(img, br, col, td, hr, [class^="' + this.opts.classPrefix + '"]):empty');
+        invalid = $el.is(':not(img, br, col, td, hr, [class^="' + _this.opts.classPrefix + '"]):empty');
         if (invalid || uselessP($el)) {
           $el.remove();
         }
-        return $el.find(':not(img, br, col, td, hr, [class^="' + this.opts.classPrefix + '"]):empty').remove();
+        return $el.find(':not(img, br, col, td, hr, [class^="' + _this.opts.classPrefix + '"]):empty').remove();
       });
     }
 
@@ -66769,7 +67140,7 @@ define('skylark-domx-contents/Clipboard',[
 
   Clipboard.prototype._getPasteContent = function(callback) {
     var state;
-    this._pasteBin = $('<div contenteditable="true" />').addClass(this.opts.classPrefix + 'paste-bin').attr('tabIndex', '-1').appendTo(this.editable.$el);
+    this._pasteBin = $('<div contenteditable="true" />').addClass('paste-bin').attr('tabIndex', '-1').appendTo(this.editable.$el);
     state = {
       html: this.editable.body.html(),
       caret: this.editable.undoManager.caretPosition()
@@ -66778,7 +67149,7 @@ define('skylark-domx-contents/Clipboard',[
     return setTimeout((function(_this) {
       return function() {
         var pasteContent;
-        _this.editable.hidePopover();
+        //_this.editable.hidePopover();
         _this.editable.body.get(0).innerHTML = state.html;
         _this.editable.undoManager.caretPosition(state.caret);
         _this.editable.body.focus();
@@ -66807,7 +67178,7 @@ define('skylark-domx-contents/Clipboard',[
 
   Clipboard.prototype._processPasteContent = function(pasteContent) {
     var $blockEl, $img, blob, children, dataURLtoBlob, img, insertPosition, k, l, lastLine, len, len1, len2, len3, len4, line, lines, m, node, o, q, ref, ref1, ref2, uploadOpt, uploader;
-    if (this.editable.triggerHandler('pasting', [pasteContent]) === false) {
+    if (this.editable.trigger('pasting', [pasteContent]) === false) {
       return;
     }
     $blockEl = this._pasteInBlockEl;
@@ -67107,7 +67478,7 @@ define('skylark-domx-contents/Editable',[
 
 	},
 
-	blockquote : function(htmlTag,disableTag) {
+	blockquote : function(disableTag) {
 	    var $rootNodes, clearCache, nodeCache;
 	    $rootNodes = this.selection.rootNodes();
 	    $rootNodes = $rootNodes.filter(function(i, node) {
@@ -67115,14 +67486,12 @@ define('skylark-domx-contents/Editable',[
 	    });
 	    this.selection.save();
 	    nodeCache = [];
-	    clearCache = (function(_this) {
-	      return function() {
+	    clearCache = function() {
 	        if (nodeCache.length > 0) {
-	          $("<" + _this.htmlTag + "/>").insertBefore(nodeCache[0]).append(nodeCache);
+	          $("<blockquote/>").insertBefore(nodeCache[0]).append(nodeCache);
 	          return nodeCache.length = 0;
 	        }
-	      };
-	    })(this);
+	    };
 	    $rootNodes.each((function(_this) {
 	      return function(i, node) {
 	        var $node;
@@ -67130,7 +67499,7 @@ define('skylark-domx-contents/Editable',[
 	        if (!$node.parent().is(_this.body)) {
 	          return;
 	        }
-	        if ($node.is(htmlTag)) {
+	        if ($node.is('blockquote')) {
 	          clearCache();
 	          return $node.children().unwrap();
 	        } else if ($node.is(disableTag) || _this.util.isDecoratedNode($node)) {
@@ -67361,6 +67730,9 @@ define('skylark-domx-contents/Editable',[
 
 	// toggle
 	title : function(param,disableTag) {
+		document.execCommand('formatBlock', false, param);
+
+		/*
 	    var $rootNodes;
 	    $rootNodes = this.selection.rootNodes();
 	    this.selection.save();
@@ -67375,6 +67747,7 @@ define('skylark-domx-contents/Editable',[
 	      };
 	    })(this));
 	    this.selection.restore();
+	    */
 	    return this.trigger('valuechanged');
 
 	}
@@ -67437,6 +67810,9 @@ define('skylark-widgets-wordpad/i18n',[
 
     var i18n =  {
       'zh-CN': {
+        'html' : 'HTML源码',
+        'emoji' : '表情',
+        'mark' : '标记',
         'blockquote': '引用',
         'bold': '加粗文字',
         'code': '插入代码',
@@ -67487,9 +67863,16 @@ define('skylark-widgets-wordpad/i18n',[
         'fontScaleLarge': '大号字体',
         'fontScaleNormal': '正常大小',
         'fontScaleSmall': '小号字体',
-        'fontScaleXSmall': '超小字体'
+        'fontScaleXSmall': '超小字体',
+        "video": "视屏",
+        "videoSize" : "尺寸",
+        "uploadVideoBtn" : "插入",
+        "videoPlaceholder": "视频嵌入代码"
       },
       'en-US': {
+        'html' : 'HTML Source',
+        'emoji' : 'Emoji',
+        'mark' : 'Mark',
         'blockquote': 'Block Quote',
         'bold': 'Bold',
         'code': 'Code',
@@ -67540,7 +67923,72 @@ define('skylark-widgets-wordpad/i18n',[
         'fontScaleLarge': 'Large Size',
         'fontScaleNormal': 'Normal Size',
         'fontScaleSmall': 'Small Size',
-        'fontScaleXSmall': 'X Small Size'
+        'fontScaleXSmall': 'X Small Size',
+        "video": "Video",
+        "videoSize" : "Size",
+        "uploadVideoBtn" : "Insert",
+        "videoPlaceholder": "Video Embed Code"
+      },
+
+      'ja' : {
+        'html' : 'HTMLソースコード',
+        'emoji' : '表情',
+        'mark' : 'マーク',
+        'blockquote': 'ブロック引用文',
+        'bold': '太字',
+        'code': 'コードを挿入',
+        'color': 'フォントの色',
+        'coloredText': 'カラー文字',
+        'hr': '水平線',
+        'image': 'イメージを挿入',
+        'externalImage': '外部イメージ',
+        'uploadImage': 'イメージファイルをアップロード',
+        'uploadFailed': 'アップロードが失敗しまいた',
+        'uploadError': 'アップロードエラー',
+        'imageUrl': 'イメージのURL',
+        'imageSize': 'イメージのサイズ',
+        'imageAlt': 'イメージの説明文',
+        'restoreImageSize': 'イメージのサイズを元に戻す',
+        'uploading': 'アップロード中',
+        'indent': 'インデントを増やす',
+        'outdent': 'インデントを減らす',
+        'italic': '斜体',
+        'link': 'リンクを挿入',
+        'linkText': 'リンクテキスト',
+        'linkUrl': 'リンクURL',
+        'linkTarget': 'リンクの表示先を指定',
+        'openLinkInCurrentWindow': '同じウィンドウで開く',
+        'openLinkInNewWindow': '新規ウインドウで開く',
+        'removeLink': 'リンクを削除',
+        'ol': '段落番号',
+        'ul': '箇条書き',
+        'strikethrough': '取消線',
+        'table': 'テーブル',
+        'deleteRow': '行を削除',
+        'insertRowAbove': '上に行を挿入',
+        'insertRowBelow': '下に行を挿入',
+        'deleteColumn': '列を削除',
+        'insertColumnLeft': '左に列を挿入',
+        'insertColumnRight': '右に列を挿入',
+        'deleteTable': 'テーブルを削除',
+        'title': 'タイトル',
+        'normalText': '標準',
+        'underline': '下線',
+        'alignment': '位置',
+        'alignCenter': '中央揃え',
+        'alignLeft': '左揃え',
+        'alignRight': '右揃え',
+        'selectLanguage': '言語を選択',
+        'fontScale': 'フォントのサイズ',
+        'fontScaleXLarge': '超大きいサイズ',
+        'fontScaleLarge': '大きいサイズ',
+        'fontScaleNormal': '通常サイズ',
+        'fontScaleSmall': '小さいサイズ',
+        'fontScaleXSmall': '超小さいサイズ',
+        "video": "ビデオ",
+        "videoSize" : "サイズ",
+        "uploadVideoBtn" : "挿入",
+        "videoPlaceholder": "ビデオ埋め込みコード"
       },
 
       translate : function() {
@@ -67656,16 +68104,20 @@ define('skylark-widgets-wordpad/ToolButton',[
     },
 
     _doActive : function(value) {
-      return this.el.toggleClass('active', this.active);
+      return this.el.toggleClass('active', value);
     },
 
     _doDisabled : function(value) {
-      return this.el.toggleClass('disabled', this.disabled);
+      return this.el.toggleClass('disabled', value);
     },
 
     iconClassOf : function(icon) {
       if (icon) {
-        return "wordpad-icon wordpad-icon-" + icon;
+        if (this.editor.options.classes.icons[icon]) {
+          return this.editor.options.classes.icons[icon];
+        } else {
+          return "wordpad-icon wordpad-icon-" + icon;
+        }
       } else {
         return '';
       }
@@ -67738,7 +68190,8 @@ define('skylark-widgets-wordpad/ToolButton',[
 
     "title" : {
       get : function() {
-        return this.action.tooltip;
+        return this.action.tooltip || i18n.translate(this.action.name);
+;
       }
     },
 
@@ -67892,25 +68345,28 @@ define('skylark-widgets-wordpad/Toolbar',[
 });
 define('skylark-widgets-wordpad/uploader',[
   "skylark-langx/langx",
-  "skylark-domx-query"
-],function(langx,$){ 
+  "skylark-domx-query",
+  "skylark-net-http/Xhr"
+],function(langx,$,Xhr){ 
 
   var Uploader = langx.Evented.inherit({
-    init : function() {
+    init : function(options){
+      this.options = langx.mixin({},this.options,options);
+
       this.files = [];
       this.queue = [];
       this.id = ++Uploader.count;
       this.on('uploadcomplete', (function(_this) {
         return function(e, file) {
           _this.files.splice(langx.inArray(file, _this.files), 1);
-          if (_this.queue.length > 0 && _this.files.length < _this.opts.connectionCount) {
+          if (_this.queue.length > 0 && _this.files.length < _this.options.connectionCount) {
             return _this.upload(_this.queue.shift());
           } else {
             return _this.uploading = false;
           }
         };
       })(this));
-      return $(window).on('beforeunload.uploader-' + this.id, (function(_this) {
+      $(window).on('beforeunload.uploader-' + this.id, (function(_this) {
         return function(e) {
           if (!_this.uploading) {
             return;
@@ -67925,11 +68381,12 @@ define('skylark-widgets-wordpad/uploader',[
 
   Uploader.count = 0;
 
-  Uploader.prototype.opts = {
+  Uploader.prototype.options = {
     url: '',
     params: null,
     fileKey: 'upload_file',
-    connectionCount: 3
+    connectionCount: 3,
+    headers: null
   };
 
 
@@ -67942,10 +68399,10 @@ define('skylark-widgets-wordpad/uploader',[
     };
   })();
 
-  Uploader.prototype.upload = function(file, opts) {
+  Uploader.prototype.upload = function(file, options) {
     var f, i, key, len;
-    if (opts == null) {
-      opts = {};
+    if (options == null) {
+      options = {};
     }
     if (file == null) {
       return;
@@ -67953,26 +68410,26 @@ define('skylark-widgets-wordpad/uploader',[
     if (langx.isArray(file) || file instanceof FileList) {
       for (i = 0, len = file.length; i < len; i++) {
         f = file[i];
-        this.upload(f, opts);
+        this.upload(f, options);
       }
     } else if ($(file).is('input:file')) {
       key = $(file).attr('name');
       if (key) {
-        opts.fileKey = key;
+        options.fileKey = key;
       }
-      this.upload(langx.makeArray($(file)[0].files), opts);
+      this.upload(langx.makeArray($(file)[0].files), options);
     } else if (!file.id || !file.obj) {
       file = this.getFile(file);
     }
     if (!(file && file.obj)) {
       return;
     }
-    langx.extend(file, opts);
-    if (this.files.length >= this.opts.connectionCount) {
+    langx.extend(file, options);
+    if (this.files.length >= this.options.connectionCount) {
       this.queue.push(file);
       return;
     }
-    if (this.trigger('beforeupload', [file]) === false) {
+    if (this.trigger('beforeupload', file) === false) {
       return;
     }
     this.files.push(file);
@@ -67989,10 +68446,11 @@ define('skylark-widgets-wordpad/uploader',[
     }
     return {
       id: this.generateId(),
-      url: this.opts.url,
-      params: this.opts.params,
-      fileKey: this.opts.fileKey,
+      url: this.options.url,
+      params: this.options.params,
+      fileKey: this.options.fileKey,
       name: name,
+      headers : this.options.headers,
       size: (ref1 = fileObj.fileSize) != null ? ref1 : fileObj.size,
       ext: name ? name.split('.').pop().toLowerCase() : '',
       obj: fileObj
@@ -68013,53 +68471,45 @@ define('skylark-widgets-wordpad/uploader',[
     }
 
     //TODO
-    return file.xhr = langx.xhr({
-      url: file.url,
+    var xhr =  file.xhr = new Xhr({
+      url: this.options.url
+    });
+
+    var headers = {
+        'X-File-Name': encodeURIComponent(file.name)
+    };
+
+    if (file.headers) {
+      ref = file.headers;
+      for (k in ref) {
+        v = ref[k];
+        headers[k] =  v;
+      }
+    }
+
+    var _this = this;
+
+    xhr.post({
       data: formData,
       processData: false,
       contentType: false,
-      type: 'POST',
-      headers: {
-        'X-File-Name': encodeURIComponent(file.name)
-      },
-      xhr: function() {
-        var req;
-        req = $.ajaxSettings.xhr();
-        if (req) {
-          req.upload.onprogress = (function(_this) {
-            return function(e) {
-              return _this.progress(e);
-            };
-          })(this);
-        }
-        return req;
-      },
-      progress: (function(_this) {
-        return function(e) {
-          if (!e.lengthComputable) {
-            return;
-          }
-          return _this.trigger('uploadprogress', [file, e.loaded, e.total]);
-        };
-      })(this),
-      error: (function(_this) {
-        return function(xhr, status, err) {
-          return _this.trigger('uploaderror', [file, xhr, status]);
-        };
-      })(this),
-      success: (function(_this) {
-        return function(result) {
-          _this.trigger('uploadprogress', [file, file.size, file.size]);
-          _this.trigger('uploadsuccess', [file, result]);
-          return $(document).trigger('uploadsuccess', [file, result, _this]);
-        };
-      })(this),
-      complete: (function(_this) {
-        return function(xhr, status) {
-          return _this.trigger('uploadcomplete', [file, xhr.responseText]);
-        };
-      })(this)
+      headers: headers
+    }).progress(function(e){
+      if (!e.lengthComputable) {
+        return;
+      }
+      return _this.trigger('uploadprogress', file, e.loaded, e.total);
+    }).then(function(result){
+      _this.trigger('uploadsuccess', file, result);
+
+      _this.trigger('uploadcomplete');
+
+    }).catch(function(e,status){
+      _this.trigger('uploaderror', file,xhr);
+      _this.trigger('uploadcomplete');
     });
+
+    return xhr;
   };
 
   Uploader.prototype.cancel = function(file) {
@@ -68081,28 +68531,6 @@ define('skylark-widgets-wordpad/uploader',[
     return file.xhr = null;
   };
 
-  Uploader.prototype.readImageFile = function(fileObj, callback) {
-    var fileReader, img;
-    if (!langx.isFunction(callback)) {
-      return;
-    }
-    img = new Image();
-    img.onload = function() {
-      return callback(img);
-    };
-    img.onerror = function() {
-      return callback();
-    };
-    if (window.FileReader && FileReader.prototype.readAsDataURL && /^image/.test(fileObj.type)) {
-      fileReader = new FileReader();
-      fileReader.onload = function(e) {
-        return img.src = e.target.result;
-      };
-      return fileReader.readAsDataURL(fileObj);
-    } else {
-      return callback();
-    }
-  };
 
   Uploader.prototype.destroy = function() {
     var file, i, len, ref;
@@ -68124,8 +68552,8 @@ define('skylark-widgets-wordpad/uploader',[
 
   Uploader.locale = 'zh-CN';
 
-  return  function(opts) {
-    return new Uploader(opts);
+  return  function(options) {
+    return new Uploader(options);
   };
 
 });
@@ -68145,12 +68573,66 @@ define('skylark-widgets-wordpad/Wordpad',[
 
   var Wordpad = Widget.inherit({
       options : {
+        classes : {
+          icons : {
+            html : "fa fa-html5",
+            
+            header: "fa fa-header",
+
+            bold : "fa fa-bold",
+            italic : "fa fa-italic",
+            underline: "fa fa-underline",
+            strikethrough : "fa fa-strikethrough",
+            fontScale: "fa fa-text-height",
+            fontColor: "fa fa-font",
+            mark : "fa fa-pencil",
+
+            blockquote: "fa fa-quote-right",
+            listul : "fa fa-list-ul",
+            listol : "fa fa-list-ol",
+            code: "fa fa-code",
+            table : "fa fa-table",
+
+            fullscreen : "fa fa-expand",
+
+            emoji: "fa fa-smile-o",
+            link : "fa fa-link",
+            image: "fa fa-picture-o",
+            video: "fa fa-video-camera",
+            hr: "fa fa-minus",
+
+            indent: "fa fa-indent",
+            outdent: "fa fa-dedent",
+            alignLeft: "fa fa-align-left",
+            alignCenter: "fa fa-align-center",
+            alignRight: "fa fa-align-right",
+            alignJustify: "fa fa-align-justify",
+
+          }
+        },
         srcNodeRef: null,
         placeholder: '',
-        defaultImage: 'images/image.png',
+        addons : {
+          actions : {
+            image : {
+               placeholderImage: 'images/image.png',
+            },
+            video : {
+              placeholderPoster: "images/poster.jpg"
+            }
+          },
+          toolbar : {
+            items : {
+              emoji : {
+
+              }
+            }
+          }
+        },
+       
         params: {},
         upload: false,
-        template : "<div class=\"wordpad\">\n  <div class=\"wordpad-wrapper\">\n    <div class=\"wordpad-placeholder\"></div>\n    <div class=\"wordpad-body\" contenteditable=\"true\">\n    </div>\n  </div>\n</div>"
+        template : "<div class=\"lark-wordpad\">\n  <div class=\"wordpad-wrapper\">\n    <div class=\"wordpad-placeholder\"></div>\n    <div class=\"wordpad-body\" contenteditable=\"true\">\n    </div>\n  </div>\n</div>"
       },
 
 
@@ -68161,9 +68643,9 @@ define('skylark-widgets-wordpad/Wordpad',[
       this.opts = this.options;
 
       var e, editor, uploadOpts;
-      this.textarea = $(this.opts.srcNodeRef);
+      this.textarea = $(this.options.srcNodeRef);
 
-      this.opts.placeholder = this.opts.placeholder || this.textarea.attr('placeholder');
+      this.options.placeholder = this.options.placeholder || this.textarea.attr('placeholder');
 
       if (!this.textarea.length) {
         throw new Error('Wordpad: param textarea is required.');
@@ -68180,7 +68662,7 @@ define('skylark-widgets-wordpad/Wordpad',[
 
       var self = this;
       this.editable = new Editable(this._elm,{
-        classPrefix : "wordpad-",
+        classPrefix : "lark-wordpad-",
         textarea : this.textarea,
         body : this.body
       });
@@ -68190,20 +68672,20 @@ define('skylark-widgets-wordpad/Wordpad',[
         return self.trigger(e.type,data);
       });
 
-      if (this.opts.upload && uploader) {
-        uploadOpts = typeof this.opts.upload === 'object' ? this.opts.upload : {};
+      if (this.options.upload && uploader) {
+        uploadOpts = typeof this.options.upload === 'object' ? this.options.upload : {};
         this.uploader = uploader(uploadOpts);
       }
 
       this.toolbar = new Toolbar(this,{
-        toolbar: this.opts.toolbar,
-        toolbarFloat:  this.opts.toolbarFloat,
-        toolbarHidden:  this.opts.toolbarHidden,
-        toolbarFloatOffset:  this.opts.toolbarFloatOffset
+        toolbar: this.options.toolbar,
+        toolbarFloat:  this.options.toolbarFloat,
+        toolbarHidden:  this.options.toolbarHidden,
+        toolbarFloatOffset:  this.options.toolbarFloatOffset
 
       });
 
-      if (this.opts.placeholder) {
+      if (this.options.placeholder) {
         this.on('valuechanged', function() {
           return self._placeholder();
         });
@@ -68217,6 +68699,7 @@ define('skylark-widgets-wordpad/Wordpad',[
     }
   });
 
+ 
   Wordpad.prototype.triggerHandler =  Wordpad.prototype.trigger = function(type,data) {
     var args, ref;
     args = [type];
@@ -68257,14 +68740,14 @@ define('skylark-widgets-wordpad/Wordpad',[
 
     this.wrapper = this.el.find('.wordpad-wrapper');
     this.body = this.wrapper.find('.wordpad-body');
-    this.placeholderEl = this.wrapper.find('.wordpad-placeholder').append(this.opts.placeholder);
+    this.placeholderEl = this.wrapper.find('.wordpad-placeholder').append(this.options.placeholder);
     this.el.data('wordpad', this);
     this.wrapper.append(this.textarea);
     this.textarea.data('wordpad', this).blur();
     this.body.attr('tabindex', this.textarea.attr('tabindex'));
 
-    if (this.opts.params) {
-      ref = this.opts.params;
+    if (this.options.params) {
+      ref = this.options.params;
       results = [];
       for (key in ref) {
         val = ref[key];
@@ -68281,7 +68764,7 @@ define('skylark-widgets-wordpad/Wordpad',[
   Wordpad.prototype._placeholder = function() {
     var children;
     children = this.body.children();
-    if (children.length === 0 || (children.length === 1 && this.util.isEmptyNode(children) && parseInt(children.css('margin-left') || 0) < this.opts.indentWidth)) {
+    if (children.length === 0 || (children.length === 1 && this.util.isEmptyNode(children) && parseInt(children.css('margin-left') || 0) < this.options.indentWidth)) {
       return this.placeholderEl.show();
     } else {
       return this.placeholderEl.hide();
@@ -68300,27 +68783,36 @@ define('skylark-widgets-wordpad/Wordpad',[
     return this.editable.getValue();
   };
 
+  Wordpad.prototype.sync = function() {
+    this.editable.sync();
+    return this;
+  };
+
   Wordpad.prototype.focus = function() {
-    return this.editable.focus();
+    this.editable.focus();
+    return this;
   };
 
   Wordpad.prototype.blur = function() {
-    return this.editable.blur();
+    this.editable.blur();
+    return this;
   };
 
   Wordpad.prototype.findAction = function(name) {
-    if (!this._actions[name]) {
+    var action = this._actions[name];
+    if (!action) {
       if (!this.constructor.addons.actions[name]) {
         throw new Error("Wordpad: invalid action " + name);
       }
 
-      this._actions[name] = new this.constructor.addons.actions[name]({
+      action = this._actions[name] = new this.constructor.addons.actions[name]({
         editor: this
       });
 
+      this._actions.push(action);
     }
 
-    return this._actions[name];
+    return action;
   };
 
   Wordpad.prototype.hidePopover = function() {
@@ -68585,7 +69077,8 @@ define('skylark-widgets-wordpad/Action',[
 
   Action.prototype._t = i18n.translate;
 
-
+  Action.i18n = i18n;
+  
   return Action;
 
 });
@@ -68752,7 +69245,7 @@ define('skylark-widgets-wordpad/addons/actions/AlignmentAction',[
   var AlignmentAction = Action.inherit({
     name : "alignment",
 
-    icon : 'align-left',
+    icon : 'alignLeft',
     
     htmlTag : 'p, h1, h2, h3, h4, td, th',
 
@@ -68762,17 +69255,17 @@ define('skylark-widgets-wordpad/addons/actions/AlignmentAction',[
           {
             name: 'left',
             text: i18n.translate('alignLeft'),
-            icon: 'align-left',
+            icon: 'alignLeft',
             param: 'left'
           }, {
             name: 'center',
             text: i18n.translate('alignCenter'),
-            icon: 'align-center',
+            icon: 'alignCenter',
             param: 'center'
           }, {
             name: 'right',
             text: i18n.translate('alignRight'),
-            icon: 'align-right',
+            icon: 'alignRight',
             param: 'right'
           }
       ] ;    
@@ -68815,14 +69308,14 @@ define('skylark-widgets-wordpad/addons/actions/BlockquoteAction',[
    var BlockquoteAction = Action.inherit({
       name : 'blockquote',
 
-      icon : 'quote-left',
+      icon : 'blockquote',
 
       htmlTag : 'blockquote',
 
       disableTag : 'pre, table',
 
       _execute : function() {
-        return this.editor.editable.blockquote(this.htmlTag,this.disableTag);
+        return this.editor.editable.blockquote(this.disableTag);
       }
    });
 
@@ -68886,7 +69379,7 @@ define('skylark-widgets-wordpad/addons/actions/CodePopover',[
      render : function() {
       var $option, k, lang, len, ref;
       this._tpl = "<div class=\"code-settings\">\n  <div class=\"settings-field\">\n    <select class=\"select-lang\">\n      <option value=\"-1\">" + (this._t('selectLanguage')) + "</option>\n    </select>\n  </div>\n</div>";
-      this.langs = this.editor.opts.codeLanguages || [
+      this.langs = this.editor.options.codeLanguages || [
         {
           name: 'Bash',
           value: 'bash'
@@ -69121,7 +69614,7 @@ define('skylark-widgets-wordpad/addons/actions/ColorAction',[
    var ColorAction = Action.inherit({
     name : 'color',
 
-    icon : 'tint',
+    icon : 'fontColor',
 
     disableTag : 'pre',
 
@@ -69144,7 +69637,7 @@ define('skylark-widgets-wordpad/addons/actions/EmojiAction',[
   var EmojiAction = Action.inherit({
     name : 'emoji',
 
-    icon : 'smile-o',
+    icon : 'emoji',
 
     menu : true,
 
@@ -69171,7 +69664,7 @@ define('skylark-widgets-wordpad/addons/actions/FontScaleAction',[
   var FontScaleAction = Action.inherit({
     name : 'fontScale',
 
-    icon : 'font',
+    icon : 'fontScale',
 
     htmlTag : 'span',
 
@@ -69238,6 +69731,8 @@ define('skylark-widgets-wordpad/addons/actions/FullScreenAction',[
   var FullScrennAction = Action.inherit({
     name : 'fullscreen',
 
+    icon : "fullscreen",
+
     needFocus : false,
 
     _init : function() {
@@ -69246,10 +69741,6 @@ define('skylark-widgets-wordpad/addons/actions/FullScreenAction',[
       this.window = $(window);
       this.body = $('body');
       this.editable = this.editor.body;
-    },
-
-    iconClassOf : function() {
-      return 'icon-fullscreen';
     },
 
 
@@ -69266,19 +69757,19 @@ define('skylark-widgets-wordpad/addons/actions/FullScreenAction',[
         this.window.on("resize.wordpad-fullscreen-" + this.editor.id, (function(_this) {
           return function() {
             return _this._resize({
-              height: _this.window.height() - _this.editor.toolbar.outerHeight() - editablePadding
+              height: _this.window.height() - $(_this.editor.toolbar._elm).outerHeight() - editablePadding
             });
           };
-        })(this)).resize();
+        })(this));
       } else {
-        this.window.off("resize.wordpad-fullscreen-" + this.editor.id).resize();
-        this._resize({
-          height: 'auto'
-        });
+        this.window.off("resize.wordpad-fullscreen-" + this.editor.id);
+        //this._resize({
+        //  height: 'auto'
+        //});
       }
       return this.setActive(isFullscreen);
     },
-
+    
     _resize : function(size) {
       return this.editable.height(size.height);
     }
@@ -69308,7 +69799,7 @@ define('skylark-widgets-wordpad/addons/actions/HrAction',[
 
 	  name : 'hr',
 
-	  icon : 'minus',
+	  icon : 'hr',
 
 	  htmlTag : 'hr',
 
@@ -69325,3039 +69816,11 @@ define('skylark-widgets-wordpad/addons/actions/HrAction',[
 
   return HrAction;	
 });
-define('skylark-widgets-wordpad/addons/actions/HtmlAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){ 
-   var  hasProp = {}.hasOwnProperty,
-        slice = [].slice;
-  
-
-   var HtmlAction = Action.inherit({
-    name : 'html',
-
-    icon : 'html5',
-
-    needFocus : false,
-
-    _init : function() {
-      Action.prototype._init.call(this);
-      this.editor.textarea.on('focus', (function(_this) {
-        return function(e) {
-          return _this.editor.el.addClass('focus').removeClass('error');
-        };
-      })(this));
-      this.editor.textarea.on('blur', (function(_this) {
-        return function(e) {
-          _this.editor.el.removeClass('focus');
-          return _this.editor.setValue(_this.editor.textarea.val());
-        };
-      })(this));
-      return this.editor.textarea.on('input', (function(_this) {
-        return function(e) {
-          return _this._resizeTextarea();
-        };
-      })(this));
-    },
-
-    status : function() {},
-
-    _execute : function() {
-      var action, i, len, ref;
-      this.editor.blur();
-      this.editor.el.toggleClass('wordpad-html');
-      this.editor.htmlMode = this.editor.el.hasClass('wordpad-html');
-      if (this.editor.htmlMode) {
-        this.editor.hidePopover();
-        this.editor.textarea.val(this.beautifyHTML(this.editor.textarea.val()));
-        this._resizeTextarea();
-      } else {
-        this.editor.setValue(this.editor.textarea.val());
-      }
-      ref = this.editor._actions;
-      for (i = 0, len = ref.length; i < len; i++) {
-        action = ref[i];
-        if (action.name === 'html') {
-          action.setActive(this.editor.htmlMode);
-        } else {
-          action.setDisabled(this.editor.htmlMode);
-        }
-      }
-      return null;
-    },
-
-    beautifyHTML : function() {
-      return arguments[0];
-      var args;
-      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      if (beautify.html) {
-        return beautify.html.apply(beautify, args);
-      } else {
-        return beautify.apply(null, args);
-      }
-    },
-
-    _resizeTextarea : function() {
-      this._textareaPadding || (this._textareaPadding = this.editor.textarea.innerHeight() - this.editor.textarea.height());
-      return this.editor.textarea.height(this.editor.textarea[0].scrollHeight - this._textareaPadding);
-    }
-
-   });
-
-
-   addons.actions.html = HtmlAction; 
-
-   return HtmlAction;
-});
-define('skylark-widgets-wordpad/addons/actions/ImagePopover',[
-  "skylark-langx/langx",
-  "skylark-domx-query",
-  "../../addons",
-  "../../Popover"
-],function(langx, $,addons,Popover){ 
-   var ImagePopover = Popover.inherit({
-
-   });
-
-  ImagePopover.prototype.offset = {
-    top: 6,
-    left: -4
-  };
-
-  ImagePopover.prototype.render = function() {
-    var tpl;
-    tpl = "<div class=\"link-settings\">\n  <div class=\"settings-field\">\n    <label>" + (this._t('imageUrl')) + "</label>\n    <input class=\"image-src\" type=\"text\" tabindex=\"1\" />\n    <a class=\"btn-upload\" href=\"javascript:;\"\n      title=\"" + (this._t('uploadImage')) + "\" tabindex=\"-1\">\n      <span class=\"wordpad-icon wordpad-icon-upload\"></span>\n    </a>\n  </div>\n  <div class='settings-field'>\n    <label>" + (this._t('imageAlt')) + "</label>\n    <input class=\"image-alt\" id=\"image-alt\" type=\"text\" tabindex=\"1\" />\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('imageSize')) + "</label>\n    <input class=\"image-size\" id=\"image-width\" type=\"text\" tabindex=\"2\" />\n    <span class=\"times\">×</span>\n    <input class=\"image-size\" id=\"image-height\" type=\"text\" tabindex=\"3\" />\n    <a class=\"btn-restore\" href=\"javascript:;\"\n      title=\"" + (this._t('restoreImageSize')) + "\" tabindex=\"-1\">\n      <span class=\"wordpad-icon wordpad-icon-undo\"></span>\n    </a>\n  </div>\n</div>";
-    this.el.addClass('image-popover').append(tpl);
-    this.srcEl = this.el.find('.image-src');
-    this.widthEl = this.el.find('#image-width');
-    this.heightEl = this.el.find('#image-height');
-    this.altEl = this.el.find('#image-alt');
-    this.srcEl.on('keydown', (function(_this) {
-      return function(e) {
-        var range;
-        if (!(e.which === 13 && !_this.target.hasClass('uploading'))) {
-          return;
-        }
-        e.preventDefault();
-        range = document.createRange();
-        _this.Action.editor.editable.selection.setRangeAfter(_this.target, range);
-        return _this.hide();
-      };
-    })(this));
-    this.srcEl.on('blur', (function(_this) {
-      return function(e) {
-        return _this._loadImage(_this.srcEl.val());
-      };
-    })(this));
-    this.el.find('.image-size').on('blur', (function(_this) {
-      return function(e) {
-        _this._resizeImg($(e.currentTarget));
-        return _this.el.data('popover').refresh();
-      };
-    })(this));
-    this.el.find('.image-size').on('keyup', (function(_this) {
-      return function(e) {
-        var inputEl;
-        inputEl = $(e.currentTarget);
-        if (!(e.which === 13 || e.which === 27 || e.which === 9)) {
-          return _this._resizeImg(inputEl, true);
-        }
-      };
-    })(this));
-    this.el.find('.image-size').on('keydown', (function(_this) {
-      return function(e) {
-        var $img, inputEl, range;
-        inputEl = $(e.currentTarget);
-        if (e.which === 13 || e.which === 27) {
-          e.preventDefault();
-          if (e.which === 13) {
-            _this._resizeImg(inputEl);
-          } else {
-            _this._restoreImg();
-          }
-          $img = _this.target;
-          _this.hide();
-          range = document.createRange();
-          return _this.Action.editor.editable.selection.setRangeAfter($img, range);
-        } else if (e.which === 9) {
-          return _this.el.data('popover').refresh();
-        }
-      };
-    })(this));
-    this.altEl.on('keydown', (function(_this) {
-      return function(e) {
-        var range;
-        if (e.which === 13) {
-          e.preventDefault();
-          range = document.createRange();
-          _this.Action.editor.editable.selection.setRangeAfter(_this.target, range);
-          return _this.hide();
-        }
-      };
-    })(this));
-    this.altEl.on('keyup', (function(_this) {
-      return function(e) {
-        if (e.which === 13 || e.which === 27 || e.which === 9) {
-          return;
-        }
-        _this.alt = _this.altEl.val();
-        return _this.target.attr('alt', _this.alt);
-      };
-    })(this));
-    this.el.find('.btn-restore').on('click', (function(_this) {
-      return function(e) {
-        _this._restoreImg();
-        return _this.el.data('popover').refresh();
-      };
-    })(this));
-    this.editor.on('valuechanged', (function(_this) {
-      return function(e) {
-        if (_this.active) {
-          return _this.refresh();
-        }
-      };
-    })(this));
-    return this._initUploader();
-  };
-
-  ImagePopover.prototype._initUploader = function() {
-    var $uploadBtn, createInput;
-    $uploadBtn = this.el.find('.btn-upload');
-    if (this.editor.uploader == null) {
-      $uploadBtn.remove();
-      return;
-    }
-    createInput = (function(_this) {
-      return function() {
-        if (_this.input) {
-          _this.input.remove();
-        }
-        return _this.input = $('<input/>', {
-          type: 'file',
-          title: _this._t('uploadImage'),
-          multiple: true,
-          accept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg'
-        }).appendTo($uploadBtn);
-      };
-    })(this);
-    createInput();
-    this.el.on('click mousedown', 'input[type=file]', function(e) {
-      return e.stopPropagation();
-    });
-    return this.el.on('change', 'input[type=file]', (function(_this) {
-      return function(e) {
-        _this.editor.uploader.upload(_this.input, {
-          inline: true,
-          img: _this.target
-        });
-        return createInput();
-      };
-    })(this));
-  };
-
-  ImagePopover.prototype._resizeImg = function(inputEl, onlySetVal) {
-    var height, value, width;
-    if (onlySetVal == null) {
-      onlySetVal = false;
-    }
-    value = inputEl.val() * 1;
-    if (!(this.target && (langx.isNumber(value) || value < 0))) {
-      return;
-    }
-    if (inputEl.is(this.widthEl)) {
-      width = value;
-      height = this.height * value / this.width;
-      this.heightEl.val(height);
-    } else {
-      height = value;
-      width = this.width * value / this.height;
-      this.widthEl.val(width);
-    }
-    if (!onlySetVal) {
-      this.target.attr({
-        width: width,
-        height: height
-      });
-      return this.editor.trigger('valuechanged');
-    }
-  };
-
-  ImagePopover.prototype._restoreImg = function() {
-    var ref, size;
-    size = ((ref = this.target.data('image-size')) != null ? ref.split(",") : void 0) || [this.width, this.height];
-    this.target.attr({
-      width: size[0] * 1,
-      height: size[1] * 1
-    });
-    this.widthEl.val(size[0]);
-    this.heightEl.val(size[1]);
-    return this.editor.trigger('valuechanged');
-  };
-
-  ImagePopover.prototype._loadImage = function(src, callback) {
-    if (/^data:image/.test(src) && !this.editor.uploader) {
-      if (callback) {
-        callback(false);
-      }
-      return;
-    }
-    if (this.target.attr('src') === src) {
-      return;
-    }
-    return this.Action.loadImage(this.target, src, (function(_this) {
-      return function(img) {
-        var blob;
-        if (!img) {
-          return;
-        }
-        if (_this.active) {
-          _this.width = img.width;
-          _this.height = img.height;
-          _this.widthEl.val(_this.width);
-          _this.heightEl.val(_this.height);
-        }
-        if (/^data:image/.test(src)) {
-          blob = _this.editor.editable.util.dataURLtoBlob(src);
-          blob.name = "Base64 Image.png";
-          _this.editor.uploader.upload(blob, {
-            inline: true,
-            img: _this.target
-          });
-        } else {
-          _this.editor.trigger('valuechanged');
-        }
-        if (callback) {
-          return callback(img);
-        }
-      };
-    })(this));
-  };
-
-  ImagePopover.prototype.show = function() {
-    var $img, args;
-    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-    Popover.prototype.show.apply(this, args);
-    $img = this.target;
-    this.width = $img.width();
-    this.height = $img.height();
-    this.alt = $img.attr('alt');
-    if ($img.hasClass('uploading')) {
-      return this.srcEl.val(this._t('uploading')).prop('disabled', true);
-    } else {
-      this.srcEl.val($img.attr('src')).prop('disabled', false);
-      this.widthEl.val(this.width);
-      this.heightEl.val(this.height);
-      return this.altEl.val(this.alt);
-    }
-  };
-
-  return ImagePopover;
-
-});
-define('skylark-widgets-wordpad/addons/actions/ImageAction',[
-  "skylark-langx/langx",
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action",
-  "./ImagePopover",
-  "../../i18n"
-],function(langx, $,addons,Action,ImagePopover,i18n){ 
-   var ImageAction = Action.inherit({
-      name : 'image',
-
-      icon : 'picture-o',
-
-      htmlTag : 'img',
-
-      disableTag : 'pre, table',
-
-      defaultImage : '',
-
-      needFocus : false,
-
-      _init : function() {
-        var item, k, len, ref;
-        if (this.editor.opts.imageAction) {
-          if (Array.isArray(this.editor.opts.imageAction)) {
-            this.menu = [];
-            ref = this.editor.opts.imageAction;
-            for (k = 0, len = ref.length; k < len; k++) {
-              item = ref[k];
-              this.menu.push({
-                name: item + '-image',
-                text: this._t(item + 'Image')
-              });
-            }
-          } else {
-            this.menu = false;
-          }
-        } else {
-          if (this.editor.uploader != null) {
-            this.menu = [
-              {
-                name: 'upload-image',
-                text: i18n.translate('uploadImage')
-              }, {
-                name: 'external-image',
-                text: i18n.translate('externalImage')
-              }
-            ];
-          } else {
-            this.menu = false;
-          }
-        }
-        this.defaultImage = this.editor.opts.defaultImage;
-        this.editor.body.on('click', 'img:not([data-non-image])', (function(_this) {
-          return function(e) {
-            var $img, range;
-            $img = $(e.currentTarget);
-            range = document.createRange();
-            range.selectNode($img[0]);
-            _this.editor.editable.selection.range(range);
-            if (!_this.editor.editable.util.support.onselectionchange) {
-              _this.editor.trigger('selectionchanged');
-            }
-            return false;
-          };
-        })(this));
-        this.editor.body.on('mouseup', 'img:not([data-non-image])', function(e) {
-          return false;
-        });
-        this.editor.on('selectionchanged.image', (function(_this) {
-          return function() {
-            var $contents, $img, range;
-            range = _this.editor.editable.selection.range();
-            if (range == null) {
-              return;
-            }
-            $contents = $(range.cloneContents()).contents();
-            if ($contents.length === 1 && $contents.is('img:not([data-non-image])')) {
-              $img = $(range.startContainer).contents().eq(range.startOffset);
-              if (!_this.popover) {
-                _this.popover = new ImagePopover({
-                  action: _this
-                });                
-              }
-
-              return _this.popover.show($img);
-            } else {
-              if (_this.popover) {
-                  return _this.popover.hide();
-              }
-            }
-          };
-        })(this));
-        this.editor.on('valuechanged.image', (function(_this) {
-          return function() {
-            var $masks;
-            $masks = _this.editor.wrapper.find('.wordpad-image-loading');
-            if (!($masks.length > 0)) {
-              return;
-            }
-            return $masks.each(function(i, mask) {
-              var $img, $mask, file;
-              $mask = $(mask);
-              $img = $mask.data('img');
-              if (!($img && $img.parent().length > 0)) {
-                $mask.remove();
-                if ($img) {
-                  file = $img.data('file');
-                  if (file) {
-                    _this.editor.uploader.cancel(file);
-                    if (_this.editor.body.find('img.uploading').length < 1) {
-                      return _this.editor.uploader.trigger('uploadready', [file]);
-                    }
-                  }
-                }
-              }
-            });
-          };
-        })(this));
-        return Action.prototype._init.call(this);
-      },
-
-      render : function() {
-        var args;
-        args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-        Action.prototype.render.apply(this, args);
-        this.popover = new ImagePopover({
-          Action: this
-        });
-        if (this.editor.opts.imageAction === 'upload') {
-          return this._initUploader(this.el);
-        }
-      },
-
-      renderMenu : function() {
-        Action.prototype.renderMenu.call(this);
-        return this._initUploader();
-      },
-
-      _initUploader : function($uploadItem) {
-        var $input, createInput, uploadProgress;
-        if ($uploadItem == null) {
-          $uploadItem = this.menuEl.find('.menu-item-upload-image');
-        }
-        if (this.editor.uploader == null) {
-          this.el.find('.btn-upload').remove();
-          return;
-        }
-        $input = null;
-        createInput = (function(_this) {
-          return function() {
-            if ($input) {
-              $input.remove();
-            }
-            return $input = $('<input/>', {
-              type: 'file',
-              title: _this._t('uploadImage'),
-              multiple: true,
-              accept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg'
-            }).appendTo($uploadItem);
-          };
-        })(this);
-        createInput();
-        $uploadItem.on('click mousedown', 'input[type=file]', function(e) {
-          return e.stopPropagation();
-        });
-        $uploadItem.on('change', 'input[type=file]', (function(_this) {
-          return function(e) {
-            if (_this.editor.editable.inputManager.focused) {
-              _this.editor.uploader.upload($input, {
-                inline: true
-              });
-              createInput();
-            } else {
-              _this.editor.one('focus', function(e) {
-                _this.editor.uploader.upload($input, {
-                  inline: true
-                });
-                return createInput();
-              });
-              _this.editor.focus();
-            }
-            return _this.wrapper.removeClass('menu-on');
-          };
-        })(this));
-        this.editor.uploader.on('beforeupload', (function(_this) {
-          return function(e, file) {
-            var $img;
-            if (!file.inline) {
-              return;
-            }
-            if (file.img) {
-              $img = $(file.img);
-            } else {
-              $img = _this.createImage(file.name);
-              file.img = $img;
-            }
-            $img.addClass('uploading');
-            $img.data('file', file);
-            return _this.editor.uploader.readImageFile(file.obj, function(img) {
-              var src;
-              if (!$img.hasClass('uploading')) {
-                return;
-              }
-              src = img ? img.src : _this.defaultImage;
-              return _this.loadImage($img, src, function() {
-                if (_this.popover.active) {
-                  _this.popover.refresh();
-                  return _this.popover.srcEl.val(_this._t('uploading')).prop('disabled', true);
-                }
-              });
-            });
-          };
-        })(this));
-        uploadProgress = langx.proxy(this.editor.editable.util.throttle(function(e, file, loaded, total) {
-          var $img, $mask, percent;
-          if (!file.inline) {
-            return;
-          }
-          $mask = file.img.data('mask');
-          if (!$mask) {
-            return;
-          }
-          $img = $mask.data('img');
-          if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
-            $mask.remove();
-            return;
-          }
-          percent = loaded / total;
-          percent = (percent * 100).toFixed(0);
-          if (percent > 99) {
-            percent = 99;
-          }
-          return $mask.find('.progress').height((100 - percent) + "%");
-        }, 500), this);
-        this.editor.uploader.on('uploadprogress', uploadProgress);
-        this.editor.uploader.on('uploadsuccess', (function(_this) {
-          return function(e, file, result) {
-            var $img, img_path, msg;
-            if (!file.inline) {
-              return;
-            }
-            $img = file.img;
-            if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
-              return;
-            }
-            if (typeof result !== 'object') {
-              try {
-                result = JSON.parse(result);
-              } catch (_error) {
-                e = _error;
-                result = {
-                  success: false
-                };
-              }
-            }
-            if (result.success === false) {
-              msg = result.msg || _this._t('uploadFailed');
-              alert(msg);
-              img_path = _this.defaultImage;
-            } else {
-              img_path = result.file_path;
-            }
-            _this.loadImage($img, img_path, function() {
-              var $mask;
-              $img.removeData('file');
-              $img.removeClass('uploading').removeClass('loading');
-              $mask = $img.data('mask');
-              if ($mask) {
-                $mask.remove();
-              }
-              $img.removeData('mask');
-              _this.editor.trigger('valuechanged');
-              if (_this.editor.body.find('img.uploading').length < 1) {
-                return _this.editor.uploader.trigger('uploadready', [file, result]);
-              }
-            });
-            if (_this.popover.active) {
-              _this.popover.srcEl.prop('disabled', false);
-              return _this.popover.srcEl.val(result.file_path);
-            }
-          };
-        })(this));
-        return this.editor.uploader.on('uploaderror', (function(_this) {
-          return function(e, file, xhr) {
-            var $img, msg, result;
-            if (!file.inline) {
-              return;
-            }
-            if (xhr.statusText === 'abort') {
-              return;
-            }
-            if (xhr.responseText) {
-              try {
-                result = JSON.parse(xhr.responseText);
-                msg = result.msg;
-              } catch (_error) {
-                e = _error;
-                msg = _this._t('uploadError');
-              }
-            }
-            $img = file.img;
-            if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
-              return;
-            }
-            _this.loadImage($img, _this.defaultImage, function() {
-              var $mask;
-              $img.removeData('file');
-              $img.removeClass('uploading').removeClass('loading');
-              $mask = $img.data('mask');
-              if ($mask) {
-                $mask.remove();
-              }
-              return $img.removeData('mask');
-            });
-            if (_this.popover.active) {
-              _this.popover.srcEl.prop('disabled', false);
-              _this.popover.srcEl.val(_this.defaultImage);
-            }
-            _this.editor.trigger('valuechanged');
-            if (_this.editor.body.find('img.uploading').length < 1) {
-              return _this.editor.uploader.trigger('uploadready', [file, result]);
-            }
-          };
-        })(this));
-      },
-
-      _status : function() {
-        return this._disableStatus();
-      },
-
-      loadImage : function($img, src, callback) {
-        var $mask, img, positionMask;
-        positionMask = (function(_this) {
-          return function() {
-            var imgOffset, wrapperOffset;
-            imgOffset = $img.offset();
-            wrapperOffset = _this.editor.wrapper.offset();
-            return $mask.css({
-              top: imgOffset.top - wrapperOffset.top,
-              left: imgOffset.left - wrapperOffset.left,
-              width: $img.width(),
-              height: $img.height()
-            }).show();
-          };
-        })(this);
-        $img.addClass('loading');
-        $mask = $img.data('mask');
-        if (!$mask) {
-          $mask = $('<div class="wordpad-image-loading">\n  <div class="progress"></div>\n</div>').hide().appendTo(this.editor.wrapper);
-          positionMask();
-          $img.data('mask', $mask);
-          $mask.data('img', $img);
-        }
-        img = new Image();
-        img.onload = (function(_this) {
-          return function() {
-            var height, width;
-            if (!$img.hasClass('loading') && !$img.hasClass('uploading')) {
-              return;
-            }
-            width = img.width;
-            height = img.height;
-            $img.attr({
-              src: src,
-              width: width,
-              height: height,
-              'data-image-size': width + ',' + height
-            }).removeClass('loading');
-            if ($img.hasClass('uploading')) {
-              _this.editor.editable.util.reflow(_this.editor.body);
-              positionMask();
-            } else {
-              $mask.remove();
-              $img.removeData('mask');
-            }
-            if (langx.isFunction(callback)) {
-              return callback(img);
-            }
-          };
-        })(this);
-        img.onerror = function() {
-          if (langx.isFunction(callback)) {
-            callback(false);
-          }
-          $mask.remove();
-          return $img.removeData('mask').removeClass('loading');
-        };
-        return img.src = src;
-      },
-
-      createImage : function(name) {
-        var $img, range;
-        if (name == null) {
-          name = 'Image';
-        }
-        if (!this.editor.editable.inputManager.focused) {
-          this.editor.focus();
-        }
-        range = this.editor.editable.selection.range();
-        range.deleteContents();
-        this.editor.editable.selection.range(range);
-        $img = $('<img/>').attr('alt', name);
-        range.insertNode($img[0]);
-        this.editor.editable.selection.setRangeAfter($img, range);
-        this.editor.trigger('valuechanged');
-        return $img;
-      },
-
-      _execute : function(src) {
-        var $img;
-        $img = this.createImage();
-        return this.loadImage($img, src || this.defaultImage, (function(_this) {
-          return function() {
-            _this.editor.trigger('valuechanged');
-            _this.editor.editable.util.reflow($img);
-            $img.click();
-            return _this.popover.one('popovershow', function() {
-              _this.popover.srcEl.focus();
-              return _this.popover.srcEl[0].select();
-            });
-          };
-        })(this));
-      }
-
-   });
-
-   addons.actions.image = ImageAction; 
-
-   return ImageAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/IndentAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){ 
-  
-   var IndentAction = Action.inherit({
-      name :'indent',
-
-      icon : 'indent',
-
-      _init : function() {
-        var hotkey;
-        hotkey = this.editor.opts.tabIndent === false ? '' : ' (Tab)';
-        this.title = this._t(this.name) + hotkey;
-        return Action.prototype._init.call(this);
-      },
-
-      _execute : function() {
-        return this.editor.editable.indent()
-      }
-
-   });
-
-
-   addons.actions.indent = IndentAction; 
-
-   return IndentAction;
-});
-define('skylark-widgets-wordpad/addons/actions/ItalicAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){ 
-  
-
-  var ItalicAction = Action.inherit({
-      name : 'italic',
-
-      icon : 'italic',
-
-      htmlTag : 'i',
-
-      disableTag : 'pre',
-
-      shortcut : 'cmd+i',
-
-      _init : function() {
-        if (this.editor.editable.util.os.mac) {
-          this.title = this.title + " ( Cmd + i )";
-        } else {
-          this.title = this.title + " ( Ctrl + i )";
-          this.shortcut = 'ctrl+i';
-        }
-        return Action.prototype._init.call(this);
-      },
-
-      _activeStatus : function() {
-        var active;
-        active = this.editor.editable.isActive('italic');
-        this.setActive(active);
-        return this.active;
-      },
-
-      _execute : function() {
-        return this.editor.editable.italic();
-      }
-   });
-
-
-   addons.actions.italic = ItalicAction; 
-
-   return ItalicAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/LinkPopover',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Popover"
-],function($,addons,Popover){ 
-  var LinkPopover = Popover.inherit({
-    render : function() {
-      var tpl;
-      tpl = "<div class=\"link-settings\">\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkText')) + "</label>\n    <input class=\"link-text\" type=\"text\"/>\n    <a class=\"btn-unlink\" href=\"javascript:;\" title=\"" + (this._t('removeLink')) + "\"\n      tabindex=\"-1\">\n      <span class=\"wordpad-icon wordpad-icon-unlink\"></span>\n    </a>\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkUrl')) + "</label>\n    <input class=\"link-url\" type=\"text\"/>\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkTarget')) + "</label>\n    <select class=\"link-target\">\n      <option value=\"_blank\">" + (this._t('openLinkInNewWindow')) + " (_blank)</option>\n      <option value=\"_self\">" + (this._t('openLinkInCurrentWindow')) + " (_self)</option>\n    </select>\n  </div>\n</div>";
-      this.el.addClass('link-popover').append(tpl);
-      this.textEl = this.el.find('.link-text');
-      this.urlEl = this.el.find('.link-url');
-      this.unlinkEl = this.el.find('.btn-unlink');
-      this.selectTarget = this.el.find('.link-target');
-      this.textEl.on('keyup', (function(_this) {
-        return function(e) {
-          if (e.which === 13) {
-            return;
-          }
-          _this.target.text(_this.textEl.val());
-          return _this.editor.editable.inputManager.throttledValueChanged();
-        };
-      })(this));
-      this.urlEl.on('keyup', (function(_this) {
-        return function(e) {
-          var val;
-          if (e.which === 13) {
-            return;
-          }
-          val = _this.urlEl.val();
-          if (!(/^(http|https|ftp|ftps|file)?:\/\/|^(mailto|tel)?:|^\//ig.test(val) || !val)) {
-            val = 'http://' + val;
-          }
-          _this.target.attr('href', val);
-          return _this.editor.editable.inputManager.throttledValueChanged();
-        };
-      })(this));
-      $([this.urlEl[0], this.textEl[0]]).on('keydown', (function(_this) {
-        return function(e) {
-          var range;
-          if (e.which === 13 || e.which === 27 || (!e.shiftKey && e.which === 9 && $(e.target).hasClass('link-url'))) {
-            e.preventDefault();
-            range = document.createRange();
-            _this.editor.editable.selection.setRangeAfter(_this.target, range);
-            _this.hide();
-            return _this.editor.editable.inputManager.throttledValueChanged();
-          }
-        };
-      })(this));
-      this.unlinkEl.on('click', (function(_this) {
-        return function(e) {
-          var range, txtNode;
-          txtNode = document.createTextNode(_this.target.text());
-          _this.target.replaceWith(txtNode);
-          _this.hide();
-          range = document.createRange();
-          _this.editor.editable.selection.setRangeAfter(txtNode, range);
-          return _this.editor.editable.inputManager.throttledValueChanged();
-        };
-      })(this));
-      return this.selectTarget.on('change', (function(_this) {
-        return function(e) {
-          _this.target.attr('target', _this.selectTarget.val());
-          return _this.editor.editable.inputManager.throttledValueChanged();
-        };
-      })(this));
-    },
-
-    show : function() {
-      var args;
-      args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-      Popover.prototype.show.apply(this, args);
-      this.textEl.val(this.target.text());
-      return this.urlEl.val(this.target.attr('href'));
-    }
-  });
-
-  return LinkPopover;
-});
-define('skylark-widgets-wordpad/addons/actions/LinkAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action",
-  "../../i18n",
-  "./LinkPopover"
-],function($,addons,Action,i18n,LinkPopover){ 
-  
-
-  var LinkAction = Action.inherit({
-    name : 'link',
-
-    icon : 'link',
-
-    htmlTag : 'a',
-
-    disableTag : 'pre',
-
-    _status : function() {
-     Action.prototype._status.call(this);
-      if (this.active && !this.editor.editable.selection.rangeAtEndOf(this.node)) {
-        if (!this.popover) {
-          this.popover = new LinkPopover({
-            action: this
-          });
-        }
-        return this.popover.show(this.node);
-      } else {
-        if (this.popover) {
-          return this.popover.hide();
-        }
-      }
-    },
-
-    _execute : function() {
-      if (this.active) {
-        this.popover.one('popovershow', (function(_this) {
-          return function() {
-            if (linkText) {
-              _this.popover.urlEl.focus();
-              return _this.popover.urlEl[0].select();
-            } else {
-              _this.popover.textEl.focus();
-              return _this.popover.textEl[0].select();
-            }
-          };
-        })(this));
-
-      }
-
-      return this.editor.editable.link(this.active,i18n.translate('linkText'));
-
-    }
-
-   });
-
-
-
-  addons.actions.link = LinkAction; 
-
-  return LinkAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/ListAction',[
-  "skylark-domx-noder",
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function(noder,$,addons,Action){ 
-  var ListAction = Action.inherit({
-    type : '',
-
-    disableTag : 'pre, table',
-
-    _execute : function(param) {
-      return this.editor.editable.list(this.type,param,this.disableTag);
-    }
-
-   });
-
-
-
-    return ListAction;
-	
-});
-define('skylark-widgets-wordpad/addons/actions/MarkAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action",
-  "../../i18n"
-],function($,addons,Action,i18n){ 
-
-
-  var MarkAction = Action.inherit({
-    name : 'mark',
-
-    icon : 'mark',
-
-    htmlTag : 'mark',
-
-    disableTag : 'pre, table',
-
-    _execute : function() {
-      var $end, $start, range;
-      range = this.editor.editable.selection.range();
-      if (this.active) {
-        this.editor.editable.selection.save();
-        this.unmark(range);
-        this.editor.editable.selection.restore();
-        this.editor.trigger('valuechanged');
-        return;
-      }
-      if (range.collapsed) {
-        return;
-      }
-      this.editor.editable.selection.save();
-      $start = $(range.startContainer);
-      $end = $(range.endContainer);
-      if ($start.closest('mark').length) {
-        range.setStartBefore($start.closest('mark')[0]);
-      }
-      if ($end.closest('mark').length) {
-        range.setEndAfter($end.closest('mark')[0]);
-      }
-      this.mark(range);
-      this.editor.editable.selection.restore();
-      this.editor.trigger('valuechanged');
-      if (this.editor.editable.util.support.onselectionchange) {
-        return this.editor.trigger('selectionchanged');
-      }
-    },
-
-    mark : function(range) {
-      var $contents, $mark;
-      if (range == null) {
-        range = this.editor.editable.selection.range();
-      }
-      $contents = $(range.extractContents());
-      $contents.find('mark').each(function(index, ele) {
-        return $(ele).replaceWith($(ele).html());
-      });
-      $mark = $('<mark>').append($contents);
-      return range.insertNode($mark[0]);
-    },
-
-    unmark : function(range) {
-      var $mark;
-      if (range == null) {
-        range = this.editor.editable.selection.range();
-      }
-      if (range.collapsed) {
-        $mark = $(range.commonAncestorContainer);
-        if (!$mark.is('mark')) {
-          $mark = $mark.parent();
-        }
-      } else if ($(range.startContainer).closest('mark').length) {
-        $mark = $(range.startContainer).closest('mark');
-      } else if ($(range.endContainer).closest('mark').length) {
-        $mark = $(range.endContainer).closest('mark');
-      }
-      return $mark.replaceWith($mark.html());
-    }
-
-  });
-
-  
-  addons.actions.mark = MarkAction;
-
-  return MarkAction;
-
- }); 
-define('skylark-widgets-wordpad/addons/actions/OrderListAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "./ListAction"
-],function($,addons,ListAction){ 
-  var OrderListAction = ListAction.inherit({
-    type : 'ol',
-
-    name : 'ol',
-
-    icon : 'list-ol',
-
-    htmlTag : 'ol',
-
-    shortcut : 'cmd+/',
-
-    _init : function() {
-      if (this.editor.editable.util.os.mac) {
-        this.title = this.title + ' ( Cmd + / )';
-      } else {
-        this.title = this.title + ' ( ctrl + / )';
-        this.shortcut = 'ctrl+/';
-      }
-      return ListAction.prototype._init.call(this);
-    }
-
-   });
-
-    return addons.actions.ol = OrderListAction;	
-});
-define('skylark-widgets-wordpad/addons/actions/OutdentAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){ 
-  var OutdentAction = Action.inherit({
-    name : 'outdent',
-
-    icon : 'outdent',
-
-    _init : function() {
-      var hotkey;
-      hotkey = this.editor.opts.tabIndent === false ? '' : ' (Shift + Tab)';
-      this.title = this._t(this.name) + hotkey;
-      return Action.prototype._init.call(this);
-    },
-
-    _status : function() {},
-
-    _execute : function() {
-      return this.editor.editable.outdent();
-    }
-
-   });
-
-
-   addons.actions.outdent = OutdentAction; 
- 
-   return OutdentAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/StrikethroughAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){ 
-  
-  var StrikethroughAction = Action.inherit({
-    name : 'strikethrough',
-
-    icon : 'strikethrough',
-
-    htmlTag : 'strike',
-
-    disableTag : 'pre',
-
-    _activeStatus : function() {
-      var active;
-      active = this.editor.editable.isActive('strikethrough');
-      this.setActive(active);
-      return this.active;
-    },
-
-    _execute : function() {
-      return this.editor.editable.strikethrough();
-    }
-
-  });
-
-
-  return addons.actions.strikethrough = StrikethroughAction;	
-});
-define('skylark-domx-tables/tables',[
-    "skylark-langx/skylark",
-    "skylark-langx/langx",
-    "skylark-domx-query",
-    "skylark-domx-styler",
-    "skylark-domx-eventer",
-    "skylark-domx-fx",
-    "skylark-domx-data",
-    "skylark-domx-finder",
-    "skylark-domx-geom"
-], function(skylark, langx,$) {
-  //TODO : don't use query
-
-  function tables() {
-      return tables;
-  }
-
-  function _changeCellTag($tr, tagName) {
-    return $tr.find('td, th').each(function(i, cell) {
-      var $cell;
-      $cell = $(cell);
-      return $cell.replaceWith("<" + tagName + ">" + ($cell.html()) + "</" + tagName + ">");
-    });
-  }
-
-  function _nextRow($tr) {
-    var $nextTr;
-    $nextTr = $tr.next('tr');
-    if ($nextTr.length < 1 && $tr.parent('thead').length > 0) {
-      $nextTr = $tr.parent('thead').next('tbody').find('tr:first');
-    }
-    return $nextTr;
-  };
-
-  function _prevRow($tr) {
-    var $prevTr;
-    $prevTr = $tr.prev('tr');
-    if ($prevTr.length < 1 && $tr.parent('tbody').length > 0) {
-      $prevTr = $tr.parent('tbody').prev('thead').find('tr');
-    }
-    return $prevTr;
-  }
-
-  function createTable(row, col, phBr) {
-    var $table, $tbody, $td, $thead, $tr, c, k, l, r, ref, ref1;
-    $table = $('<table/>');
-    $thead = $('<thead/>').appendTo($table);
-    $tbody = $('<tbody/>').appendTo($table);
-    for (r = k = 0, ref = row; 0 <= ref ? k < ref : k > ref; r = 0 <= ref ? ++k : --k) {
-        $tr = $('<tr/>');
-        $tr.appendTo(r === 0 ? $thead : $tbody);
-        for (c = l = 0, ref1 = col; 0 <= ref1 ? l < ref1 : l > ref1; c = 0 <= ref1 ? ++l : --l) {
-          $td = $(r === 0 ? '<th/>' : '<td/>').appendTo($tr);
-          if (phBr) {
-              $td.append(phBr);
-          }
-        }
-    }   
-    return $table[0];
-  }
-    
-
-  //cls = simditor-table
-  function decorate(table,cssClasses) {
-    var $table = $(table);
-
-    var $colgroup, $headRow, $resizeHandle, $tbody, $thead, $wrapper;
-    if ($table.parent('.' + cssClasses.tableDecorate).length > 0) {
-      undecorate(table);
-    }
-    $table.wrap('<div class="' + cssClasses.tableDecorate + '"></div>');
-    $wrapper = $table.parent('.' + cssClasses.tableDecorate );
-    $colgroup = $table.find('colgroup');
-    if ($table.find('thead').length < 1) {
-      $thead = $('<thead />');
-      $headRow = $table.find('tr').first();
-      $thead.append($headRow);
-      _changeCellTag($headRow, 'th');
-      $tbody = $table.find('tbody');
-      if ($tbody.length > 0) {
-        $tbody.before($thead);
-      } else {
-        $table.prepend($thead);
-      }
-    }
-    if ($colgroup.length < 1) {
-      $colgroup = $('<colgroup/>').prependTo($table);
-      $table.find('thead tr th').each(function(i, td) {
-        var $col;
-        return $col = $('<col/>').appendTo($colgroup);
-      });
-      refreshTableWidth($table);
-    }
-    $resizeHandle = $('<div />', {
-      "class": cssClasses.resizeHandle, // 'simditor-resize-handle',
-      contenteditable: 'false'
-    }).appendTo($wrapper);
-    return $table.parent();
-  }
-
-  function deleteTable(td,callback) {
-    var $td = $(td);
-
-    var $block, $table;
-    $table = $td.closest('.simditor-table');
-    $block = $table.next('p');
-    $table.remove();
-    if (callback) {
-      callback($block);
-    }
-  }
-
-  function deleteRow(td,callback) {
-    var $td = $(td);
-
-    var $newTr, $tr, index;
-    $tr = $td.parent('tr');
-    if ($tr.closest('table').find('tr').length < 1) {
-      return deleteTable(td);
-    } else {
-      $newTr = _nextRow($tr);
-      if (!($newTr.length > 0)) {
-        $newTr = _prevRow($tr);
-      }
-      index = $tr.find('td, th').index($td);
-      if ($tr.parent().is('thead')) {
-        $newTr.appendTo($tr.parent());
-        _changeCellTag($newTr, 'th');
-      }
-      $tr.remove();
-    
-      if (callback) {
-        callback($newTr[0],index);
-      }
-      //return this.editor.selection.setRangeAtEndOf($newTr.find('td, th').eq(index));
-    }
-  }
-
-  function insertRow(td, direction,phBr,callback) {
-    var $td = $(td);
-
-    var $newTr, $table, $tr, cellTag, colNum, i, index, k, ref;
-    if (direction == null) {
-      direction = 'after';
-    }
-    $tr = $td.parent('tr');
-    $table = $tr.closest('table');
-    colNum = 0;
-    $table.find('tr').each(function(i, tr) {
-      return colNum = Math.max(colNum, $(tr).find('td').length);
-    });
-    index = $tr.find('td, th').index($td);
-    $newTr = $('<tr/>');
-    cellTag = 'td';
-    if (direction === 'after' && $tr.parent().is('thead')) {
-      $tr.parent().next('tbody').prepend($newTr);
-    } else if (direction === 'before' && $tr.parent().is('thead')) {
-      $tr.before($newTr);
-      $tr.parent().next('tbody').prepend($tr);
-      _changeCellTag($tr, 'td');
-      cellTag = 'th';
-    } else {
-      $tr[direction]($newTr);
-    }
-    for (i = k = 1, ref = colNum; 1 <= ref ? k <= ref : k >= ref; i = 1 <= ref ? ++k : --k) {
-      $("<" + cellTag + "/>").append(phBr).appendTo($newTr);
-    }
-
-    if (callback) {
-      callback($newTr[0],index);
-    }
-  }
-
-  function deleteCol(td,callback) {
-    var $td = $(td);
-
-    var $newTd, $table, $tr, index, noOtherCol, noOtherRow;
-    $tr = $td.parent('tr');
-    noOtherRow = $tr.closest('table').find('tr').length < 2;
-    noOtherCol = $td.siblings('td, th').length < 1;
-    if (noOtherRow && noOtherCol) {
-      return deleteTable(td);
-    } else {
-      index = $tr.find('td, th').index($td);
-      $newTd = $td.next('td, th');
-      if (!($newTd.length > 0)) {
-        $newTd = $tr.prev('td, th');
-      }
-      $table = $tr.closest('table');
-      $table.find('col').eq(index).remove();
-      $table.find('tr').each(function(i, tr) {
-        return $(tr).find('td, th').eq(index).remove();
-      });
-      refreshTableWidth($table);
-      //return this.editor.selection.setRangeAtEndOf($newTd);
-      if (callback) {
-        callback($newTd[0]);
-      }
-    }
-  }
-
-  function insertCol(td, direction,phBr,callback) {
-    var $td = $(td);
-
-    var $col, $newCol, $newTd, $table, $tr, index, tableWidth, width;
-    if (direction == null) {
-      direction = 'after';
-    }
-    $tr = $td.parent('tr');
-    index = $tr.find('td, th').index($td);
-    $table = $td.closest('table');
-    $col = $table.find('col').eq(index);
-    $table.find('tr').each((function(_this) {
-      return function(i, tr) {
-        var $newTd, cellTag;
-        cellTag = $(tr).parent().is('thead') ? 'th' : 'td';
-        $newTd = $("<" + cellTag + "/>").append(phBr);
-        return $(tr).find('td, th').eq(index)[direction]($newTd);
-      };
-    })(this));
-    $newCol = $('<col/>');
-    $col[direction]($newCol);
-    tableWidth = $table.width();
-    width = Math.max(parseFloat($col.attr('width')) / 2, 50 / tableWidth * 100);
-    $col.attr('width', width + '%');
-    $newCol.attr('width', width + '%');
-    refreshTableWidth($table);
-    $newTd = direction === 'after' ? $td.next('td, th') : $td.prev('td, th');
-    //return this.editor.selection.setRangeAtStartOf($newTd);
-    if (callback) {
-      callback($newTd[0]);
-    }
-  }
-
-
-  function refreshTableWidth($table) {
-    return setTimeout((function(_this) {
-      return function() {
-        var cols, tableWidth;
-        tableWidth = $table.width();
-        cols = $table.find('col');
-        return $table.find('thead tr th').each(function(i, td) {
-          var $col;
-          $col = cols.eq(i);
-          return $col.attr('width', ($(td).outerWidth() / tableWidth * 100) + '%');
-        });
-      };
-    })(this), 0);
-  }
-
-
-  function resizable(container,options) {
-    var cssClasses = options.cssClasses,
-        clsResizeHandle = cssClasses.resizeHandle, // simditor-resize-handle
-        clsWrapper = cssClasses.wrapper, // .simditor-table
-        selectorWrapper = "." + clsWrapper,
-        selectorResizeHandle = "." + clsResizeHandle;
-
-    $(container).on('mousemove.table', selectorWrapper +' td, ' + selectorWrapper +' th', function(e) {
-      var $col, $colgroup, $resizeHandle, $td, $wrapper, index, ref, ref1, x;
-      $wrapper = $(this).parents(selectorWrapper);
-      $resizeHandle = $wrapper.find(selectorResizeHandle);
-      $colgroup = $wrapper.find('colgroup');
-      if ($wrapper.hasClass('resizing')) {
-        return;
-      }
-      $td = $(e.currentTarget);
-      x = e.pageX - $(e.currentTarget).offset().left;
-      if (x < 5 && $td.prev().length > 0) {
-        $td = $td.prev();
-      }
-      if ($td.next('td, th').length < 1) {
-        $resizeHandle.hide();
-        return;
-      }
-      if ((ref = $resizeHandle.data('td')) != null ? ref.is($td) : void 0) {
-        $resizeHandle.show();
-        return;
-      }
-      index = $td.parent().find('td, th').index($td);
-      $col = $colgroup.find('col').eq(index);
-      if ((ref1 = $resizeHandle.data('col')) != null ? ref1.is($col) : void 0) {
-        $resizeHandle.show();
-        return;
-      }
-      return $resizeHandle.css('left', $td.position().left + $td.outerWidth() - 5).data('td', $td).data('col', $col).show();
-    });
-
-    $(container).on('mouseleave'+ selectorWrapper, selectorWrapper, function(e) {
-      return $(this).find(selectorResizeHandle).hide();
-    });
-    return $(container).on('mousedown'+ selectorResizeHandle, selectorResizeHandle, function(e) {
-      var $handle, $leftCol, $leftTd, $rightCol, $rightTd, $wrapper, minWidth, startHandleLeft, startLeftWidth, startRightWidth, startX, tableWidth;
-      $wrapper = $(this).parent(selectorWrapper);
-      $handle = $(e.currentTarget);
-      $leftTd = $handle.data('td');
-      $leftCol = $handle.data('col');
-      $rightTd = $leftTd.next('td, th');
-      $rightCol = $leftCol.next('col');
-      startX = e.pageX;
-      startLeftWidth = $leftTd.outerWidth() * 1;
-      startRightWidth = $rightTd.outerWidth() * 1;
-      startHandleLeft = parseFloat($handle.css('left'));
-      tableWidth = $leftTd.closest(selectorWrapper).width();
-      minWidth = 50;
-      $(container).on('mousemove.resize-table', function(e) {
-        var deltaX, leftWidth, rightWidth;
-        deltaX = e.pageX - startX;
-        leftWidth = startLeftWidth + deltaX;
-        rightWidth = startRightWidth - deltaX;
-        if (leftWidth < minWidth) {
-          leftWidth = minWidth;
-          deltaX = minWidth - startLeftWidth;
-          rightWidth = startRightWidth - deltaX;
-        } else if (rightWidth < minWidth) {
-          rightWidth = minWidth;
-          deltaX = startRightWidth - minWidth;
-          leftWidth = startLeftWidth + deltaX;
-        }
-        $leftCol.attr('width', (leftWidth / tableWidth * 100) + '%');
-        $rightCol.attr('width', (rightWidth / tableWidth * 100) + '%');
-        return $handle.css('left', startHandleLeft + deltaX);
-      });
-      $(container).one('mouseup.resize-table', function(e) {
-        //$editor.sync();
-        $(container).off('.resize-table');
-        return $wrapper.removeClass('resizing');
-      });
-      $wrapper.addClass('resizing');
-      return false;
-    });
-  };
-
-  function undecorate(table) {
-    var $table = $(table);
-    if (!($table.parent('.simditor-table').length > 0)) {
-      return;
-    }
-    return $table.parent().replaceWith($table)[0];
-  };
-
-
-
-  langx.mixin(tables,{
-    "createTable" : createTable,
-    "decorate" : decorate,
-    "deleteCol" : deleteCol,
-    "deleteRow" : deleteRow,
-    "deleteTable" : deleteTable,
-    "insertCol" : insertCol,
-    "insertRow" : insertRow,
-    "refreshTableWidth" : refreshTableWidth,
-    "resizable" : resizable,
-    "undecorate" : undecorate
-  })
-
-
-  return skylark.attach("domx.tables", tables);
-});
-define('skylark-domx-tables/main',[
-	"./tables"
-],function(tables){
-	return tables;
-});
-define('skylark-domx-tables', ['skylark-domx-tables/main'], function (main) { return main; });
-
-define('skylark-widgets-wordpad/addons/actions/TableAction',[
-  "skylark-langx/langx",
-  "skylark-domx-tables",
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function(langx,tables,$,addons,Action){ 
-  var TableAction = Action.inherit({
-    name : 'table',
-
-    icon : 'table',
-
-    htmlTag : 'table',
-
-    disableTag : 'pre, li, blockquote',
-
-    menu : true,
-
-    _init : function() {
-      Action.prototype._init.call(this);
-      langx.merge(this.editor.editable.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
-      langx.extend(this.editor.editable.formatter._allowedAttributes, {
-        td: ['rowspan', 'colspan'],
-        col: ['width']
-      });
-      langx.extend(this.editor.editable.formatter._allowedStyles, {
-        td: ['text-align'],
-        th: ['text-align']
-      });
-      this._initShortcuts();
-      this._initResize();
-      this.editor.on('decorate', (function(_this) {
-        return function(e, $el) {
-          return $el.find('table').each(function(i, table) {
-            return _this.decorate($(table));
-          });
-        };
-      })(this));
-      this.editor.on('undecorate', (function(_this) {
-        return function(e, $el) {
-          return $el.find('table').each(function(i, table) {
-            return _this.undecorate($(table));
-          });
-        };
-      })(this));
-      this.editor.on('selectionchanged.table', (function(_this) {
-        return function(e) {
-          var $container, range;
-          _this.editor.body.find('.wordpad-table td, .wordpad-table th').removeClass('active');
-          range = _this.editor.editable.selection.range();
-          if (!range) {
-            return;
-          }
-          $container = _this.editor.editable.selection.containerNode();
-          if (range.collapsed && $container.is('.wordpad-table')) {
-            _this.editor.editable.selection.setRangeAtEndOf($container);
-          }
-          return $container.closest('td, th', _this.editor.body).addClass('active');
-        };
-      })(this));
-      this.editor.on('blur.table', (function(_this) {
-        return function(e) {
-          return _this.editor.body.find('.wordpad-table td, .wordpad-table th').removeClass('active');
-        };
-      })(this));
-      this.editor.editable.keystroke.add('up', 'td', (function(_this) {
-        return function(e, $node) {
-          _this._tdNav($node, 'up');
-          return true;
-        };
-      })(this));
-      this.editor.editable.keystroke.add('up', 'th', (function(_this) {
-        return function(e, $node) {
-          _this._tdNav($node, 'up');
-          return true;
-        };
-      })(this));
-      this.editor.editable.keystroke.add('down', 'td', (function(_this) {
-        return function(e, $node) {
-          _this._tdNav($node, 'down');
-          return true;
-        };
-      })(this));
-      return this.editor.editable.keystroke.add('down', 'th', (function(_this) {
-        return function(e, $node) {
-          _this._tdNav($node, 'down');
-          return true;
-        };
-      })(this));
-    },
-
-    _tdNav : function($td, direction) {
-      var $anotherTr, $tr, action, anotherTag, index, parentTag, ref;
-      if (direction == null) {
-        direction = 'up';
-      }
-      action = direction === 'up' ? 'prev' : 'next';
-      ref = direction === 'up' ? ['tbody', 'thead'] : ['thead', 'tbody'], parentTag = ref[0], anotherTag = ref[1];
-      $tr = $td.parent('tr');
-      $anotherTr = this["_" + action + "Row"]($tr);
-      if (!($anotherTr.length > 0)) {
-        return true;
-      }
-      index = $tr.find('td, th').index($td);
-      return this.editor.editable.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
-    },
-
-    _initResize : function() {
-
-      tables.resizable(document,{
-        cssClasses : {
-          resizeHandle : "wordpad-resize-handle",
-          wrapper : "wordpad-table"
-        }
-      });
-
-    },
-
-    _initShortcuts : function() {
-      this.editor.editable.hotkeys.add('ctrl+alt+up', (function(_this) {
-        return function(e) {
-          _this.editMenu.find('.menu-item[data-param=insertRowAbove]').click();
-          return false;
-        };
-      })(this));
-      this.editor.editable.hotkeys.add('ctrl+alt+down', (function(_this) {
-        return function(e) {
-          _this.editMenu.find('.menu-item[data-param=insertRowBelow]').click();
-          return false;
-        };
-      })(this));
-      this.editor.editable.hotkeys.add('ctrl+alt+left', (function(_this) {
-        return function(e) {
-          _this.editMenu.find('.menu-item[data-param=insertColLeft]').click();
-          return false;
-        };
-      })(this));
-      return this.editor.editable.hotkeys.add('ctrl+alt+right', (function(_this) {
-        return function(e) {
-          _this.editMenu.find('.menu-item[data-param=insertColRight]').click();
-          return false;
-        };
-      })(this));
-    },
-
-    renderMenu : function() {
-      var $table;
-      $("<div class=\"menu-create-table\">\n</div>\n<div class=\"menu-edit-table\">\n  <ul>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteRow\">\n        <span>" + (this._t('deleteRow')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowAbove\">\n        <span>" + (this._t('insertRowAbove')) + " ( Ctrl + Alt + ↑ )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowBelow\">\n        <span>" + (this._t('insertRowBelow')) + " ( Ctrl + Alt + ↓ )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteCol\">\n        <span>" + (this._t('deleteColumn')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColLeft\">\n        <span>" + (this._t('insertColumnLeft')) + " ( Ctrl + Alt + ← )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColRight\">\n        <span>" + (this._t('insertColumnRight')) + " ( Ctrl + Alt + → )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteTable\">\n        <span>" + (this._t('deleteTable')) + "</span>\n      </a>\n    </li>\n  </ul>\n</div>").appendTo(this.menuWrapper);
-      this.createMenu = this.menuWrapper.find('.menu-create-table');
-      this.editMenu = this.menuWrapper.find('.menu-edit-table');
-      $table = this.createTable(6, 6).appendTo(this.createMenu);
-      this.createMenu.on('mouseenter', 'td, th', (function(_this) {
-        return function(e) {
-          var $td, $tr, $trs, num;
-          _this.createMenu.find('td, th').removeClass('selected');
-          $td = $(e.currentTarget);
-          $tr = $td.parent();
-          num = $tr.find('td, th').index($td) + 1;
-          $trs = $tr.prevAll('tr').addBack();
-          if ($tr.parent().is('tbody')) {
-            $trs = $trs.add($table.find('thead tr'));
-          }
-          return $trs.find("td:lt(" + num + "), th:lt(" + num + ")").addClass('selected');
-        };
-      })(this));
-      this.createMenu.on('mouseleave', function(e) {
-        return $(e.currentTarget).find('td, th').removeClass('selected');
-      });
-      return this.createMenu.on('mousedown', 'td, th', (function(_this) {
-        return function(e) {
-          var $closestBlock, $td, $tr, colNum, rowNum;
-          _this.wrapper.removeClass('menu-on');
-          if (!_this.editor.editable.inputManager.focused) {
-            return;
-          }
-          $td = $(e.currentTarget);
-          $tr = $td.parent();
-          colNum = $tr.find('td').index($td) + 1;
-          rowNum = $tr.prevAll('tr').length + 1;
-          if ($tr.parent().is('tbody')) {
-            rowNum += 1;
-          }
-          $table = _this.createTable(rowNum, colNum, true);
-          $closestBlock = _this.editor.editable.selection.blockNodes().last();
-          if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
-            $closestBlock.replaceWith($table);
-          } else {
-            $closestBlock.after($table);
-          }
-          _this.decorate($table);
-          _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
-          _this.editor.trigger('valuechanged');
-          return false;
-        };
-      })(this));
-    },
-
-    decorate : function($table) {
-      return $(tables.decorate($table[0],{
-        tableDecorate : 'wordpad-table',
-        resizeHandle : 'wordpad-resize-handle'
-      }));
-
-    },
-
-    undecorate : function($table) {
-      return $(tables.undecorate($table[0],{
-        tableDecorate : 'wordpad-table',
-        resizeHandle : 'wordpad-resize-handle'
-      }));
-
-    },
-
-
-    createTable : function(row, col, phBr) {
-      return $(tables.createTable(row,col,phBr ? this.editor.editable.util.phBr : null));
-    },
-
-    refreshTableWidth : function($table) {
-      return table.refreshTableWidth($table[0]);
-    },
-
-    deleteRow : function($td) {
-      var self = this,
-          ret; 
-
-      tables.deleteRow($td[0],function(newTr,index){
-        if (newTr) {
-          ret = self.editor.editable.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
-        }
-      })
-
-      return ret;
-    },
-
-    insertRow : function($td, direction) {
-      var self = this,
-          ret; 
-
-      tables.insertRow($td[0],direction,self.editor.editable.util.phBr,function(newTr,index){
-        ret =  self.editor.editable.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
-      })
-
-      return ret;
-
-    },
-
-    deleteCol : function($td) {
-      var self = this,
-          ret; 
-
-      tables.deleteCol($td[0],function(newTd){
-        if (newTd) {
-          ret = self.editor.editable.selection.setRangeAtEndOf($(newTd));
-        }
-      })
-
-      return ret;
-    },
-
-    insertCol : function($td, direction) {
-      var self = this,
-          ret; 
-
-      tables.insertCol($td[0],direction,self.editor.editable.util.phBr,function(newTd){
-        ret = self.editor.editable.selection.setRangeAtStartOf($(newTd));
-      })
-
-      return ret;
-    },
-
-    deleteTable : function($td) {
-      var self = this;
-      tables.deleteTable($td[0],function($block){
-        if ($block.length > 0) {
-          return self.editor.editable.selection.setRangeAtStartOf($block);
-        }
-      });
-    },
-
-    _execute : function(param) {
-      var $td;
-      $td = this.editor.editable.selection.containerNode().closest('td, th');
-      if (!($td.length > 0)) {
-        return;
-      }
-      if (param === 'deleteRow') {
-        this.deleteRow($td);
-      } else if (param === 'insertRowAbove') {
-        this.insertRow($td, 'before');
-      } else if (param === 'insertRowBelow') {
-        this.insertRow($td);
-      } else if (param === 'deleteCol') {
-        this.deleteCol($td);
-      } else if (param === 'insertColLeft') {
-        this.insertCol($td, 'before');
-      } else if (param === 'insertColRight') {
-        this.insertCol($td);
-      } else if (param === 'deleteTable') {
-        this.deleteTable($td);
-      } else {
-        return;
-      }
-      return this.editor.trigger('valuechanged');
-    }
-
-   });
-
-
-  addons.actions.table = TableAction;
-
-  return TableAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/TitleAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action",
-  "../../i18n"
-],function($,addons,Action,i18n){ 
-  var TitleAction = Action.inherit({
-    name : 'title',
-
-    htmlTag : 'h1, h2, h3, h4, h5',
-
-    disableTag : 'pre, table',
-
-    _init : function() {
-      this.menu = [
-        {
-          name: 'normal',
-          text: i18n.translate('normalText'),
-          param: 'p'
-        }, '|', {
-          name: 'h1',
-          text: i18n.translate('title') + ' 1',
-          param: 'h1'
-        }, {
-          name: 'h2',
-          text: i18n.translate('title') + ' 2',
-          param: 'h2'
-        }, {
-          name: 'h3',
-          text: i18n.translate('title') + ' 3',
-          param: 'h3'
-        }, {
-          name: 'h4',
-          text: i18n.translate('title') + ' 4',
-          param: 'h4'
-        }, {
-          name: 'h5',
-          text: i18n.translate('title') + ' 5',
-          param: 'h5'
-        }
-      ];
-      return Action.prototype._init.call(this);
-    },
-
-    setActive : function(active, param) {
-      if (active) {
-        active = this.node[0].tagName.toLowerCase();
-      }
-      Action.prototype.setActive.call(this, active);
-    },
-
-    _execute : function(param) {
-      return this.editor.editable.title(param,this.disableTag);
-    }
-
-  });
-
-  addons.actions.title = TitleAction;
-
-  return TitleAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/UnderlineAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "../../Action"
-],function($,addons,Action){
-  var UnderlineAction = Action.inherit({
-    name : 'underline',
-
-    icon : 'underline',
-
-    htmlTag : 'u',
-
-    disableTag : 'pre',
-
-    shortcut : 'cmd+u',
-
-    render : function() {
-      if (this.editor.editable.util.os.mac) {
-        this.title = this.title + ' ( Cmd + u )';
-      } else {
-        this.title = this.title + ' ( Ctrl + u )';
-        this.shortcut = 'ctrl+u';
-      }
-      return Action.prototype.render.call(this);
-    },
-
-    _activeStatus : function() {
-      var active;
-      active = this.editor.editable.isActive('underline');
-      this.setActive(active);
-      return this.active;
-    },
-
-    _execute : function() {
-      return this.editor.editable.underline();
-    }
-
-   });
-
-
-  addons.actions.underline = UnderlineAction;
-
-  return UnderlineAction;
-
-});
-define('skylark-widgets-wordpad/addons/actions/UnorderListAction',[
-  "skylark-domx-query",
-  "../../addons",
-  "./ListAction"
-],function($,addons,ListAction){ 
-   var UnorderListAction = ListAction.inherit({
-      type : 'ul',
-
-      name : 'ul',
-
-      icon : 'list-ul',
-
-      htmlTag : 'ul',
-
-      shortcut : 'cmd+.',
-
-      _init : function() {
-        if (this.editor.editable.util.os.mac) {
-          this.title = this.title + ' ( Cmd + . )';
-        } else {
-          this.title = this.title + ' ( Ctrl + . )';
-          this.shortcut = 'ctrl+.';
-        }
-        return ListAction.prototype._init.call(this);
-      }
-
-   });
-
-
-    addons.actions.ul = UnorderListAction;
-
-    return UnorderListAction;
-
-});
-define('skylark-widgets-wordpad/addons/toolbar/items/AlignmentButton',[
-  "skylark-domx-query",
-  "../../../ToolButton",
-  "../../../i18n",
-  "../../../addons"
-],function($,ToolButton,i18n,addons){ 
-
- var AlignmentButton = ToolButton.inherit({
-    _doActive : function(align) {
-
-      ToolButton.prototype._doActive.call(this, !!align);
-
-      this.el.removeClass('align-left align-center align-right');
-      if (align) {
-        this.el.addClass('align-' + align);
-      }
-      this.setIcon('align-' + align);
-      return this.menuEl.find('.menu-item').show().end().find('.menu-item-' + align).hide();
-
-    }
-
-  });
-
-
-  addons.toolbar.items.alignment = AlignmentButton;
-
-  return AlignmentButton;
-
-});
-define('skylark-widgets-wordpad/addons/toolbar/items/ColorButton',[
-  "skylark-domx-query",
-  "../../../ToolButton",
-  "../../../i18n",
-  "../../../addons"
-],function($,ToolButton,i18n,addons){ 
-  
-
-   var ColorButton = ToolButton.inherit({
-    render : function() {
-      var args;
-      args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
-      return ToolButton.prototype.render.apply(this, args);
-    },
-
-    renderMenu : function() {
-      $('<ul class="color-list">\n  <li><a href="javascript:;" class="font-color font-color-1"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-2"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-3"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-4"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-5"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-6"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-7"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-default"></a></li>\n</ul>').appendTo(this.menuWrapper);
-      this.menuWrapper.on('mousedown', '.color-list', function(e) {
-        return false;
-      });
-      return this.menuWrapper.on('click', '.font-color', (function(_this) {
-        return function(e) {
-          var $link, $p, hex, range, rgb, textNode;
-          _this.wrapper.removeClass('menu-on');
-          $link = $(e.currentTarget);
-          if ($link.hasClass('font-color-default')) {
-            $p = _this.editor.body.find('p, li');
-            if (!($p.length > 0)) {
-              return;
-            }
-            rgb = window.getComputedStyle($p[0], null).getPropertyValue('color');
-            hex = _this._convertRgbToHex(rgb);
-          } else {
-            rgb = window.getComputedStyle($link[0], null).getPropertyValue('background-color');
-            hex = _this._convertRgbToHex(rgb);
-          }
-          if (!hex) {
-            return;
-          }
-
-          return _this.editor.editable.fontColor(hex,$link.hasClass('font-color-default'),i18n.translate('coloredText'));
-        };
-      })(this));
-    },
-
-    _convertRgbToHex : function(rgb) {
-      var match, re, rgbToHex;
-      re = /rgb\((\d+),\s?(\d+),\s?(\d+)\)/g;
-      match = re.exec(rgb);
-      if (!match) {
-        return '';
-      }
-      rgbToHex = function(r, g, b) {
-        var componentToHex;
-        componentToHex = function(c) {
-          var hex;
-          hex = c.toString(16);
-          if (hex.length === 1) {
-            return '0' + hex;
-          } else {
-            return hex;
-          }
-        };
-        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-      };
-      return rgbToHex(match[1] * 1, match[2] * 1, match[3] * 1);
-    }
-
-   });
-
-   
-   addons.toolbar.items.color = ColorButton; 
-
-
-   return ColorButton;
-	
-});
-define('skylark-widgets-wordpad/addons/toolbar/items/EmojiButton',[
-  "skylark-langx/langx",
-  "skylark-domx-query",
-  "../../../ToolButton",
-  "../../../i18n",
-  "../../../addons"
-],function(langx, $,ToolButton,i18n,addons){ 
-
-  var EmojiButton = ToolButton.inherit({
-
-    renderMenu : function() {
-      var $list, dir, html, name, opts, src, tpl, _i, _len, _ref;
-      tpl = '<ul class="emoji-list">\n</ul>';
-      opts = langx.extend({
-        imagePath: 'images/emoji/',
-        images: EmojiButton.images
-      }, this.editor.opts.emoji || {});
-      html = "";
-      dir = opts.imagePath.replace(/\/$/, '') + '/';
-      _ref = opts.images;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        name = _ref[_i];
-        src = "" + dir + name;
-        name = name.split('.')[0];
-        html += "<li data-name='" + name + "'><img src='" + src + "' width='20' height='20' alt='" + name + "' /></li>";
-      }
-      $list = $(tpl);
-      $list.html(html).appendTo(this.menuWrapper);
-      return $list.on('mousedown', 'li', (function(_this) {
-        return function(e) {
-          var $img;
-          _this.wrapper.removeClass('menu-on');
-          if (!_this.editor.editable.inputManager.focused) {
-            return;
-          }
-          $img = $(e.currentTarget).find('img').clone().attr({
-            'data-emoji': true,
-            'data-non-image': true
-          });
-          _this.editor.editable.selection.insertNode($img);
-          _this.editor.trigger('valuechanged');
-          _this.editor.trigger('selectionchanged');
-          return false;
-        };
-      })(this));
-    }
-
-  });
-
-
-  EmojiButton.i18n = {
-    'zh-CN': {
-      emoji: '表情'
-    },
-    'en-US': {
-      emoji: 'emoji'
-    }
-  };
-
-  EmojiButton.images = ['smile.png', 'smiley.png', 'laughing.png', 'blush.png', 'heart_eyes.png', 'smirk.png', 'flushed.png', 'grin.png', 'wink.png', 'kissing_closed_eyes.png', 'stuck_out_tongue_winking_eye.png', 'stuck_out_tongue.png', 'sleeping.png', 'worried.png', 'expressionless.png', 'sweat_smile.png', 'cold_sweat.png', 'joy.png', 'sob.png', 'angry.png', 'mask.png', 'scream.png', 'sunglasses.png', 'heart.png', 'broken_heart.png', 'star.png', 'anger.png', 'exclamation.png', 'question.png', 'zzz.png', 'thumbsup.png', 'thumbsdown.png', 'ok_hand.png', 'punch.png', 'v.png', 'clap.png', 'muscle.png', 'pray.png', 'skull.png', 'trollface.png'];
-
-
-  addons.toolbar.items.emoji = EmojiButton; 
-
-  return EmojiButton;
-	
-});
-define('skylark-widgets-wordpad/addons/toolbar/items/TableButton',[
-  "skylark-langx/langx",
-  "skylark-domx-query",
-  "../../../ToolButton",
-  "../../../i18n",
-  "../../../addons"
-],function(langx, $,ToolButton,i18n,addons){ 
-
-  var TableButton = ToolButton.inherit({
-    _doActive : function(active) {
-
-      ToolButton.prototype._doActive.call(this, active);
-
-      if (active) {
-        this.createMenu.hide();
-        return this.editMenu.show();
-      } else {
-        this.createMenu.show();
-        return this.editMenu.hide();
-      }
-
-    }
-   });
-
-
-  TableButton.prototype.renderMenu = function() {
-    var $table;
-    $("<div class=\"menu-create-table\">\n</div>\n<div class=\"menu-edit-table\">\n  <ul>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteRow\">\n        <span>" + (i18n.translate('deleteRow')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowAbove\">\n        <span>" + (i18n.translate('insertRowAbove')) + " ( Ctrl + Alt + ↑ )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowBelow\">\n        <span>" + (i18n.translate('insertRowBelow')) + " ( Ctrl + Alt + ↓ )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteCol\">\n        <span>" + (i18n.translate('deleteColumn')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColLeft\">\n        <span>" + (i18n.translate('insertColumnLeft')) + " ( Ctrl + Alt + ← )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColRight\">\n        <span>" + (i18n.translate('insertColumnRight')) + " ( Ctrl + Alt + → )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteTable\">\n        <span>" + (i18n.translate('deleteTable')) + "</span>\n      </a>\n    </li>\n  </ul>\n</div>").appendTo(this.menuWrapper);
-    this.createMenu = this.menuWrapper.find('.menu-create-table');
-    this.editMenu = this.menuWrapper.find('.menu-edit-table');
-    $table = this.action.createTable(6, 6).appendTo(this.createMenu);
-    this.createMenu.on('mouseenter', 'td, th', (function(_this) {
-      return function(e) {
-        var $td, $tr, $trs, num;
-        _this.createMenu.find('td, th').removeClass('selected');
-        $td = $(e.currentTarget);
-        $tr = $td.parent();
-        num = $tr.find('td, th').index($td) + 1;
-        $trs = $tr.prevAll('tr').addBack();
-        if ($tr.parent().is('tbody')) {
-          $trs = $trs.add($table.find('thead tr'));
-        }
-        return $trs.find("td:lt(" + num + "), th:lt(" + num + ")").addClass('selected');
-      };
-    })(this));
-    this.createMenu.on('mouseleave', function(e) {
-      return $(e.currentTarget).find('td, th').removeClass('selected');
-    });
-    return this.createMenu.on('mousedown', 'td, th', (function(_this) {
-      return function(e) {
-        var $closestBlock, $td, $tr, colNum, rowNum;
-        _this.wrapper.removeClass('menu-on');
-        if (!_this.editor.editable.inputManager.focused) {
-          return;
-        }
-        $td = $(e.currentTarget);
-        $tr = $td.parent();
-        colNum = $tr.find('td').index($td) + 1;
-        rowNum = $tr.prevAll('tr').length + 1;
-        if ($tr.parent().is('tbody')) {
-          rowNum += 1;
-        }
-        $table = _this.action.createTable(rowNum, colNum, true);
-        $closestBlock = _this.editor.editable.selection.blockNodes().last();
-        if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
-          $closestBlock.replaceWith($table);
-        } else {
-          $closestBlock.after($table);
-        }
-        _this.action.decorate($table);
-        _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
-        _this.editor.trigger('valuechanged');
-        return false;
-      };
-    })(this));
-  };
-
-
-  addons.toolbar.items.table = TableButton;
-
-  return TableButton;
-
-
-});
-define('skylark-widgets-wordpad/addons/toolbar/items/TitleButton',[
-  "skylark-domx-query",
-  "../../../ToolButton",
-  "../../../addons"
-],function($,ToolButton,addons){ 
-  var TitleButton = ToolButton.inherit({
-      _doActive : function(value) {
-        var active = !!value,
-            param = value;
-        ToolButton.prototype._doActive.call(this, active);
-
-        if (active) {
-          param || (param = this.node[0].tagName.toLowerCase());
-        }
-        this.el.removeClass('active-p active-h1 active-h2 active-h3 active-h4 active-h5');
-        if (active) {
-          return this.el.addClass('active active-' + param);
-        }
-      }
-   });
-
-
-  addons.toolbar.items.title = TitleButton;
-
-  return TitleButton;
-
-});
-define('skylark-widgets-base/Addon',[
-  "skylark-langx/langx",	
-  "skylark-langx/Evented",
-	"./base"
-],function(langx,Evented,base){
-
-	var Addon = Evented.inherit({
-
-		_construct : function(widget,options) {
-			this._widget = widget;
-            Object.defineProperty(this,"options",{
-              value :langx.mixin({},this.options,options,true)
-            });
-			if (this._init) {
-				this._init();
-			}
-		}
-
-	});
-
-	Addon.register = function(Widget) {
-		var categoryName = this.categoryName,
-			addonName = this.addonName;
-
-		if (categoryName && addonName) {
-			Widget.addons = Widget.addons || {};
-			Widget.addons[categoryName] = Widget.addons[categoryName] || {};
-			Widget.addons[categoryName][addonName] = this;
-		}
-	};
-
-	return base.Addon = Addon;
-
-});
-define('skylark-widgets-wordpad/addons/AutoSave',[
-  "skylark-domx-query",
-  "skylark-widgets-base/Addon",
-  "../Toolbar",
-  "../Wordpad",
-  "../i18n"
-],function($,Addon, Toolbar,Wordpad,i18n){ 
-
-
-  var AutoSave = Addon.inherit({
-    needFocus : false,
-
-    _init : function() {
-
-	    var currentVal, link, name, val;
-	    this.editor = this._module;
-	    if (!this.opts.autosave) {
-	      return;
-	    }
-	    this.name = typeof this.opts.autosave === 'string' ? this.opts.autosave : 'simditor';
-	    if (this.opts.autosavePath) {
-	      this.path = this.opts.autosavePath;
-	    } else {
-	      link = $("<a/>", {
-	        href: location.href
-	      });
-	      name = this.editor.textarea.data('autosave') || this.name;
-	      this.path = "/" + (link[0].pathname.replace(/\/$/g, "").replace(/^\//g, "")) + "/autosave/" + name + "/";
-	    }
-	    if (!this.path) {
-	      return;
-	    }
-	    this.editor.on("valuechanged", (function(_this) {
-	      return function() {
-	        return _this.storage.set(_this.path, _this.editor.getValue());
-	      };
-	    })(this));
-	    this.editor.el.closest('form').on('ajax:success.simditor-' + this.editor.id, (function(_this) {
-	      return function(e) {
-	        return _this.storage.remove(_this.path);
-	      };
-	    })(this));
-	    val = this.storage.get(this.path);
-	    if (!val) {
-	      return;
-	    }
-	    currentVal = this.editor.textarea.val();
-	    if (val === currentVal) {
-	      return;
-	    }
-	    if (this.editor.textarea.is('[data-autosave-confirm]')) {
-	      if (confirm(this.editor.textarea.data('autosave-confirm') || 'Are you sure to restore unsaved changes?')) {
-	        return this.editor.setValue(val);
-	      } else {
-	        return this.storage.remove(this.path);
-	      }
-	    } else {
-	      return this.editor.setValue(val);
-	    }
-
-    }
-
-  });
-
-
-  AutoSave.categoryName = "general";
-  AutoSave.addonName = 'autosave';
-
-  AutoSave.prototype.opts = {
-    autosave: true,
-    autosavePath: null
-  };
-
-
-  AutoSave.prototype.storage = {
-    supported: function() {
-      var error;
-      try {
-        localStorage.setItem('_storageSupported', 'yes');
-        localStorage.removeItem('_storageSupported');
-        return true;
-      } catch (_error) {
-        error = _error;
-        return false;
-      }
-    },
-    set: function(key, val, session) {
-      var storage;
-      if (session == null) {
-        session = false;
-      }
-      if (!this.supported()) {
-        return;
-      }
-      storage = session ? sessionStorage : localStorage;
-      return storage.setItem(key, val);
-    },
-    get: function(key, session) {
-      var storage;
-      if (session == null) {
-        session = false;
-      }
-      if (!this.supported()) {
-        return;
-      }
-      storage = session ? sessionStorage : localStorage;
-      return storage[key];
-    },
-    remove: function(key, session) {
-      var storage;
-      if (session == null) {
-        session = false;
-      }
-      if (!this.supported()) {
-        return;
-      }
-      storage = session ? sessionStorage : localStorage;
-      return storage.removeItem(key);
-    }
-  };
-
-  return Wordpad.addons.general.autoSave = AutoSave;
-
-});
-define('skylark-widgets-wordpad/addons/Dropzone',[
-  "skylark-domx-query",
-  "skylark-widgets-base/Addon",
-  "../Toolbar",
-  "../Wordpad",
-  "../i18n"
-],function($,Addon, Toolbar,Wordpad,i18n){ 
-
-
-  var Dropzone = Addon.inherit({
-  });
-
-  Dropzone.categoryName = "genernal";
-
-  Dropzone.addonName = "dropzone";
-
-
-  Dropzone.prototype._entered = 0;
-
-  Dropzone.prototype._init = function() {
-    this.editor = this._widget;
-    if (this.editor.uploader == null) {
-      //throw new Error("Can't work without 'simple-uploader' module");
-      return;
-    }
-    $(document.body).on("dragover", function(e) {
-      e.originalEvent.dataTransfer.dropEffect = "none";
-      return e.preventDefault();
-    });
-    $(document.body).on('drop', function(e) {
-      return e.preventDefault();
-    });
-    this.imageBtn = this.editor.toolbar.findButton("image");
-    return this.editor.body.on("dragover", function(e) {
-      e.originalEvent.dataTransfer.dropEffect = "copy";
-      e.stopPropagation();
-      return e.preventDefault();
-    }).on("dragenter", (function(_this) {
-      return function(e) {
-        if ((_this._entered += 1) === 1) {
-          _this.show();
-        }
-        e.preventDefault();
-        return e.stopPropagation();
-      };
-    })(this)).on("dragleave", (function(_this) {
-      return function(e) {
-        if ((_this._entered -= 1) <= 0) {
-          _this.hide();
-        }
-        e.preventDefault();
-        return e.stopPropagation();
-      };
-    })(this)).on("drop", (function(_this) {
-      return function(e) {
-        var file, imageFiles, _i, _j, _len, _len1, _ref;
-        imageFiles = [];
-        _ref = e.originalEvent.dataTransfer.files;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          file = _ref[_i];
-          if (!_this.validFile(file)) {
-            alert("「" + file.name + "]」文件不是图片。");
-            _this.hide();
-            return false;
-          }
-          imageFiles.push(file);
-        }
-        for (_j = 0, _len1 = imageFiles.length; _j < _len1; _j++) {
-          file = imageFiles[_j];
-          _this.editor.uploader.upload(file, {
-            inline: true
-          });
-        }
-        _this.hide();
-        e.stopPropagation();
-        return e.preventDefault();
-      };
-    })(this));
-  };
-
-  Dropzone.prototype.show = function() {
-    return this.imageBtn.setActive(true);
-  };
-
-  Dropzone.prototype.hide = function() {
-    this.imageBtn.setActive(false);
-    return this._entered = 0;
-  };
-
-  Dropzone.prototype.validFile = function(file) {
-    return file.type.indexOf("image/") > -1;
-  };
-
-  return Wordpad.addons.general.dropzone = Dropzone;
-
-
-});
-define('skylark-widgets-wordpad/main',[
-  "./Wordpad", 
-  "./Action",
-  "./Popover",
-  "./Toolbar",
-  "./ToolButton", 
-
-  "./addons/actions/AlignmentAction", 
-  "./addons/actions/BlockquoteAction", 
-  "./addons/actions/BoldAction", 
-  "./addons/actions/CodeAction", 
-  "./addons/actions/CodePopover", 
-  "./addons/actions/ColorAction", 
-  "./addons/actions/EmojiAction", 
-  "./addons/actions/FontScaleAction", 
-  "./addons/actions/FullScreenAction", 
-  "./addons/actions/HrAction", 
-  "./addons/actions/HtmlAction", 
-  "./addons/actions/ImageAction", 
-  "./addons/actions/ImagePopover", 
-  "./addons/actions/IndentAction", 
-  "./addons/actions/ItalicAction", 
-  "./addons/actions/LinkAction", 
-  "./addons/actions/LinkPopover", 
-  "./addons/actions/ListAction", 
-  "./addons/actions/MarkAction", 
-  "./addons/actions/OrderListAction", 
-  "./addons/actions/OutdentAction",
-  "./addons/actions/StrikethroughAction", 
-  "./addons/actions/TableAction", 
-  "./addons/actions/TitleAction", 
-  "./addons/actions/UnderlineAction", 
-  "./addons/actions/UnorderListAction",
-
-  "./addons/toolbar/items/AlignmentButton",
-  "./addons/toolbar/items/ColorButton",
-  "./addons/toolbar/items/EmojiButton",
-  "./addons/toolbar/items/TableButton",
-  "./addons/toolbar/items/TitleButton",
-
-  "./addons/AutoSave",
-  "./addons/Dropzone"
-],function(Wordpad){
-	
-  return Wordpad;
-});
-define('skylark-widgets-wordpad', ['skylark-widgets-wordpad/main'], function (main) { return main; });
-
-define('skylark-slax-runtime/main',[
-	"./slax",
-	"./cache",
-	"skylark-langx",
-	"skylark-widgets-shells",
-	"skylark-jquery",
-	"skylark-ajaxfy-spa",
-	"skylark-data-entities",
-	"skylark-data-streams",
-	"skylark-data-zip",
-	"skylark-net-http",
-	"skylark-widgets-colorpicker",
-	"skylark-widgets-gradienter",
-	"skylark-widgets-hierarchy",
-	"skylark-widgets-iconpicker",
-	"skylark-widgets-repeater",
-	"skylark-widgets-uploads",
-	"skylark-widgets-wordpad"
-],function(slax){
-	return slax;
-});
-define('skylark-slax-runtime', ['skylark-slax-runtime/main'], function (main) { return main; });
-
-define('skylark-widgets-coder/util',[
-    "skylark-langx/langx",
-    "skylark-net-http/Xhr"
-],function (langx,Xhr) {
-    'use strict';
-
-    function fetch(url, callback) {
-        /*
-        var xhr = new window.XMLHttpRequest();
-        xhr.open('GET', url);
-        xhr.responseType = 'text';
-        xhr.onload = function () {
-            if (xhr.status === 200) {
-                callback(null, xhr.responseText);
-            } else {
-                callback(url, xhr);
-            }
-        };
-        xhr.onerror = function (err) {
-            callback(err);
-        };
-        xhr.send();
-        */
-        Xhr.get(url).then(
-            function(res) {
-                callback(null,res);
-            },
-            function(e){
-                callback(e);
-            }
-        )
-    }
-    function runCallback(index, params, arr, errors, callback) {
-        return function (err, res) {
-            if (err) {
-                errors.push(err);
-            }
-            index++;
-            if (index < arr.length) {
-                seqRunner(index, res, arr, errors, callback);
-            } else {
-                callback(errors, res);
-            }
-        };
-    }
-    function seqRunner(index, params, arr, errors, callback) {
-        arr[index](params, runCallback.apply(this, arguments));
-    }
-    function seq(arr, params, callback = function () {
-    }) {
-        var errors = [];
-        if (!arr.length) {
-            return callback(errors, params);
-        }
-        seqRunner(0, params, arr, errors, callback);
-    }
-    function log() {
-        console.log(arguments);
-    }
-
-
-    var defaultModemap = {
-        'html': 'html',
-        'css': 'css',
-        'js': 'javascript',
-        'less': 'less',
-        'styl': 'stylus',
-        'coffee': 'coffeescript'
-    };
-    function getMode(type = '', file = '', customModemap = {}) {
-        var modemap = langx.mixin({}, defaultModemap,customModemap);
-        for (let key in modemap) {
-            let keyLength = key.length;
-            if (file.slice(-keyLength++) === '.' + key) {
-                return modemap[key];
-            }
-        }
-        for (let key in modemap) {
-            if (type === key) {
-                return modemap[key];
-            }
-        }
-        return type;
-    }
-    return {
-        fetch,
-        seq,
-        log,
-        getMode
-    };
-});
-define('skylark-widgets-coder/template',[],function () {
-    'use strict';
-    function container() {
-        return `
-    <ul class="coder-nav">
-      <li class="coder-nav-item coder-nav-item-result">
-        <a href="#" data-coder-type="result">
-          Result
-        </a>
-      </li>
-      <li class="coder-nav-item coder-nav-item-html">
-        <a href="#" data-coder-type="html">
-          HTML
-        </a>
-      </li>
-      <li class="coder-nav-item coder-nav-item-css">
-        <a href="#" data-coder-type="css">
-          CSS
-        </a>
-      </li>
-      <li class="coder-nav-item coder-nav-item-js">
-        <a href="#" data-coder-type="js">
-          JavaScript
-        </a>
-      </li>
-    </ul>
-    <div class="coder-pane coder-pane-result"><iframe></iframe></div>
-    <div class="coder-pane coder-pane-html"></div>
-    <div class="coder-pane coder-pane-css"></div>
-    <div class="coder-pane coder-pane-js"></div>
-  `;
-    }
-    function paneActiveClass(type) {
-        return `coder-pane-active-${ type }`;
-    }
-    function containerClass() {
-        return 'coder';
-    }
-    function hasFileClass(type) {
-        return `coder-has-${ type }`;
-    }
-    function editorClass(type) {
-        return `coder-editor coder-editor-${ type }`;
-    }
-    function editorContent(type, fileUrl = '') {
-        return `
-    <textarea data-coder-type="${ type }" data-coder-file="${ fileUrl }"></textarea>
-    <div class="coder-status"></div>
-  `;
-    }
-    function statusMessage(err) {
-        return `
-    <p>${ err }</p>
-  `;
-    }
-    function statusClass(type) {
-        return `coder-status-${ type }`;
-    }
-    function statusActiveClass(type) {
-        return `coder-status-active-${ type }`;
-    }
-    function pluginClass(name) {
-        return `coder-plugin-${ name }`;
-    }
-    function statusLoading(url) {
-        return `Loading <strong>${ url }</strong>..`;
-    }
-    function statusFetchError(url) {
-        return `There was an error loading <strong>${ url }</strong>.`;
-    }
-    return {
-        container: container,
-        paneActiveClass: paneActiveClass,
-        containerClass: containerClass,
-        hasFileClass: hasFileClass,
-        editorClass: editorClass,
-        editorContent: editorContent,
-        statusMessage: statusMessage,
-        statusClass: statusClass,
-        statusActiveClass: statusActiveClass,
-        pluginClass: pluginClass,
-        statusLoading: statusLoading,
-        statusFetchError: statusFetchError
-    };
-});
-define('skylark-widgets-coder/addons',[],function(){
-	return {
-	    general : {
-
-	    },
-
-	    html : {
-      
-	    },
-
-	    css : {
-      
-	    },
-
-	    js : {
-      
-	    },
-
-	    edit : {
-      
-	    }	
-	};
-});
-define('skylark-widgets-coder/Coder',[
-    'skylark-langx/skylark',
-    'skylark-langx/langx',
-    'skylark-widgets-base/Widget',
-    "skylark-domx-styler",
-    "skylark-domx-data",
-    './util',
-    './template',
-    "./addons"
-], function (skylark,langx,Widget, styler,datax,util, template,addons) {
-    'use strict';
-    class Coder extends Widget{
-        get klassName() {
-          return "Coder";
-        } 
-
-        get pluginName(){
-          return "lark.coder";
-        } 
-
-        //default options
-        get options () {
-            return {
-                files: [],
-                showBlank: false,
-                runScripts: true,
-                pane: 'result',
-                debounce: 250,
-                addons: {
-                    "general" : ["render"]
-                }
-            }
-        }
-
-        _init ($coderContainer, opts) {
-            //if (!$coderContainer) {
-            //    throw new Error("Can't find Coder container.");
-            // }
-
-            var options = this.options;
-            if (options.runScripts === false) {
-                options.addons.gerneral.push('scriptless');
-            }
-
-            super._init();
-            //Widget.prototype._init.call(this);
-
-            var _private = {};
-            this._get = function (key) {
-                return _private[key];
-            };
-            this._set = function (key, value) {
-                _private[key] = value;
-                return _private[key];
-            };
-
-
-            this._set('cachedContent', {
-                html: null,
-                css: null,
-                js: null
-            });
-
-            var $container = this.$container = this._elm;
-
-            var paneActive = this._set('paneActive', options.pane);
-
-            var velm = this._velm;
-            velm.html(template.container())
-                .addClass(template.containerClass())
-                .addClass(template.paneActiveClass(paneActive))
-                .on('keyup', langx.debounce(this.change.bind(this), options.debounce))
-                .on('change', langx.debounce(this.change.bind(this), options.debounce))
-                .on('click', this.pane.bind(this));
-
-            this._set('$status', {});
-            for (let type of [
-                    'html',
-                    'css',
-                    'js'
-                ]) {
-                this.markup(type);
-            }
-        }
-
-        _startup() {
-            var options = this.options;
-            this.paneActive = this._get('paneActive');
-            for (let type of [
-                    'html',
-                    'css',
-                    'js'
-                ]) {
-                this.load(type);
-            }
-            if (options.showBlank) {
-                for (let type of [
-                        'html',
-                        'css',
-                        'js'
-                    ]) {
-                    this._velm.addClass(template.hasFileClass(type));
-                }
-            }
-
-        }
-
-        findFile(type) {
-            var file = {};
-            //var options = this._get('options');
-            var options = this.options;
-            for (let fileIndex in options.files) {
-                let file = options.files[fileIndex];
-                if (file.type === type) {
-                    return file;
-                }
-            }
-            return file;
-        }
-        markup(type) {
-            //var $container = this._get('$container');
-            var $container = this._elm;
-            var $parent = $container.querySelector(`.coder-pane-${ type }`);
-            var file = this.findFile(type);
-            var $editor = document.createElement('div');
-            $editor.innerHTML = template.editorContent(type, file.url);
-            $editor.className = template.editorClass(type);
-            $parent.appendChild($editor);
-            this._get('$status')[type] = $parent.querySelector('.coder-status');
-            if (typeof file.url !== 'undefined' || typeof file.content !== 'undefined') {
-                styler.addClass($container, template.hasFileClass(type));
-            }
-        }
-        load(type) {
-            var file = this.findFile(type);
-            //var $textarea = this._get('$container').querySelector(`.coder-pane-${ type } textarea`);
-            var $textarea = this._elm.querySelector(`.coder-pane-${ type } textarea`);
-            if (typeof file.content !== 'undefined') {
-                this.setValue($textarea, file.content);
-            } else if (typeof file.url !== 'undefined') {
-                this.status('loading', [template.statusLoading(file.url)], {
-                    type: type,
-                    file: file
-                });
-                util.fetch(file.url, (err, res) => {
-                    if (err) {
-                        this.status('error', [template.statusFetchError(err)], { type: type });
-                        return;
-                    }
-                    this.clearStatus('loading', { type: type });
-                    this.setValue($textarea, res);
-                });
-            } else {
-                this.setValue($textarea, '');
-            }
-        }
-        setValue($textarea, val) {
-            $textarea.value = val;
-            this.change({ target: $textarea });
-        }
-        change(e) {
-            var type = datax.data(e.target, 'coder-type');
-            if (!type) {
-                return;
-            }
-            var cachedContent = this._get('cachedContent');
-            if (cachedContent[type] === e.target.value) {
-                return;
-            }
-            cachedContent[type] = e.target.value;
-            this.emit('change', {
-                type: type,
-                file: datax.data(e.target, 'coder-file'),
-                content: cachedContent[type]
-            });
-        }
-        errors(errs, params) {
-            this.status('error', errs, params);
-        }
-        pane(e) {
-            if (!datax.data(e.target, 'coder-type')) {
-                return;
-            }
-            //var $container = this._get('$container');
-            var $container = this._elm;
-            var paneActive = this._get('paneActive');
-            styler.removeClass($container, template.paneActiveClass(paneActive));
-            paneActive = this._set('paneActive', datax.data(e.target, 'coder-type'));
-            styler.addClass($container, template.paneActiveClass(paneActive));
-            e.preventDefault();
-        }
-        status(statusType = 'error', messages = [], params = {}) {
-            if (!messages.length) {
-                return this.clearStatus(statusType, params);
-            }
-            var $status = this._get('$status');
-            styler.addClass($status[params.type], template.statusClass(statusType));
-            //styler.addClass(this._get('$container'), template.statusActiveClass(params.type));
-            styler.addClass(this._elm, template.statusActiveClass(params.type));
-            var markup = '';
-            messages.forEach(function (err) {
-                markup += template.statusMessage(err);
-            });
-            $status[params.type].innerHTML = markup;
-        }
-        clearStatus(statusType, params) {
-            var $status = this._get('$status');
-            styler.removeClass($status[params.type], template.statusClass(statusType));
-            //styler.removeClass(this._get('$container'), template.statusActiveClass(params.type));
-            styler.removeClass(this._elm, template.statusActiveClass(params.type));
-            $status[params.type].innerHTML = '';
-        }
-    }
-    Coder.addons = addons;
-
-    return skylark.attach("widgets.Coder",Coder);
-});
 define('skylark-codemirror/cm',[
 	"skylark-langx/skylark"
 ],function(skylark){
-	var itg = skylark.itg = skylark.itg || {};
 
-	return itg.cm = {};
-
+	return skylark.attach("intg.cm", {});
 });
 define('skylark-codemirror/primitives/util/browser',[],function () {
     'use strict';
@@ -77090,7 +74553,7 @@ define('skylark-codemirror/primitives/display/highlight_worker',[
 define('skylark-codemirror/primitives/model/selection',[
     '../line/pos',
     '../util/misc'
-], function (a, b) {
+], function (m_pos, m_misc) {
     'use strict';
     class Selection {
         constructor(ranges, primIndex) {
@@ -77107,7 +74570,7 @@ define('skylark-codemirror/primitives/model/selection',[
                 return false;
             for (let i = 0; i < this.ranges.length; i++) {
                 let here = this.ranges[i], there = other.ranges[i];
-                if (!a.equalCursorPos(here.anchor, there.anchor) || !a.equalCursorPos(here.head, there.head))
+                if (!m_pos.equalCursorPos(here.anchor, there.anchor) || !m_pos.equalCursorPos(here.head, there.head))
                     return false;
             }
             return true;
@@ -77115,7 +74578,7 @@ define('skylark-codemirror/primitives/model/selection',[
         deepCopy() {
             let out = [];
             for (let i = 0; i < this.ranges.length; i++)
-                out[i] = new Range(a.copyPos(this.ranges[i].anchor), a.copyPos(this.ranges[i].head));
+                out[i] = new Range(m_pos.copyPos(this.ranges[i].anchor), m_pos.copyPos(this.ranges[i].head));
             return new Selection(out, this.primIndex);
         }
         somethingSelected() {
@@ -77129,7 +74592,7 @@ define('skylark-codemirror/primitives/model/selection',[
                 end = pos;
             for (let i = 0; i < this.ranges.length; i++) {
                 let range = this.ranges[i];
-                if (a.cmp(end, range.from()) >= 0 && a.cmp(pos, range.to()) <= 0)
+                if (m_pos.cmp(end, range.from()) >= 0 && m_pos.cmp(pos, range.to()) <= 0)
                     return i;
             }
             return -1;
@@ -77141,10 +74604,10 @@ define('skylark-codemirror/primitives/model/selection',[
             this.head = head;
         }
         from() {
-            return a.minPos(this.anchor, this.head);
+            return m_pos.minPos(this.anchor, this.head);
         }
         to() {
-            return a.maxPos(this.anchor, this.head);
+            return m_pos.maxPos(this.anchor, this.head);
         }
         empty() {
             return this.head.line == this.anchor.line && this.head.ch == this.anchor.ch;
@@ -77153,13 +74616,13 @@ define('skylark-codemirror/primitives/model/selection',[
     function normalizeSelection(cm, ranges, primIndex) {
         let mayTouch = cm && cm.options.selectionsMayTouch;
         let prim = ranges[primIndex];
-        ranges.sort((a, b) => a.cmp(a.from(), b.from()));
-        primIndex = b.indexOf(ranges, prim);
+        ranges.sort((a, b) => m_pos.cmp(a.from(), b.from()));
+        primIndex = m_misc.indexOf(ranges, prim);
         for (let i = 1; i < ranges.length; i++) {
             let cur = ranges[i], prev = ranges[i - 1];
-            let diff = a.cmp(prev.to(), cur.from());
+            let diff = m_pos.cmp(prev.to(), cur.from());
             if (mayTouch && !cur.empty() ? diff > 0 : diff >= 0) {
-                let from = a.minPos(prev.from(), cur.from()), to = a.maxPos(prev.to(), cur.to());
+                let from = m_pos.minPos(prev.from(), cur.from()), to = m_pos.maxPos(prev.to(), cur.to());
                 let inv = prev.empty() ? cur.from() == cur.head : prev.from() == prev.head;
                 if (i <= primIndex)
                     --primIndex;
@@ -82895,6 +80358,8806 @@ define('skylark-codemirror/CodeMirror',[
 ], function (cm,_main) {
     'use strict';
     return cm.CodeMirror = _main.CodeMirror;
+});
+define('skylark-parsers-html/html',[
+    "skylark-langx/skylark"
+], function(skylark) {
+	return skylark.attach("domx.html",{});
+});
+define('skylark-parsers-css/css',[
+    "skylark-langx/skylark"
+], function(skylark) {
+	
+	return skylark.attach("markups.css",{});
+});
+/*jshint curly:true, eqeqeq:true, laxbreak:true, noempty:false */
+/*
+
+  The MIT License (MIT)
+
+  Copyright (c) 2007-2013 Einar Lielmanis and contributors.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+
+ CSS Beautifier
+---------------
+
+    Written by Harutyun Amirjanyan, (amirjanyan@gmail.com)
+
+    Based on code initially developed by: Einar Lielmanis, <einar@jsbeautifier.org>
+        http://jsbeautifier.org/
+
+    Usage:
+        css_beautify(source_text);
+        css_beautify(source_text, options);
+
+    The options are (default in brackets):
+        indent_size (4)                   — indentation size,
+        indent_char (space)               — character to indent with,
+        selector_separator_newline (true) - separate selectors with newline or
+                                            not (e.g. "a,\nbr" or "a, br")
+        end_with_newline (false)          - end with a newline
+
+    e.g
+
+    css_beautify(css_source_text, {
+      'indent_size': 1,
+      'indent_char': '\t',
+      'selector_separator': ' ',
+      'end_with_newline': false,
+    });
+*/
+
+// http://www.w3.org/TR/CSS21/syndata.html#tokenization
+// http://www.w3.org/TR/css3-syntax/
+
+define('skylark-parsers-css/primitives/beautify-css',[],function() {
+    function css_beautify(source_text, options) {
+        options = options || {};
+        var indentSize = options.indent_size || 4;
+        var indentCharacter = options.indent_char || ' ';
+        var selectorSeparatorNewline = (options.selector_separator_newline === undefined) ? true : options.selector_separator_newline;
+        var end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
+
+        // compatibility
+        if (typeof indentSize === "string") {
+            indentSize = parseInt(indentSize, 10);
+        }
+
+
+        // tokenizer
+        var whiteRe = /^\s+$/;
+        var wordRe = /[\w$\-_]/;
+
+        var pos = -1,
+            ch;
+
+        function next() {
+            ch = source_text.charAt(++pos);
+            return ch || '';
+        }
+
+        function peek(skipWhitespace) {
+            var prev_pos = pos;
+            if (skipWhitespace) {
+                eatWhitespace();
+            }
+            result = source_text.charAt(pos + 1) || '';
+            pos = prev_pos - 1;
+            next();
+            return result;
+        }
+
+        function eatString(endChars) {
+            var start = pos;
+            while (next()) {
+                if (ch === "\\") {
+                    next();
+                } else if (endChars.indexOf(ch) !== -1) {
+                    break;
+                } else if (ch === "\n") {
+                    break;
+                }
+            }
+            return source_text.substring(start, pos + 1);
+        }
+
+        function peekString(endChar) {
+            var prev_pos = pos;
+            var str = eatString(endChar);
+            pos = prev_pos - 1;
+            next();
+            return str;
+        }
+
+        function eatWhitespace() {
+            var result = '';
+            while (whiteRe.test(peek())) {
+                next()
+                result += ch;
+            }
+            return result;
+        }
+
+        function skipWhitespace() {
+            var result = '';
+            if (ch && whiteRe.test(ch)) {
+                result = ch;
+            }
+            while (whiteRe.test(next())) {
+                result += ch
+            }
+            return result;
+        }
+
+        function eatComment(singleLine) {
+            var start = pos;
+            var singleLine = peek() === "/";
+            next();
+            while (next()) {
+                if (!singleLine && ch === "*" && peek() === "/") {
+                    next();
+                    break;
+                } else if (singleLine && ch === "\n") {
+                    return source_text.substring(start, pos);
+                }
+            }
+
+            return source_text.substring(start, pos) + ch;
+        }
+
+
+        function lookBack(str) {
+            return source_text.substring(pos - str.length, pos).toLowerCase() ===
+                str;
+        }
+
+        // Nested pseudo-class if we are insideRule
+        // and the next special character found opens
+        // a new block
+        function foundNestedPseudoClass() {
+            for (var i = pos + 1; i < source_text.length; i++){
+                var ch = source_text.charAt(i);
+                if (ch === "{"){
+                    return true;
+                } else if (ch === ";" || ch === "}" || ch === ")") {
+                    return false;
+                }
+            }
+            return false;
+        }
+
+        // printer
+        var basebaseIndentString = source_text.match(/^[\t ]*/)[0];
+        var singleIndent = new Array(indentSize + 1).join(indentCharacter);
+        var indentLevel = 0;
+        var nestedLevel = 0;
+
+        function indent() {
+            indentLevel++;
+            basebaseIndentString += singleIndent;
+        }
+
+        function outdent() {
+            indentLevel--;
+            basebaseIndentString = basebaseIndentString.slice(0, -indentSize);
+        }
+
+        var print = {};
+        print["{"] = function(ch) {
+            print.singleSpace();
+            output.push(ch);
+            print.newLine();
+        };
+        print["}"] = function(ch) {
+            print.newLine();
+            output.push(ch);
+            print.newLine();
+        };
+
+        print._lastCharWhitespace = function() {
+            return whiteRe.test(output[output.length - 1]);
+        };
+
+        print.newLine = function(keepWhitespace) {
+            if (!keepWhitespace) {
+                print.trim();
+            }
+
+            if (output.length) {
+                output.push('\n');
+            }
+            if (basebaseIndentString) {
+                output.push(basebaseIndentString);
+            }
+        };
+        print.singleSpace = function() {
+            if (output.length && !print._lastCharWhitespace()) {
+                output.push(' ');
+            }
+        };
+
+        print.trim = function() {
+            while (print._lastCharWhitespace()) {
+                output.pop();
+            }
+        };
+
+
+        var output = [];
+        if (basebaseIndentString) {
+            output.push(basebaseIndentString);
+        }
+        /*_____________________--------------------_____________________*/
+
+        var insideRule = false;
+        var enteringConditionalGroup = false;
+        var top_ch = '';
+        var last_top_ch = '';
+
+        while (true) {
+            var whitespace = skipWhitespace();
+            var isAfterSpace = whitespace !== '';
+            var isAfterNewline = whitespace.indexOf('\n') !== -1;
+            var last_top_ch = top_ch;
+            var top_ch = ch;
+
+            if (!ch) {
+                break;
+            } else if (ch === '/' && peek() === '*') { /* css comment */
+                var header = lookBack("");
+                print.newLine();
+                output.push(eatComment());
+                print.newLine();
+                if (header) {
+                    print.newLine(true);
+                }
+            } else if (ch === '/' && peek() === '/') { // single line comment
+                if (!isAfterNewline && last_top_ch !== '{') {
+                    print.trim();
+                }
+                print.singleSpace();
+                output.push(eatComment());
+                print.newLine();
+            } else if (ch === '@') {
+                // pass along the space we found as a separate item
+                if (isAfterSpace) {
+                    print.singleSpace();
+                }
+                output.push(ch);
+
+                // strip trailing space, if present, for hash property checks
+                var variableOrRule = peekString(": ,;{}()[]/='\"").replace(/\s$/, '');
+
+                // might be a nesting at-rule
+                if (variableOrRule in css_beautify.NESTED_AT_RULE) {
+                    nestedLevel += 1;
+                    if (variableOrRule in css_beautify.CONDITIONAL_GROUP_RULE) {
+                        enteringConditionalGroup = true;
+                    }
+                } else if (': '.indexOf(variableOrRule[variableOrRule.length -1]) >= 0) {
+                    //we have a variable, add it and insert one space before continuing
+                    next();
+                    variableOrRule = eatString(": ").replace(/\s$/, '');
+                    output.push(variableOrRule);
+                    print.singleSpace();
+                }
+            } else if (ch === '{') {
+                if (peek(true) === '}') {
+                    eatWhitespace();
+                    next();
+                    print.singleSpace();
+                    output.push("{}");
+                } else {
+                    indent();
+                    print["{"](ch);
+                    // when entering conditional groups, only rulesets are allowed
+                    if (enteringConditionalGroup) {
+                        enteringConditionalGroup = false;
+                        insideRule = (indentLevel > nestedLevel);
+                    } else {
+                        // otherwise, declarations are also allowed
+                        insideRule = (indentLevel >= nestedLevel);
+                    }
+                }
+            } else if (ch === '}') {
+                outdent();
+                print["}"](ch);
+                insideRule = false;
+                if (nestedLevel) {
+                    nestedLevel--;
+                }
+            } else if (ch === ":") {
+                eatWhitespace();
+                if ((insideRule || enteringConditionalGroup) &&
+                        !(lookBack("&") || foundNestedPseudoClass())) {
+                    // 'property: value' delimiter
+                    // which could be in a conditional group query
+                    output.push(':');
+                    print.singleSpace();
+                } else {
+                    // sass/less parent reference don't use a space
+                    // sass nested pseudo-class don't use a space
+                    if (peek() === ":") {
+                        // pseudo-element
+                        next();
+                        output.push("::");
+                    } else {
+                        // pseudo-class
+                        output.push(':');
+                    }
+                }
+            } else if (ch === '"' || ch === '\'') {
+                if (isAfterSpace) {
+                    print.singleSpace();
+                }
+                output.push(eatString(ch));
+            } else if (ch === ';') {
+                output.push(ch);
+                print.newLine();
+            } else if (ch === '(') { // may be a url
+                if (lookBack("url")) {
+                    output.push(ch);
+                    eatWhitespace();
+                    if (next()) {
+                        if (ch !== ')' && ch !== '"' && ch !== '\'') {
+                            output.push(eatString(')'));
+                        } else {
+                            pos--;
+                        }
+                    }
+                } else {
+                    if (isAfterSpace) {
+                        print.singleSpace();
+                    }
+                    output.push(ch);
+                    eatWhitespace();
+                }
+            } else if (ch === ')') {
+                output.push(ch);
+            } else if (ch === ',') {
+                output.push(ch);
+                eatWhitespace();
+                if (!insideRule && selectorSeparatorNewline) {
+                    print.newLine();
+                } else {
+                    print.singleSpace();
+                }
+            } else if (ch === ']') {
+                output.push(ch);
+            } else if (ch === '[') {
+                if (isAfterSpace) {
+                    print.singleSpace();
+                }
+                output.push(ch);
+            } else if (ch === '=') { // no whitespace before or after
+                eatWhitespace();
+                output.push(ch);
+            } else {
+                if (isAfterSpace) {
+                    print.singleSpace();
+                }
+
+                output.push(ch);
+            }
+        }
+
+
+        var sweetCode = output.join('').replace(/[\r\n\t ]+$/, '');
+
+        // establish end_with_newline
+        if (end_with_newline) {
+            sweetCode += "\n";
+        }
+
+        return sweetCode;
+    }
+
+    // https://developer.mozilla.org/en-US/docs/Web/CSS/At-rule
+    css_beautify.NESTED_AT_RULE = {
+        "@page": true,
+        "@font-face": true,
+        "@keyframes": true,
+        // also in CONDITIONAL_GROUP_RULE below
+        "@media": true,
+        "@supports": true,
+        "@document": true
+    };
+    css_beautify.CONDITIONAL_GROUP_RULE = {
+        "@media": true,
+        "@supports": true,
+        "@document": true
+    };
+
+    return {
+        css_beautify: css_beautify
+    };
+});
+
+define('skylark-parsers-css/beautify',[
+    "./css",
+    "./primitives/beautify-css"
+], function(css, beautifyCss) {
+
+	return css.beautify = beautifyCss.css_beautify;
+});
+define('skylark-parsers-javascript/js',[
+    "skylark-langx/skylark"
+], function(skylark) {
+	
+	return skylark.attach("scripts.js",{});
+});
+/*jshint curly:true, eqeqeq:true, laxbreak:true, noempty:false */
+/*
+
+  The MIT License (MIT)
+
+  Copyright (c) 2007-2013 Einar Lielmanis and contributors.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+ JS Beautifier
+---------------
+
+
+  Written by Einar Lielmanis, <einar@jsbeautifier.org>
+      http://jsbeautifier.org/
+
+  Originally converted to javascript by Vital, <vital76@gmail.com>
+  "End braces on own line" added by Chris J. Shull, <chrisjshull@gmail.com>
+  Parsing improvements for brace-less statements by Liam Newman <bitwiseman@gmail.com>
+
+
+  Usage:
+    js_beautify(js_source_text);
+    js_beautify(js_source_text, options);
+
+  The options are:
+    indent_size (default 4)          - indentation size,
+    indent_char (default space)      - character to indent with,
+    preserve_newlines (default true) - whether existing line breaks should be preserved,
+    max_preserve_newlines (default unlimited) - maximum number of line breaks to be preserved in one chunk,
+
+    jslint_happy (default false) - if true, then jslint-stricter mode is enforced.
+
+            jslint_happy        !jslint_happy
+            ---------------------------------
+            function ()         function()
+
+            switch () {         switch() {
+            case 1:               case 1:
+              break;                break;
+            }                   }
+
+    space_after_anon_function (default false) - should the space before an anonymous function's parens be added, "function()" vs "function ()",
+          NOTE: This option is overriden by jslint_happy (i.e. if jslint_happy is true, space_after_anon_function is true by design)
+
+    brace_style (default "collapse") - "collapse" | "expand" | "end-expand" | "none"
+            put braces on the same line as control statements (default), or put braces on own line (Allman / ANSI style), or just put end braces on own line, or attempt to keep them where they are.
+
+    space_before_conditional (default true) - should the space before conditional statement be added, "if(true)" vs "if (true)",
+
+    unescape_strings (default false) - should printable characters in strings encoded in \xNN notation be unescaped, "example" vs "\x65\x78\x61\x6d\x70\x6c\x65"
+
+    wrap_line_length (default unlimited) - lines should wrap at next opportunity after this number of characters.
+          NOTE: This is not a hard limit. Lines will continue until a point where a newline would
+                be preserved if it were present.
+
+    end_with_newline (default false)  - end output with a newline
+
+
+    e.g
+
+    js_beautify(js_source_text, {
+      'indent_size': 1,
+      'indent_char': '\t'
+    });
+
+*/
+
+define('skylark-parsers-javascript/primitives/beautify-js',[],function() {
+
+    var acorn = {};
+    (function (exports) {
+      // This section of code is taken from acorn.
+      //
+      // Acorn was written by Marijn Haverbeke and released under an MIT
+      // license. The Unicode regexps (for identifiers and whitespace) were
+      // taken from [Esprima](http://esprima.org) by Ariya Hidayat.
+      //
+      // Git repositories for Acorn are available at
+      //
+      //     http://marijnhaverbeke.nl/git/acorn
+      //     https://github.com/marijnh/acorn.git
+
+      // ## Character categories
+
+      // Big ugly regular expressions that match characters in the
+      // whitespace, identifier, and identifier-start categories. These
+      // are only applied when a character is found to actually have a
+      // code point above 128.
+
+      var nonASCIIwhitespace = /[\u1680\u180e\u2000-\u200a\u202f\u205f\u3000\ufeff]/;
+      var nonASCIIidentifierStartChars = "\xaa\xb5\xba\xc0-\xd6\xd8-\xf6\xf8-\u02c1\u02c6-\u02d1\u02e0-\u02e4\u02ec\u02ee\u0370-\u0374\u0376\u0377\u037a-\u037d\u0386\u0388-\u038a\u038c\u038e-\u03a1\u03a3-\u03f5\u03f7-\u0481\u048a-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05d0-\u05ea\u05f0-\u05f2\u0620-\u064a\u066e\u066f\u0671-\u06d3\u06d5\u06e5\u06e6\u06ee\u06ef\u06fa-\u06fc\u06ff\u0710\u0712-\u072f\u074d-\u07a5\u07b1\u07ca-\u07ea\u07f4\u07f5\u07fa\u0800-\u0815\u081a\u0824\u0828\u0840-\u0858\u08a0\u08a2-\u08ac\u0904-\u0939\u093d\u0950\u0958-\u0961\u0971-\u0977\u0979-\u097f\u0985-\u098c\u098f\u0990\u0993-\u09a8\u09aa-\u09b0\u09b2\u09b6-\u09b9\u09bd\u09ce\u09dc\u09dd\u09df-\u09e1\u09f0\u09f1\u0a05-\u0a0a\u0a0f\u0a10\u0a13-\u0a28\u0a2a-\u0a30\u0a32\u0a33\u0a35\u0a36\u0a38\u0a39\u0a59-\u0a5c\u0a5e\u0a72-\u0a74\u0a85-\u0a8d\u0a8f-\u0a91\u0a93-\u0aa8\u0aaa-\u0ab0\u0ab2\u0ab3\u0ab5-\u0ab9\u0abd\u0ad0\u0ae0\u0ae1\u0b05-\u0b0c\u0b0f\u0b10\u0b13-\u0b28\u0b2a-\u0b30\u0b32\u0b33\u0b35-\u0b39\u0b3d\u0b5c\u0b5d\u0b5f-\u0b61\u0b71\u0b83\u0b85-\u0b8a\u0b8e-\u0b90\u0b92-\u0b95\u0b99\u0b9a\u0b9c\u0b9e\u0b9f\u0ba3\u0ba4\u0ba8-\u0baa\u0bae-\u0bb9\u0bd0\u0c05-\u0c0c\u0c0e-\u0c10\u0c12-\u0c28\u0c2a-\u0c33\u0c35-\u0c39\u0c3d\u0c58\u0c59\u0c60\u0c61\u0c85-\u0c8c\u0c8e-\u0c90\u0c92-\u0ca8\u0caa-\u0cb3\u0cb5-\u0cb9\u0cbd\u0cde\u0ce0\u0ce1\u0cf1\u0cf2\u0d05-\u0d0c\u0d0e-\u0d10\u0d12-\u0d3a\u0d3d\u0d4e\u0d60\u0d61\u0d7a-\u0d7f\u0d85-\u0d96\u0d9a-\u0db1\u0db3-\u0dbb\u0dbd\u0dc0-\u0dc6\u0e01-\u0e30\u0e32\u0e33\u0e40-\u0e46\u0e81\u0e82\u0e84\u0e87\u0e88\u0e8a\u0e8d\u0e94-\u0e97\u0e99-\u0e9f\u0ea1-\u0ea3\u0ea5\u0ea7\u0eaa\u0eab\u0ead-\u0eb0\u0eb2\u0eb3\u0ebd\u0ec0-\u0ec4\u0ec6\u0edc-\u0edf\u0f00\u0f40-\u0f47\u0f49-\u0f6c\u0f88-\u0f8c\u1000-\u102a\u103f\u1050-\u1055\u105a-\u105d\u1061\u1065\u1066\u106e-\u1070\u1075-\u1081\u108e\u10a0-\u10c5\u10c7\u10cd\u10d0-\u10fa\u10fc-\u1248\u124a-\u124d\u1250-\u1256\u1258\u125a-\u125d\u1260-\u1288\u128a-\u128d\u1290-\u12b0\u12b2-\u12b5\u12b8-\u12be\u12c0\u12c2-\u12c5\u12c8-\u12d6\u12d8-\u1310\u1312-\u1315\u1318-\u135a\u1380-\u138f\u13a0-\u13f4\u1401-\u166c\u166f-\u167f\u1681-\u169a\u16a0-\u16ea\u16ee-\u16f0\u1700-\u170c\u170e-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176c\u176e-\u1770\u1780-\u17b3\u17d7\u17dc\u1820-\u1877\u1880-\u18a8\u18aa\u18b0-\u18f5\u1900-\u191c\u1950-\u196d\u1970-\u1974\u1980-\u19ab\u19c1-\u19c7\u1a00-\u1a16\u1a20-\u1a54\u1aa7\u1b05-\u1b33\u1b45-\u1b4b\u1b83-\u1ba0\u1bae\u1baf\u1bba-\u1be5\u1c00-\u1c23\u1c4d-\u1c4f\u1c5a-\u1c7d\u1ce9-\u1cec\u1cee-\u1cf1\u1cf5\u1cf6\u1d00-\u1dbf\u1e00-\u1f15\u1f18-\u1f1d\u1f20-\u1f45\u1f48-\u1f4d\u1f50-\u1f57\u1f59\u1f5b\u1f5d\u1f5f-\u1f7d\u1f80-\u1fb4\u1fb6-\u1fbc\u1fbe\u1fc2-\u1fc4\u1fc6-\u1fcc\u1fd0-\u1fd3\u1fd6-\u1fdb\u1fe0-\u1fec\u1ff2-\u1ff4\u1ff6-\u1ffc\u2071\u207f\u2090-\u209c\u2102\u2107\u210a-\u2113\u2115\u2119-\u211d\u2124\u2126\u2128\u212a-\u212d\u212f-\u2139\u213c-\u213f\u2145-\u2149\u214e\u2160-\u2188\u2c00-\u2c2e\u2c30-\u2c5e\u2c60-\u2ce4\u2ceb-\u2cee\u2cf2\u2cf3\u2d00-\u2d25\u2d27\u2d2d\u2d30-\u2d67\u2d6f\u2d80-\u2d96\u2da0-\u2da6\u2da8-\u2dae\u2db0-\u2db6\u2db8-\u2dbe\u2dc0-\u2dc6\u2dc8-\u2dce\u2dd0-\u2dd6\u2dd8-\u2dde\u2e2f\u3005-\u3007\u3021-\u3029\u3031-\u3035\u3038-\u303c\u3041-\u3096\u309d-\u309f\u30a1-\u30fa\u30fc-\u30ff\u3105-\u312d\u3131-\u318e\u31a0-\u31ba\u31f0-\u31ff\u3400-\u4db5\u4e00-\u9fcc\ua000-\ua48c\ua4d0-\ua4fd\ua500-\ua60c\ua610-\ua61f\ua62a\ua62b\ua640-\ua66e\ua67f-\ua697\ua6a0-\ua6ef\ua717-\ua71f\ua722-\ua788\ua78b-\ua78e\ua790-\ua793\ua7a0-\ua7aa\ua7f8-\ua801\ua803-\ua805\ua807-\ua80a\ua80c-\ua822\ua840-\ua873\ua882-\ua8b3\ua8f2-\ua8f7\ua8fb\ua90a-\ua925\ua930-\ua946\ua960-\ua97c\ua984-\ua9b2\ua9cf\uaa00-\uaa28\uaa40-\uaa42\uaa44-\uaa4b\uaa60-\uaa76\uaa7a\uaa80-\uaaaf\uaab1\uaab5\uaab6\uaab9-\uaabd\uaac0\uaac2\uaadb-\uaadd\uaae0-\uaaea\uaaf2-\uaaf4\uab01-\uab06\uab09-\uab0e\uab11-\uab16\uab20-\uab26\uab28-\uab2e\uabc0-\uabe2\uac00-\ud7a3\ud7b0-\ud7c6\ud7cb-\ud7fb\uf900-\ufa6d\ufa70-\ufad9\ufb00-\ufb06\ufb13-\ufb17\ufb1d\ufb1f-\ufb28\ufb2a-\ufb36\ufb38-\ufb3c\ufb3e\ufb40\ufb41\ufb43\ufb44\ufb46-\ufbb1\ufbd3-\ufd3d\ufd50-\ufd8f\ufd92-\ufdc7\ufdf0-\ufdfb\ufe70-\ufe74\ufe76-\ufefc\uff21-\uff3a\uff41-\uff5a\uff66-\uffbe\uffc2-\uffc7\uffca-\uffcf\uffd2-\uffd7\uffda-\uffdc";
+      var nonASCIIidentifierChars = "\u0300-\u036f\u0483-\u0487\u0591-\u05bd\u05bf\u05c1\u05c2\u05c4\u05c5\u05c7\u0610-\u061a\u0620-\u0649\u0672-\u06d3\u06e7-\u06e8\u06fb-\u06fc\u0730-\u074a\u0800-\u0814\u081b-\u0823\u0825-\u0827\u0829-\u082d\u0840-\u0857\u08e4-\u08fe\u0900-\u0903\u093a-\u093c\u093e-\u094f\u0951-\u0957\u0962-\u0963\u0966-\u096f\u0981-\u0983\u09bc\u09be-\u09c4\u09c7\u09c8\u09d7\u09df-\u09e0\u0a01-\u0a03\u0a3c\u0a3e-\u0a42\u0a47\u0a48\u0a4b-\u0a4d\u0a51\u0a66-\u0a71\u0a75\u0a81-\u0a83\u0abc\u0abe-\u0ac5\u0ac7-\u0ac9\u0acb-\u0acd\u0ae2-\u0ae3\u0ae6-\u0aef\u0b01-\u0b03\u0b3c\u0b3e-\u0b44\u0b47\u0b48\u0b4b-\u0b4d\u0b56\u0b57\u0b5f-\u0b60\u0b66-\u0b6f\u0b82\u0bbe-\u0bc2\u0bc6-\u0bc8\u0bca-\u0bcd\u0bd7\u0be6-\u0bef\u0c01-\u0c03\u0c46-\u0c48\u0c4a-\u0c4d\u0c55\u0c56\u0c62-\u0c63\u0c66-\u0c6f\u0c82\u0c83\u0cbc\u0cbe-\u0cc4\u0cc6-\u0cc8\u0cca-\u0ccd\u0cd5\u0cd6\u0ce2-\u0ce3\u0ce6-\u0cef\u0d02\u0d03\u0d46-\u0d48\u0d57\u0d62-\u0d63\u0d66-\u0d6f\u0d82\u0d83\u0dca\u0dcf-\u0dd4\u0dd6\u0dd8-\u0ddf\u0df2\u0df3\u0e34-\u0e3a\u0e40-\u0e45\u0e50-\u0e59\u0eb4-\u0eb9\u0ec8-\u0ecd\u0ed0-\u0ed9\u0f18\u0f19\u0f20-\u0f29\u0f35\u0f37\u0f39\u0f41-\u0f47\u0f71-\u0f84\u0f86-\u0f87\u0f8d-\u0f97\u0f99-\u0fbc\u0fc6\u1000-\u1029\u1040-\u1049\u1067-\u106d\u1071-\u1074\u1082-\u108d\u108f-\u109d\u135d-\u135f\u170e-\u1710\u1720-\u1730\u1740-\u1750\u1772\u1773\u1780-\u17b2\u17dd\u17e0-\u17e9\u180b-\u180d\u1810-\u1819\u1920-\u192b\u1930-\u193b\u1951-\u196d\u19b0-\u19c0\u19c8-\u19c9\u19d0-\u19d9\u1a00-\u1a15\u1a20-\u1a53\u1a60-\u1a7c\u1a7f-\u1a89\u1a90-\u1a99\u1b46-\u1b4b\u1b50-\u1b59\u1b6b-\u1b73\u1bb0-\u1bb9\u1be6-\u1bf3\u1c00-\u1c22\u1c40-\u1c49\u1c5b-\u1c7d\u1cd0-\u1cd2\u1d00-\u1dbe\u1e01-\u1f15\u200c\u200d\u203f\u2040\u2054\u20d0-\u20dc\u20e1\u20e5-\u20f0\u2d81-\u2d96\u2de0-\u2dff\u3021-\u3028\u3099\u309a\ua640-\ua66d\ua674-\ua67d\ua69f\ua6f0-\ua6f1\ua7f8-\ua800\ua806\ua80b\ua823-\ua827\ua880-\ua881\ua8b4-\ua8c4\ua8d0-\ua8d9\ua8f3-\ua8f7\ua900-\ua909\ua926-\ua92d\ua930-\ua945\ua980-\ua983\ua9b3-\ua9c0\uaa00-\uaa27\uaa40-\uaa41\uaa4c-\uaa4d\uaa50-\uaa59\uaa7b\uaae0-\uaae9\uaaf2-\uaaf3\uabc0-\uabe1\uabec\uabed\uabf0-\uabf9\ufb20-\ufb28\ufe00-\ufe0f\ufe20-\ufe26\ufe33\ufe34\ufe4d-\ufe4f\uff10-\uff19\uff3f";
+      var nonASCIIidentifierStart = new RegExp("[" + nonASCIIidentifierStartChars + "]");
+      var nonASCIIidentifier = new RegExp("[" + nonASCIIidentifierStartChars + nonASCIIidentifierChars + "]");
+
+      // Whether a single character denotes a newline.
+
+      var newline = exports.newline = /[\n\r\u2028\u2029]/;
+
+      // Matches a whole line break (where CRLF is considered a single
+      // line break). Used to count lines.
+
+      var lineBreak = /\r\n|[\n\r\u2028\u2029]/g;
+
+      // Test whether a given character code starts an identifier.
+
+      var isIdentifierStart = exports.isIdentifierStart = function(code) {
+        if (code < 65) return code === 36;
+        if (code < 91) return true;
+        if (code < 97) return code === 95;
+        if (code < 123)return true;
+        return code >= 0xaa && nonASCIIidentifierStart.test(String.fromCharCode(code));
+      };
+
+      // Test whether a given character is part of an identifier.
+
+      var isIdentifierChar = exports.isIdentifierChar = function(code) {
+        if (code < 48) return code === 36;
+        if (code < 58) return true;
+        if (code < 65) return false;
+        if (code < 91) return true;
+        if (code < 97) return code === 95;
+        if (code < 123)return true;
+        return code >= 0xaa && nonASCIIidentifier.test(String.fromCharCode(code));
+      };
+    })(acorn);
+
+    function in_array(what, arr) {
+        for (var i = 0; i < arr.length; i += 1) {
+            if (arr[i] === what) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function trim(s) {
+        return s.replace(/^\s+|\s+$/g, '');
+    }
+
+    function js_beautify(js_source_text, options) {
+        "use strict";
+        var beautifier = new Beautifier(js_source_text, options);
+        return beautifier.beautify();
+    }
+
+    var MODE = {
+            BlockStatement: 'BlockStatement', // 'BLOCK'
+            Statement: 'Statement', // 'STATEMENT'
+            ObjectLiteral: 'ObjectLiteral', // 'OBJECT',
+            ArrayLiteral: 'ArrayLiteral', //'[EXPRESSION]',
+            ForInitializer: 'ForInitializer', //'(FOR-EXPRESSION)',
+            Conditional: 'Conditional', //'(COND-EXPRESSION)',
+            Expression: 'Expression' //'(EXPRESSION)'
+        };
+
+    function Beautifier(js_source_text, options) {
+        "use strict";
+        var output
+        var tokens = [], token_pos;
+        var Tokenizer;
+        var current_token;
+        var last_type, last_last_text, indent_string;
+        var flags, previous_flags, flag_store;
+        var prefix;
+
+        var handlers, opt;
+        var baseIndentString = '';
+
+        handlers = {
+            'TK_START_EXPR': handle_start_expr,
+            'TK_END_EXPR': handle_end_expr,
+            'TK_START_BLOCK': handle_start_block,
+            'TK_END_BLOCK': handle_end_block,
+            'TK_WORD': handle_word,
+            'TK_RESERVED': handle_word,
+            'TK_SEMICOLON': handle_semicolon,
+            'TK_STRING': handle_string,
+            'TK_EQUALS': handle_equals,
+            'TK_OPERATOR': handle_operator,
+            'TK_COMMA': handle_comma,
+            'TK_BLOCK_COMMENT': handle_block_comment,
+            'TK_INLINE_COMMENT': handle_inline_comment,
+            'TK_COMMENT': handle_comment,
+            'TK_DOT': handle_dot,
+            'TK_UNKNOWN': handle_unknown,
+            'TK_EOF': handle_eof
+        };
+
+        function create_flags(flags_base, mode) {
+            var next_indent_level = 0;
+            if (flags_base) {
+                next_indent_level = flags_base.indentation_level;
+                if (!output.just_added_newline() &&
+                    flags_base.line_indent_level > next_indent_level) {
+                    next_indent_level = flags_base.line_indent_level;
+                }
+            }
+
+            var next_flags = {
+                mode: mode,
+                parent: flags_base,
+                last_text: flags_base ? flags_base.last_text : '', // last token text
+                last_word: flags_base ? flags_base.last_word : '', // last 'TK_WORD' passed
+                declaration_statement: false,
+                declaration_assignment: false,
+                multiline_frame: false,
+                if_block: false,
+                else_block: false,
+                do_block: false,
+                do_while: false,
+                in_case_statement: false, // switch(..){ INSIDE HERE }
+                in_case: false, // we're on the exact line with "case 0:"
+                case_body: false, // the indented case-action block
+                indentation_level: next_indent_level,
+                line_indent_level: flags_base ? flags_base.line_indent_level : next_indent_level,
+                start_line_index: output.get_line_number(),
+                ternary_depth: 0
+            };
+            return next_flags;
+        }
+
+        // Some interpreters have unexpected results with foo = baz || bar;
+        options = options ? options : {};
+        opt = {};
+
+        // compatibility
+        if (options.braces_on_own_line !== undefined) { //graceful handling of deprecated option
+            opt.brace_style = options.braces_on_own_line ? "expand" : "collapse";
+        }
+        opt.brace_style = options.brace_style ? options.brace_style : (opt.brace_style ? opt.brace_style : "collapse");
+
+        // graceful handling of deprecated option
+        if (opt.brace_style === "expand-strict") {
+            opt.brace_style = "expand";
+        }
+
+
+        opt.indent_size = options.indent_size ? parseInt(options.indent_size, 10) : 4;
+        opt.indent_char = options.indent_char ? options.indent_char : ' ';
+        opt.preserve_newlines = (options.preserve_newlines === undefined) ? true : options.preserve_newlines;
+        opt.break_chained_methods = (options.break_chained_methods === undefined) ? false : options.break_chained_methods;
+        opt.max_preserve_newlines = (options.max_preserve_newlines === undefined) ? 0 : parseInt(options.max_preserve_newlines, 10);
+        opt.space_in_paren = (options.space_in_paren === undefined) ? false : options.space_in_paren;
+        opt.space_in_empty_paren = (options.space_in_empty_paren === undefined) ? false : options.space_in_empty_paren;
+        opt.jslint_happy = (options.jslint_happy === undefined) ? false : options.jslint_happy;
+        opt.space_after_anon_function = (options.space_after_anon_function === undefined) ? false : options.space_after_anon_function;
+        opt.keep_array_indentation = (options.keep_array_indentation === undefined) ? false : options.keep_array_indentation;
+        opt.space_before_conditional = (options.space_before_conditional === undefined) ? true : options.space_before_conditional;
+        opt.unescape_strings = (options.unescape_strings === undefined) ? false : options.unescape_strings;
+        opt.wrap_line_length = (options.wrap_line_length === undefined) ? 0 : parseInt(options.wrap_line_length, 10);
+        opt.e4x = (options.e4x === undefined) ? false : options.e4x;
+        opt.end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
+
+
+        // force opt.space_after_anon_function to true if opt.jslint_happy
+        if(opt.jslint_happy) {
+            opt.space_after_anon_function = true;
+        }
+
+        if(options.indent_with_tabs){
+            opt.indent_char = '\t';
+            opt.indent_size = 1;
+        }
+
+        //----------------------------------
+        indent_string = '';
+        while (opt.indent_size > 0) {
+            indent_string += opt.indent_char;
+            opt.indent_size -= 1;
+        }
+
+        var preindent_index = 0;
+        if(js_source_text && js_source_text.length) {
+            while ( (js_source_text.charAt(preindent_index) === ' ' ||
+                    js_source_text.charAt(preindent_index) === '\t')) {
+                baseIndentString += js_source_text.charAt(preindent_index);
+                preindent_index += 1;
+            }
+            js_source_text = js_source_text.substring(preindent_index);
+        }
+
+        last_type = 'TK_START_BLOCK'; // last token type
+        last_last_text = ''; // pre-last token text
+        output = new Output(indent_string, baseIndentString);
+
+
+        // Stack of parsing/formatting states, including MODE.
+        // We tokenize, parse, and output in an almost purely a forward-only stream of token input
+        // and formatted output.  This makes the beautifier less accurate than full parsers
+        // but also far more tolerant of syntax errors.
+        //
+        // For example, the default mode is MODE.BlockStatement. If we see a '{' we push a new frame of type
+        // MODE.BlockStatement on the the stack, even though it could be object literal.  If we later
+        // encounter a ":", we'll switch to to MODE.ObjectLiteral.  If we then see a ";",
+        // most full parsers would die, but the beautifier gracefully falls back to
+        // MODE.BlockStatement and continues on.
+        flag_store = [];
+        set_mode(MODE.BlockStatement);
+
+        this.beautify = function() {
+
+            /*jshint onevar:true */
+            var local_token, sweet_code;
+            Tokenizer = new tokenizer(js_source_text, opt, indent_string);
+            tokens = Tokenizer.tokenize();
+            token_pos = 0;
+
+            while (local_token = get_token()) {
+                for(var i = 0; i < local_token.comments_before.length; i++) {
+                    // The cleanest handling of inline comments is to treat them as though they aren't there.
+                    // Just continue formatting and the behavior should be logical.
+                    // Also ignore unknown tokens.  Again, this should result in better behavior.
+                    handle_token(local_token.comments_before[i]);
+                }
+                handle_token(local_token);
+
+                last_last_text = flags.last_text;
+                last_type = local_token.type;
+                flags.last_text = local_token.text;
+
+                token_pos += 1;
+            }
+
+            sweet_code = output.get_code();
+            if (opt.end_with_newline) {
+                sweet_code += '\n';
+            }
+
+            return sweet_code;
+        };
+
+        function handle_token(local_token) {
+            var newlines = local_token.newlines;
+            var keep_whitespace = opt.keep_array_indentation && is_array(flags.mode);
+
+            if (keep_whitespace) {
+                for (i = 0; i < newlines; i += 1) {
+                    print_newline(i > 0);
+                }
+            } else {
+                if (opt.max_preserve_newlines && newlines > opt.max_preserve_newlines) {
+                    newlines = opt.max_preserve_newlines;
+                }
+
+                if (opt.preserve_newlines) {
+                    if (local_token.newlines > 1) {
+                        print_newline();
+                        for (var i = 1; i < newlines; i += 1) {
+                            print_newline(true);
+                        }
+                    }
+                }
+            }
+
+            current_token = local_token;
+            handlers[current_token.type]();
+        }
+
+        // we could use just string.split, but
+        // IE doesn't like returning empty strings
+
+        function split_newlines(s) {
+            //return s.split(/\x0d\x0a|\x0a/);
+
+            s = s.replace(/\x0d/g, '');
+            var out = [],
+                idx = s.indexOf("\n");
+            while (idx !== -1) {
+                out.push(s.substring(0, idx));
+                s = s.substring(idx + 1);
+                idx = s.indexOf("\n");
+            }
+            if (s.length) {
+                out.push(s);
+            }
+            return out;
+        }
+
+        function allow_wrap_or_preserved_newline(force_linewrap) {
+            force_linewrap = (force_linewrap === undefined) ? false : force_linewrap;
+
+            // Never wrap the first token on a line
+            if (output.just_added_newline()) {
+                return
+            }
+
+            if ((opt.preserve_newlines && current_token.wanted_newline) || force_linewrap) {
+                print_newline(false, true);
+            } else if (opt.wrap_line_length) {
+                var proposed_line_length = output.current_line.get_character_count() + current_token.text.length +
+                    (output.space_before_token ? 1 : 0);
+                if (proposed_line_length >= opt.wrap_line_length) {
+                    print_newline(false, true);
+                }
+            }
+        }
+
+        function print_newline(force_newline, preserve_statement_flags) {
+            if (!preserve_statement_flags) {
+                if (flags.last_text !== ';' && flags.last_text !== ',' && flags.last_text !== '=' && last_type !== 'TK_OPERATOR') {
+                    while (flags.mode === MODE.Statement && !flags.if_block && !flags.do_block) {
+                        restore_mode();
+                    }
+                }
+            }
+
+            if (output.add_new_line(force_newline)) {
+                flags.multiline_frame = true;
+            }
+        }
+
+        function print_token_line_indentation() {
+            if (output.just_added_newline()) {
+                if (opt.keep_array_indentation && is_array(flags.mode) && current_token.wanted_newline) {
+                    output.current_line.push(current_token.whitespace_before);
+                    output.space_before_token = false;
+                } else if (output.set_indent(flags.indentation_level)) {
+                    flags.line_indent_level = flags.indentation_level;
+                }
+            }
+        }
+
+        function print_token(printable_token) {
+            printable_token = printable_token || current_token.text;
+            print_token_line_indentation();
+            output.add_token(printable_token);
+        }
+
+        function indent() {
+            flags.indentation_level += 1;
+        }
+
+        function deindent() {
+            if (flags.indentation_level > 0 &&
+                ((!flags.parent) || flags.indentation_level > flags.parent.indentation_level))
+                flags.indentation_level -= 1;
+        }
+
+        function set_mode(mode) {
+            if (flags) {
+                flag_store.push(flags);
+                previous_flags = flags;
+            } else {
+                previous_flags = create_flags(null, mode);
+            }
+
+            flags = create_flags(previous_flags, mode);
+        }
+
+        function is_array(mode) {
+            return mode === MODE.ArrayLiteral;
+        }
+
+        function is_expression(mode) {
+            return in_array(mode, [MODE.Expression, MODE.ForInitializer, MODE.Conditional]);
+        }
+
+        function restore_mode() {
+            if (flag_store.length > 0) {
+                previous_flags = flags;
+                flags = flag_store.pop();
+                if (previous_flags.mode === MODE.Statement) {
+                    output.remove_redundant_indentation(previous_flags);
+                }
+            }
+        }
+
+        function start_of_object_property() {
+            return flags.parent.mode === MODE.ObjectLiteral && flags.mode === MODE.Statement && (
+                (flags.last_text === ':' && flags.ternary_depth === 0) || (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['get', 'set'])));
+        }
+
+        function start_of_statement() {
+            if (
+                    (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['var', 'let', 'const']) && current_token.type === 'TK_WORD') ||
+                    (last_type === 'TK_RESERVED' && flags.last_text === 'do') ||
+                    (last_type === 'TK_RESERVED' && flags.last_text === 'return' && !current_token.wanted_newline) ||
+                    (last_type === 'TK_RESERVED' && flags.last_text === 'else' && !(current_token.type === 'TK_RESERVED' && current_token.text === 'if')) ||
+                    (last_type === 'TK_END_EXPR' && (previous_flags.mode === MODE.ForInitializer || previous_flags.mode === MODE.Conditional)) ||
+                    (last_type === 'TK_WORD' && flags.mode === MODE.BlockStatement
+                        && !flags.in_case
+                        && !(current_token.text === '--' || current_token.text === '++')
+                        && current_token.type !== 'TK_WORD' && current_token.type !== 'TK_RESERVED') ||
+                    (flags.mode === MODE.ObjectLiteral && (
+                        (flags.last_text === ':' && flags.ternary_depth === 0) || (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['get', 'set']))))
+                ) {
+
+                set_mode(MODE.Statement);
+                indent();
+
+                if (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['var', 'let', 'const']) && current_token.type === 'TK_WORD') {
+                    flags.declaration_statement = true;
+                }
+
+                // Issue #276:
+                // If starting a new statement with [if, for, while, do], push to a new line.
+                // if (a) if (b) if(c) d(); else e(); else f();
+                if (!start_of_object_property()) {
+                    allow_wrap_or_preserved_newline(
+                        current_token.type === 'TK_RESERVED' && in_array(current_token.text, ['do', 'for', 'if', 'while']));
+                }
+
+                return true;
+            }
+            return false;
+        }
+
+        function all_lines_start_with(lines, c) {
+            for (var i = 0; i < lines.length; i++) {
+                var line = trim(lines[i]);
+                if (line.charAt(0) !== c) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function each_line_matches_indent(lines, indent) {
+            var i = 0,
+                len = lines.length,
+                line;
+            for (; i < len; i++) {
+                line = lines[i];
+                // allow empty lines to pass through
+                if (line && line.indexOf(indent) !== 0) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function is_special_word(word) {
+            return in_array(word, ['case', 'return', 'do', 'if', 'throw', 'else']);
+        }
+
+        function get_token(offset) {
+            var index = token_pos + (offset || 0);
+            return (index < 0 || index >= tokens.length) ? null : tokens[index];
+        }
+
+        function handle_start_expr() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+            }
+
+            var next_mode = MODE.Expression;
+            if (current_token.text === '[') {
+
+                if (last_type === 'TK_WORD' || flags.last_text === ')') {
+                    // this is array index specifier, break immediately
+                    // a[x], fn()[x]
+                    if (last_type === 'TK_RESERVED' && in_array(flags.last_text, Tokenizer.line_starters)) {
+                        output.space_before_token = true;
+                    }
+                    set_mode(next_mode);
+                    print_token();
+                    indent();
+                    if (opt.space_in_paren) {
+                        output.space_before_token = true;
+                    }
+                    return;
+                }
+
+                next_mode = MODE.ArrayLiteral;
+                if (is_array(flags.mode)) {
+                    if (flags.last_text === '[' ||
+                        (flags.last_text === ',' && (last_last_text === ']' || last_last_text === '}'))) {
+                        // ], [ goes to new line
+                        // }, [ goes to new line
+                        if (!opt.keep_array_indentation) {
+                            print_newline();
+                        }
+                    }
+                }
+
+            } else {
+                if (last_type === 'TK_RESERVED' && flags.last_text === 'for') {
+                    next_mode = MODE.ForInitializer;
+                } else if (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['if', 'while'])) {
+                    next_mode = MODE.Conditional;
+                } else {
+                    // next_mode = MODE.Expression;
+                }
+            }
+
+            if (flags.last_text === ';' || last_type === 'TK_START_BLOCK') {
+                print_newline();
+            } else if (last_type === 'TK_END_EXPR' || last_type === 'TK_START_EXPR' || last_type === 'TK_END_BLOCK' || flags.last_text === '.') {
+                // TODO: Consider whether forcing this is required.  Review failing tests when removed.
+                allow_wrap_or_preserved_newline(current_token.wanted_newline);
+                // do nothing on (( and )( and ][ and ]( and .(
+            } else if (!(last_type === 'TK_RESERVED' && current_token.text === '(') && last_type !== 'TK_WORD' && last_type !== 'TK_OPERATOR') {
+                output.space_before_token = true;
+            } else if ((last_type === 'TK_RESERVED' && (flags.last_word === 'function' || flags.last_word === 'typeof')) ||
+                (flags.last_text === '*' && last_last_text === 'function')) {
+                // function() vs function ()
+                if (opt.space_after_anon_function) {
+                    output.space_before_token = true;
+                }
+            } else if (last_type === 'TK_RESERVED' && (in_array(flags.last_text, Tokenizer.line_starters) || flags.last_text === 'catch')) {
+                if (opt.space_before_conditional) {
+                    output.space_before_token = true;
+                }
+            }
+
+            // Support of this kind of newline preservation.
+            // a = (b &&
+            //     (c || d));
+            if (current_token.text === '(') {
+                if (last_type === 'TK_EQUALS' || last_type === 'TK_OPERATOR') {
+                    if (!start_of_object_property()) {
+                        allow_wrap_or_preserved_newline();
+                    }
+                }
+            }
+
+            set_mode(next_mode);
+            print_token();
+            if (opt.space_in_paren) {
+                output.space_before_token = true;
+            }
+
+            // In all cases, if we newline while inside an expression it should be indented.
+            indent();
+        }
+
+        function handle_end_expr() {
+            // statements inside expressions are not valid syntax, but...
+            // statements must all be closed when their container closes
+            while (flags.mode === MODE.Statement) {
+                restore_mode();
+            }
+
+            if (flags.multiline_frame) {
+                allow_wrap_or_preserved_newline(current_token.text === ']' && is_array(flags.mode) && !opt.keep_array_indentation);
+            }
+
+            if (opt.space_in_paren) {
+                if (last_type === 'TK_START_EXPR' && ! opt.space_in_empty_paren) {
+                    // () [] no inner space in empty parens like these, ever, ref #320
+                    output.trim();
+                    output.space_before_token = false;
+                } else {
+                    output.space_before_token = true;
+                }
+            }
+            if (current_token.text === ']' && opt.keep_array_indentation) {
+                print_token();
+                restore_mode();
+            } else {
+                restore_mode();
+                print_token();
+            }
+            output.remove_redundant_indentation(previous_flags);
+
+            // do {} while () // no statement required after
+            if (flags.do_while && previous_flags.mode === MODE.Conditional) {
+                previous_flags.mode = MODE.Expression;
+                flags.do_block = false;
+                flags.do_while = false;
+
+            }
+        }
+
+        function handle_start_block() {
+            // Check if this is should be treated as a ObjectLiteral
+            var next_token = get_token(1)
+            var second_token = get_token(2)
+            if (second_token && (
+                    (second_token.text === ':' && in_array(next_token.type, ['TK_STRING', 'TK_WORD', 'TK_RESERVED']))
+                    || (in_array(next_token.text, ['get', 'set']) && in_array(second_token.type, ['TK_WORD', 'TK_RESERVED']))
+                )) {
+                // We don't support TypeScript,but we didn't break it for a very long time.
+                // We'll try to keep not breaking it.
+                if (!in_array(last_last_text, ['class','interface'])) {
+                    set_mode(MODE.ObjectLiteral);
+                } else {
+                    set_mode(MODE.BlockStatement);
+                }
+            } else {
+                set_mode(MODE.BlockStatement);
+            }
+
+            var empty_braces = !next_token.comments_before.length &&  next_token.text === '}';
+            var empty_anonymous_function = empty_braces && flags.last_word === 'function' &&
+                last_type === 'TK_END_EXPR';
+
+            if (opt.brace_style === "expand" ||
+                (opt.brace_style === "none" && current_token.wanted_newline)) {
+                if (last_type !== 'TK_OPERATOR' &&
+                    (empty_anonymous_function ||
+                        last_type === 'TK_EQUALS' ||
+                        (last_type === 'TK_RESERVED' && is_special_word(flags.last_text) && flags.last_text !== 'else'))) {
+                    output.space_before_token = true;
+                } else {
+                    print_newline(false, true);
+                }
+            } else { // collapse
+                if (last_type !== 'TK_OPERATOR' && last_type !== 'TK_START_EXPR') {
+                    if (last_type === 'TK_START_BLOCK') {
+                        print_newline();
+                    } else {
+                        output.space_before_token = true;
+                    }
+                } else {
+                    // if TK_OPERATOR or TK_START_EXPR
+                    if (is_array(previous_flags.mode) && flags.last_text === ',') {
+                        if (last_last_text === '}') {
+                            // }, { in array context
+                            output.space_before_token = true;
+                        } else {
+                            print_newline(); // [a, b, c, {
+                        }
+                    }
+                }
+            }
+            print_token();
+            indent();
+        }
+
+        function handle_end_block() {
+            // statements must all be closed when their container closes
+            while (flags.mode === MODE.Statement) {
+                restore_mode();
+            }
+            var empty_braces = last_type === 'TK_START_BLOCK';
+
+            if (opt.brace_style === "expand") {
+                if (!empty_braces) {
+                    print_newline();
+                }
+            } else {
+                // skip {}
+                if (!empty_braces) {
+                    if (is_array(flags.mode) && opt.keep_array_indentation) {
+                        // we REALLY need a newline here, but newliner would skip that
+                        opt.keep_array_indentation = false;
+                        print_newline();
+                        opt.keep_array_indentation = true;
+
+                    } else {
+                        print_newline();
+                    }
+                }
+            }
+            restore_mode();
+            print_token();
+        }
+
+        function handle_word() {
+            if (current_token.type === 'TK_RESERVED' && flags.mode !== MODE.ObjectLiteral &&
+                in_array(current_token.text, ['set', 'get'])) {
+                current_token.type = 'TK_WORD';
+            }
+
+            if (current_token.type === 'TK_RESERVED' && flags.mode === MODE.ObjectLiteral) {
+                var next_token = get_token(1);
+                if (next_token.text == ':') {
+                    current_token.type = 'TK_WORD';
+                }
+            }
+
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+            } else if (current_token.wanted_newline && !is_expression(flags.mode) &&
+                (last_type !== 'TK_OPERATOR' || (flags.last_text === '--' || flags.last_text === '++')) &&
+                last_type !== 'TK_EQUALS' &&
+                (opt.preserve_newlines || !(last_type === 'TK_RESERVED' && in_array(flags.last_text, ['var', 'let', 'const', 'set', 'get'])))) {
+
+                print_newline();
+            }
+
+            if (flags.do_block && !flags.do_while) {
+                if (current_token.type === 'TK_RESERVED' && current_token.text === 'while') {
+                    // do {} ## while ()
+                    output.space_before_token = true;
+                    print_token();
+                    output.space_before_token = true;
+                    flags.do_while = true;
+                    return;
+                } else {
+                    // do {} should always have while as the next word.
+                    // if we don't see the expected while, recover
+                    print_newline();
+                    flags.do_block = false;
+                }
+            }
+
+            // if may be followed by else, or not
+            // Bare/inline ifs are tricky
+            // Need to unwind the modes correctly: if (a) if (b) c(); else d(); else e();
+            if (flags.if_block) {
+                if (!flags.else_block && (current_token.type === 'TK_RESERVED' && current_token.text === 'else')) {
+                    flags.else_block = true;
+                } else {
+                    while (flags.mode === MODE.Statement) {
+                        restore_mode();
+                    }
+                    flags.if_block = false;
+                    flags.else_block = false;
+                }
+            }
+
+            if (current_token.type === 'TK_RESERVED' && (current_token.text === 'case' || (current_token.text === 'default' && flags.in_case_statement))) {
+                print_newline();
+                if (flags.case_body || opt.jslint_happy) {
+                    // switch cases following one another
+                    deindent();
+                    flags.case_body = false;
+                }
+                print_token();
+                flags.in_case = true;
+                flags.in_case_statement = true;
+                return;
+            }
+
+            if (current_token.type === 'TK_RESERVED' && current_token.text === 'function') {
+                if (in_array(flags.last_text, ['}', ';']) || (output.just_added_newline() && ! in_array(flags.last_text, ['[', '{', ':', '=', ',']))) {
+                    // make sure there is a nice clean space of at least one blank line
+                    // before a new function definition
+                    if ( !output.just_added_blankline() && !current_token.comments_before.length) {
+                        print_newline();
+                        print_newline(true);
+                    }
+                }
+                if (last_type === 'TK_RESERVED' || last_type === 'TK_WORD') {
+                    if (last_type === 'TK_RESERVED' && in_array(flags.last_text, ['get', 'set', 'new', 'return', 'export'])) {
+                        output.space_before_token = true;
+                    } else if (last_type === 'TK_RESERVED' && flags.last_text === 'default' && last_last_text === 'export') {
+                        output.space_before_token = true;
+                    } else {
+                        print_newline();
+                    }
+                } else if (last_type === 'TK_OPERATOR' || flags.last_text === '=') {
+                    // foo = function
+                    output.space_before_token = true;
+                } else if (!flags.multiline_frame && (is_expression(flags.mode) || is_array(flags.mode))) {
+                    // (function
+                } else {
+                    print_newline();
+                }
+            }
+
+            if (last_type === 'TK_COMMA' || last_type === 'TK_START_EXPR' || last_type === 'TK_EQUALS' || last_type === 'TK_OPERATOR') {
+                if (!start_of_object_property()) {
+                    allow_wrap_or_preserved_newline();
+                }
+            }
+
+            if (current_token.type === 'TK_RESERVED' &&  in_array(current_token.text, ['function', 'get', 'set'])) {
+                print_token();
+                flags.last_word = current_token.text;
+                return;
+            }
+
+            prefix = 'NONE';
+
+            if (last_type === 'TK_END_BLOCK') {
+                if (!(current_token.type === 'TK_RESERVED' && in_array(current_token.text, ['else', 'catch', 'finally']))) {
+                    prefix = 'NEWLINE';
+                } else {
+                    if (opt.brace_style === "expand" ||
+                        opt.brace_style === "end-expand" ||
+                        (opt.brace_style === "none" && current_token.wanted_newline)) {
+                        prefix = 'NEWLINE';
+                    } else {
+                        prefix = 'SPACE';
+                        output.space_before_token = true;
+                    }
+                }
+            } else if (last_type === 'TK_SEMICOLON' && flags.mode === MODE.BlockStatement) {
+                // TODO: Should this be for STATEMENT as well?
+                prefix = 'NEWLINE';
+            } else if (last_type === 'TK_SEMICOLON' && is_expression(flags.mode)) {
+                prefix = 'SPACE';
+            } else if (last_type === 'TK_STRING') {
+                prefix = 'NEWLINE';
+            } else if (last_type === 'TK_RESERVED' || last_type === 'TK_WORD' ||
+                (flags.last_text === '*' && last_last_text === 'function')) {
+                prefix = 'SPACE';
+            } else if (last_type === 'TK_START_BLOCK') {
+                prefix = 'NEWLINE';
+            } else if (last_type === 'TK_END_EXPR') {
+                output.space_before_token = true;
+                prefix = 'NEWLINE';
+            }
+
+            if (current_token.type === 'TK_RESERVED' && in_array(current_token.text, Tokenizer.line_starters) && flags.last_text !== ')') {
+                if (flags.last_text === 'else' || flags.last_text === 'export') {
+                    prefix = 'SPACE';
+                } else {
+                    prefix = 'NEWLINE';
+                }
+
+            }
+
+            if (current_token.type === 'TK_RESERVED' && in_array(current_token.text, ['else', 'catch', 'finally'])) {
+                if (last_type !== 'TK_END_BLOCK' ||
+                    opt.brace_style === "expand" ||
+                    opt.brace_style === "end-expand" ||
+                    (opt.brace_style === "none" && current_token.wanted_newline)) {
+                    print_newline();
+                } else {
+                    output.trim(true);
+                    var line = output.current_line;
+                    // If we trimmed and there's something other than a close block before us
+                    // put a newline back in.  Handles '} // comment' scenario.
+                    if (line.last() !== '}') {
+                        print_newline();
+                    }
+                    output.space_before_token = true;
+                }
+            } else if (prefix === 'NEWLINE') {
+                if (last_type === 'TK_RESERVED' && is_special_word(flags.last_text)) {
+                    // no newline between 'return nnn'
+                    output.space_before_token = true;
+                } else if (last_type !== 'TK_END_EXPR') {
+                    if ((last_type !== 'TK_START_EXPR' || !(current_token.type === 'TK_RESERVED' && in_array(current_token.text, ['var', 'let', 'const']))) && flags.last_text !== ':') {
+                        // no need to force newline on 'var': for (var x = 0...)
+                        if (current_token.type === 'TK_RESERVED' && current_token.text === 'if' && flags.last_text === 'else') {
+                            // no newline for } else if {
+                            output.space_before_token = true;
+                        } else {
+                            print_newline();
+                        }
+                    }
+                } else if (current_token.type === 'TK_RESERVED' && in_array(current_token.text, Tokenizer.line_starters) && flags.last_text !== ')') {
+                    print_newline();
+                }
+            } else if (flags.multiline_frame && is_array(flags.mode) && flags.last_text === ',' && last_last_text === '}') {
+                print_newline(); // }, in lists get a newline treatment
+            } else if (prefix === 'SPACE') {
+                output.space_before_token = true;
+            }
+            print_token();
+            flags.last_word = current_token.text;
+
+            if (current_token.type === 'TK_RESERVED' && current_token.text === 'do') {
+                flags.do_block = true;
+            }
+
+            if (current_token.type === 'TK_RESERVED' && current_token.text === 'if') {
+                flags.if_block = true;
+            }
+        }
+
+        function handle_semicolon() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+                // Semicolon can be the start (and end) of a statement
+                output.space_before_token = false;
+            }
+            while (flags.mode === MODE.Statement && !flags.if_block && !flags.do_block) {
+                restore_mode();
+            }
+            print_token();
+        }
+
+        function handle_string() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+                // One difference - strings want at least a space before
+                output.space_before_token = true;
+            } else if (last_type === 'TK_RESERVED' || last_type === 'TK_WORD') {
+                output.space_before_token = true;
+            } else if (last_type === 'TK_COMMA' || last_type === 'TK_START_EXPR' || last_type === 'TK_EQUALS' || last_type === 'TK_OPERATOR') {
+                if (!start_of_object_property()) {
+                    allow_wrap_or_preserved_newline();
+                }
+            } else {
+                print_newline();
+            }
+            print_token();
+        }
+
+        function handle_equals() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+            }
+
+            if (flags.declaration_statement) {
+                // just got an '=' in a var-line, different formatting/line-breaking, etc will now be done
+                flags.declaration_assignment = true;
+            }
+            output.space_before_token = true;
+            print_token();
+            output.space_before_token = true;
+        }
+
+        function handle_comma() {
+            if (flags.declaration_statement) {
+                if (is_expression(flags.parent.mode)) {
+                    // do not break on comma, for(var a = 1, b = 2)
+                    flags.declaration_assignment = false;
+                }
+
+                print_token();
+
+                if (flags.declaration_assignment) {
+                    flags.declaration_assignment = false;
+                    print_newline(false, true);
+                } else {
+                    output.space_before_token = true;
+                }
+                return;
+            }
+
+            print_token();
+            if (flags.mode === MODE.ObjectLiteral ||
+                (flags.mode === MODE.Statement && flags.parent.mode === MODE.ObjectLiteral)) {
+                if (flags.mode === MODE.Statement) {
+                    restore_mode();
+                }
+                print_newline();
+            } else {
+                // EXPR or DO_BLOCK
+                output.space_before_token = true;
+            }
+
+        }
+
+        function handle_operator() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+            }
+
+            if (last_type === 'TK_RESERVED' && is_special_word(flags.last_text)) {
+                // "return" had a special handling in TK_WORD. Now we need to return the favor
+                output.space_before_token = true;
+                print_token();
+                return;
+            }
+
+            // hack for actionscript's import .*;
+            if (current_token.text === '*' && last_type === 'TK_DOT') {
+                print_token();
+                return;
+            }
+
+            if (current_token.text === ':' && flags.in_case) {
+                flags.case_body = true;
+                indent();
+                print_token();
+                print_newline();
+                flags.in_case = false;
+                return;
+            }
+
+            if (current_token.text === '::') {
+                // no spaces around exotic namespacing syntax operator
+                print_token();
+                return;
+            }
+
+            // http://www.ecma-international.org/ecma-262/5.1/#sec-7.9.1
+            // if there is a newline between -- or ++ and anything else we should preserve it.
+            if (current_token.wanted_newline && (current_token.text === '--' || current_token.text === '++')) {
+                print_newline(false, true);
+            }
+
+            // Allow line wrapping between operators
+            if (last_type === 'TK_OPERATOR') {
+                allow_wrap_or_preserved_newline();
+            }
+
+            var space_before = true;
+            var space_after = true;
+
+            if (in_array(current_token.text, ['--', '++', '!', '~']) || (in_array(current_token.text, ['-', '+']) && (in_array(last_type, ['TK_START_BLOCK', 'TK_START_EXPR', 'TK_EQUALS', 'TK_OPERATOR']) || in_array(flags.last_text, Tokenizer.line_starters) || flags.last_text === ','))) {
+                // unary operators (and binary +/- pretending to be unary) special cases
+
+                space_before = false;
+                space_after = false;
+
+                if (flags.last_text === ';' && is_expression(flags.mode)) {
+                    // for (;; ++i)
+                    //        ^^^
+                    space_before = true;
+                }
+
+                if (last_type === 'TK_RESERVED' || last_type === 'TK_END_EXPR') {
+                    space_before = true;
+                } else if (last_type === 'TK_OPERATOR') {
+                    space_before =
+                        (in_array(current_token.text, ['--', '-']) && in_array(flags.last_text, ['--', '-'])) ||
+                        (in_array(current_token.text, ['++', '+']) && in_array(flags.last_text, ['++', '+']));
+                }
+
+                if ((flags.mode === MODE.BlockStatement || flags.mode === MODE.Statement) && (flags.last_text === '{' || flags.last_text === ';')) {
+                    // { foo; --i }
+                    // foo(); --bar;
+                    print_newline();
+                }
+            } else if (current_token.text === ':') {
+                if (flags.ternary_depth === 0) {
+                    // Colon is invalid javascript outside of ternary and object, but do our best to guess what was meant.
+                    space_before = false;
+                } else {
+                    flags.ternary_depth -= 1;
+                }
+            } else if (current_token.text === '?') {
+                flags.ternary_depth += 1;
+            } else if (current_token.text === '*' && last_type === 'TK_RESERVED' && flags.last_text === 'function') {
+                space_before = false;
+                space_after = false;
+            }
+            output.space_before_token = output.space_before_token || space_before;
+            print_token();
+            output.space_before_token = space_after;
+        }
+
+        function handle_block_comment() {
+            var lines = split_newlines(current_token.text);
+            var j; // iterator for this case
+            var javadoc = false;
+            var starless = false;
+            var lastIndent = current_token.whitespace_before;
+            var lastIndentLength = lastIndent.length;
+
+            // block comment starts with a new line
+            print_newline(false, true);
+            if (lines.length > 1) {
+                if (all_lines_start_with(lines.slice(1), '*')) {
+                    javadoc = true;
+                }
+                else if (each_line_matches_indent(lines.slice(1), lastIndent)) {
+                    starless = true;
+                }
+            }
+
+            // first line always indented
+            print_token(lines[0]);
+            for (j = 1; j < lines.length; j++) {
+                print_newline(false, true);
+                if (javadoc) {
+                    // javadoc: reformat and re-indent
+                    print_token(' ' + trim(lines[j]));
+                } else if (starless && lines[j].length > lastIndentLength) {
+                    // starless: re-indent non-empty content, avoiding trim
+                    print_token(lines[j].substring(lastIndentLength));
+                } else {
+                    // normal comments output raw
+                    output.add_token(lines[j]);
+                }
+            }
+
+            // for comments of more than one line, make sure there's a new line after
+            print_newline(false, true);
+        }
+
+        function handle_inline_comment() {
+            output.space_before_token = true;
+            print_token();
+            output.space_before_token = true;
+        }
+
+        function handle_comment() {
+            if (current_token.wanted_newline) {
+                print_newline(false, true);
+            } else {
+                output.trim(true);
+            }
+
+            output.space_before_token = true;
+            print_token();
+            print_newline(false, true);
+        }
+
+        function handle_dot() {
+            if (start_of_statement()) {
+                // The conditional starts the statement if appropriate.
+            }
+
+            if (last_type === 'TK_RESERVED' && is_special_word(flags.last_text)) {
+                output.space_before_token = true;
+            } else {
+                // allow preserved newlines before dots in general
+                // force newlines on dots after close paren when break_chained - for bar().baz()
+                allow_wrap_or_preserved_newline(flags.last_text === ')' && opt.break_chained_methods);
+            }
+
+            print_token();
+        }
+
+        function handle_unknown() {
+            print_token();
+
+            if (current_token.text[current_token.text.length - 1] === '\n') {
+                print_newline();
+            }
+        }
+
+        function handle_eof() {
+            // Unwind any open statements
+            while (flags.mode === MODE.Statement) {
+                restore_mode();
+            }
+        }
+    }
+
+
+    function OutputLine(parent) {
+        var _character_count = 0;
+        // use indent_count as a marker for lines that have preserved indentation
+        var _indent_count = -1;
+
+        var _items = [];
+        var _empty = true;
+
+        this.set_indent = function(level) {
+            _character_count = parent.baseIndentLength + level * parent.indent_length
+            _indent_count = level;
+        }
+
+        this.get_character_count = function() {
+            return _character_count;
+        }
+
+        this.is_empty = function() {
+            return _empty;
+        }
+
+        this.last = function() {
+            if (!this._empty) {
+              return _items[_items.length - 1];
+            } else {
+              return null;
+            }
+        }
+
+        this.push = function(input) {
+            _items.push(input);
+            _character_count += input.length;
+            _empty = false;
+        }
+
+        this.remove_indent = function() {
+            if (_indent_count > 0) {
+                _indent_count -= 1;
+                _character_count -= parent.indent_length
+            }
+        }
+
+        this.trim = function() {
+            while (this.last() === ' ') {
+                var item = _items.pop();
+                _character_count -= 1;
+            }
+            _empty = _items.length === 0;
+        }
+
+        this.toString = function() {
+            var result = '';
+            if (!this._empty) {
+                if (_indent_count >= 0) {
+                    result = parent.indent_cache[_indent_count];
+                }
+                result += _items.join('')
+            }
+            return result;
+        }
+    }
+
+    function Output(indent_string, baseIndentString) {
+        baseIndentString = baseIndentString || '';
+        this.indent_cache = [ baseIndentString ];
+        this.baseIndentLength = baseIndentString.length;
+        this.indent_length = indent_string.length;
+
+        var lines =[];
+        this.baseIndentString = baseIndentString;
+        this.indent_string = indent_string;
+        this.current_line = null;
+        this.space_before_token = false;
+
+        this.get_line_number = function() {
+            return lines.length;
+        }
+
+        // Using object instead of string to allow for later expansion of info about each line
+        this.add_new_line = function(force_newline) {
+            if (this.get_line_number() === 1 && this.just_added_newline()) {
+                return false; // no newline on start of file
+            }
+
+            if (force_newline || !this.just_added_newline()) {
+                this.current_line = new OutputLine(this);
+                lines.push(this.current_line);
+                return true;
+            }
+
+            return false;
+        }
+
+        // initialize
+        this.add_new_line(true);
+
+        this.get_code = function() {
+            var sweet_code = lines.join('\n').replace(/[\r\n\t ]+$/, '');
+            return sweet_code;
+        }
+
+        this.set_indent = function(level) {
+            // Never indent your first output indent at the start of the file
+            if (lines.length > 1) {
+                while(level >= this.indent_cache.length) {
+                    this.indent_cache.push(this.indent_cache[this.indent_cache.length - 1] + this.indent_string);
+                }
+
+                this.current_line.set_indent(level);
+                return true;
+            }
+            this.current_line.set_indent(0);
+            return false;
+        }
+
+        this.add_token = function(printable_token) {
+            this.add_space_before_token();
+            this.current_line.push(printable_token);
+        }
+
+        this.add_space_before_token = function() {
+            if (this.space_before_token && !this.just_added_newline()) {
+                this.current_line.push(' ');
+            }
+            this.space_before_token = false;
+        }
+
+        this.remove_redundant_indentation = function (frame) {
+            // This implementation is effective but has some issues:
+            //     - can cause line wrap to happen too soon due to indent removal
+            //           after wrap points are calculated
+            // These issues are minor compared to ugly indentation.
+
+            if (frame.multiline_frame ||
+                frame.mode === MODE.ForInitializer ||
+                frame.mode === MODE.Conditional) {
+                return;
+            }
+
+            // remove one indent from each line inside this section
+            var index = frame.start_line_index;
+            var line;
+
+            var output_length = lines.length;
+            while (index < output_length) {
+                lines[index].remove_indent();
+                index++;
+            }
+        }
+
+        this.trim = function(eat_newlines) {
+            eat_newlines = (eat_newlines === undefined) ? false : eat_newlines;
+
+            this.current_line.trim(indent_string, baseIndentString);
+
+            while (eat_newlines && lines.length > 1 &&
+                this.current_line.is_empty()) {
+                lines.pop();
+                this.current_line = lines[lines.length - 1]
+                this.current_line.trim();
+            }
+        }
+
+        this.just_added_newline = function() {
+            return this.current_line.is_empty();
+        }
+
+        this.just_added_blankline = function() {
+            if (this.just_added_newline()) {
+                if (lines.length === 1) {
+                    return true; // start of the file and newline = blank
+                }
+
+                var line = lines[lines.length - 2];
+                return line.is_empty();
+            }
+            return false;
+        }
+    }
+
+
+    var Token = function(type, text, newlines, whitespace_before, mode, parent) {
+        this.type = type;
+        this.text = text;
+        this.comments_before = [];
+        this.newlines = newlines || 0;
+        this.wanted_newline = newlines > 0;
+        this.whitespace_before = whitespace_before || '';
+        this.parent = null;
+    }
+
+    function tokenizer(input, opts, indent_string) {
+
+        var whitespace = "\n\r\t ".split('');
+        var digit = /[0-9]/;
+
+        var punct = ('+ - * / % & ++ -- = += -= *= /= %= == === != !== > < >= <= >> << >>> >>>= >>= <<= && &= | || ! ~ , : ? ^ ^= |= :: =>'
+                +' <%= <% %> <?= <? ?>').split(' '); // try to be a good boy and try not to break the markup language identifiers
+
+        // words which should always start on new line.
+        this.line_starters = 'continue,try,throw,return,var,let,const,if,switch,case,default,for,while,break,function,yield,import,export'.split(',');
+        var reserved_words = this.line_starters.concat(['do', 'in', 'else', 'get', 'set', 'new', 'catch', 'finally', 'typeof']);
+
+        var n_newlines, whitespace_before_token, in_html_comment, tokens, parser_pos;
+        var input_length;
+
+        this.tokenize = function() {
+            // cache the source's length.
+            input_length = input.length
+            parser_pos = 0;
+            in_html_comment = false
+            tokens = [];
+
+            var next, last;
+            var token_values;
+            var open = null;
+            var open_stack = [];
+            var comments = [];
+
+            while (!(last && last.type === 'TK_EOF')) {
+                token_values = tokenize_next();
+                next = new Token(token_values[1], token_values[0], n_newlines, whitespace_before_token);
+                while(next.type === 'TK_INLINE_COMMENT' || next.type === 'TK_COMMENT' ||
+                    next.type === 'TK_BLOCK_COMMENT' || next.type === 'TK_UNKNOWN') {
+                    comments.push(next);
+                    token_values = tokenize_next();
+                    next = new Token(token_values[1], token_values[0], n_newlines, whitespace_before_token);
+                }
+
+                if (comments.length) {
+                    next.comments_before = comments;
+                    comments = [];
+                }
+
+                if (next.type === 'TK_START_BLOCK' || next.type === 'TK_START_EXPR') {
+                    next.parent = last;
+                    open = next;
+                    open_stack.push(next);
+                }  else if ((next.type === 'TK_END_BLOCK' || next.type === 'TK_END_EXPR') &&
+                    (open && (
+                        (next.text === ']' && open.text === '[') ||
+                        (next.text === ')' && open.text === '(') ||
+                        (next.text === '}' && open.text === '}')))) {
+                    next.parent = open.parent;
+                    open = open_stack.pop();
+                }
+
+                tokens.push(next);
+                last = next;
+            }
+
+            return tokens;
+        }
+
+        function tokenize_next() {
+            var i, resulting_string;
+            var whitespace_on_this_line = [];
+
+            n_newlines = 0;
+            whitespace_before_token = '';
+
+            if (parser_pos >= input_length) {
+                return ['', 'TK_EOF'];
+            }
+
+            var last_token;
+            if (tokens.length) {
+                last_token = tokens[tokens.length-1];
+            } else {
+                // For the sake of tokenizing we can pretend that there was on open brace to start
+                last_token = new Token('TK_START_BLOCK', '{');
+            }
+
+
+            var c = input.charAt(parser_pos);
+            parser_pos += 1;
+
+            while (in_array(c, whitespace)) {
+
+                if (c === '\n') {
+                    n_newlines += 1;
+                    whitespace_on_this_line = [];
+                } else if (n_newlines) {
+                    if (c === indent_string) {
+                        whitespace_on_this_line.push(indent_string);
+                    } else if (c !== '\r') {
+                        whitespace_on_this_line.push(' ');
+                    }
+                }
+
+                if (parser_pos >= input_length) {
+                    return ['', 'TK_EOF'];
+                }
+
+                c = input.charAt(parser_pos);
+                parser_pos += 1;
+            }
+
+            if(whitespace_on_this_line.length) {
+                whitespace_before_token = whitespace_on_this_line.join('');
+            }
+
+            if (digit.test(c)) {
+                var allow_decimal = true;
+                var allow_e = true;
+                var local_digit = digit;
+
+                if (c === '0' && parser_pos < input_length && /[Xx]/.test(input.charAt(parser_pos))) {
+                    // switch to hex number, no decimal or e, just hex digits
+                    allow_decimal = false;
+                    allow_e = false;
+                    c += input.charAt(parser_pos);
+                    parser_pos += 1;
+                    local_digit = /[0123456789abcdefABCDEF]/
+                } else {
+                    // we know this first loop will run.  It keeps the logic simpler.
+                    c = '';
+                    parser_pos -= 1
+                }
+
+                // Add the digits
+                while (parser_pos < input_length && local_digit.test(input.charAt(parser_pos))) {
+                    c += input.charAt(parser_pos);
+                    parser_pos += 1;
+
+                    if (allow_decimal && parser_pos < input_length && input.charAt(parser_pos) === '.') {
+                        c += input.charAt(parser_pos);
+                        parser_pos += 1;
+                        allow_decimal = false;
+                    }
+
+                    if (allow_e && parser_pos < input_length && /[Ee]/.test(input.charAt(parser_pos))) {
+                        c += input.charAt(parser_pos);
+                        parser_pos += 1;
+
+                        if (parser_pos < input_length && /[+-]/.test(input.charAt(parser_pos))) {
+                            c += input.charAt(parser_pos);
+                            parser_pos += 1;
+                        }
+
+                        allow_e = false;
+                        allow_decimal = false;
+                    }
+                }
+
+                return [c, 'TK_WORD'];
+            }
+
+            if (acorn.isIdentifierStart(input.charCodeAt(parser_pos-1))) {
+                if (parser_pos < input_length) {
+                    while (acorn.isIdentifierChar(input.charCodeAt(parser_pos))) {
+                        c += input.charAt(parser_pos);
+                        parser_pos += 1;
+                        if (parser_pos === input_length) {
+                            break;
+                        }
+                    }
+                }
+
+                if (!(last_token.type === 'TK_DOT' ||
+                        (last_token.type === 'TK_RESERVED' && in_array(last_token.text, ['set', 'get'])))
+                    && in_array(c, reserved_words)) {
+                    if (c === 'in') { // hack for 'in' operator
+                        return [c, 'TK_OPERATOR'];
+                    }
+                    return [c, 'TK_RESERVED'];
+                }
+
+                return [c, 'TK_WORD'];
+            }
+
+            if (c === '(' || c === '[') {
+                return [c, 'TK_START_EXPR'];
+            }
+
+            if (c === ')' || c === ']') {
+                return [c, 'TK_END_EXPR'];
+            }
+
+            if (c === '{') {
+                return [c, 'TK_START_BLOCK'];
+            }
+
+            if (c === '}') {
+                return [c, 'TK_END_BLOCK'];
+            }
+
+            if (c === ';') {
+                return [c, 'TK_SEMICOLON'];
+            }
+
+            if (c === '/') {
+                var comment = '';
+                // peek for comment /* ... */
+                var inline_comment = true;
+                if (input.charAt(parser_pos) === '*') {
+                    parser_pos += 1;
+                    if (parser_pos < input_length) {
+                        while (parser_pos < input_length && !(input.charAt(parser_pos) === '*' && input.charAt(parser_pos + 1) && input.charAt(parser_pos + 1) === '/')) {
+                            c = input.charAt(parser_pos);
+                            comment += c;
+                            if (c === "\n" || c === "\r") {
+                                inline_comment = false;
+                            }
+                            parser_pos += 1;
+                            if (parser_pos >= input_length) {
+                                break;
+                            }
+                        }
+                    }
+                    parser_pos += 2;
+                    if (inline_comment && n_newlines === 0) {
+                        return ['/*' + comment + '*/', 'TK_INLINE_COMMENT'];
+                    } else {
+                        return ['/*' + comment + '*/', 'TK_BLOCK_COMMENT'];
+                    }
+                }
+                // peek for comment // ...
+                if (input.charAt(parser_pos) === '/') {
+                    comment = c;
+                    while (input.charAt(parser_pos) !== '\r' && input.charAt(parser_pos) !== '\n') {
+                        comment += input.charAt(parser_pos);
+                        parser_pos += 1;
+                        if (parser_pos >= input_length) {
+                            break;
+                        }
+                    }
+                    return [comment, 'TK_COMMENT'];
+                }
+
+            }
+
+            if (c === '`' || c === "'" || c === '"' || // string
+                (
+                    (c === '/') || // regexp
+                    (opts.e4x && c === "<" && input.slice(parser_pos - 1).match(/^<([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])\s*([-a-zA-Z:0-9_.]+=('[^']*'|"[^"]*"|{[^{}]*})\s*)*\/?\s*>/)) // xml
+                ) && ( // regex and xml can only appear in specific locations during parsing
+                    (last_token.type === 'TK_RESERVED' && in_array(last_token.text , ['return', 'case', 'throw', 'else', 'do', 'typeof', 'yield'])) ||
+                    (last_token.type === 'TK_END_EXPR' && last_token.text === ')' &&
+                        last_token.parent && last_token.parent.type === 'TK_RESERVED' && in_array(last_token.parent.text, ['if', 'while', 'for'])) ||
+                    (in_array(last_token.type, ['TK_COMMENT', 'TK_START_EXPR', 'TK_START_BLOCK',
+                        'TK_END_BLOCK', 'TK_OPERATOR', 'TK_EQUALS', 'TK_EOF', 'TK_SEMICOLON', 'TK_COMMA'
+                    ]))
+                )) {
+
+                var sep = c,
+                    esc = false,
+                    has_char_escapes = false;
+
+                resulting_string = c;
+
+                if (sep === '/') {
+                    //
+                    // handle regexp
+                    //
+                    var in_char_class = false;
+                    while (parser_pos < input_length &&
+                            ((esc || in_char_class || input.charAt(parser_pos) !== sep) &&
+                            !acorn.newline.test(input.charAt(parser_pos)))) {
+                        resulting_string += input.charAt(parser_pos);
+                        if (!esc) {
+                            esc = input.charAt(parser_pos) === '\\';
+                            if (input.charAt(parser_pos) === '[') {
+                                in_char_class = true;
+                            } else if (input.charAt(parser_pos) === ']') {
+                                in_char_class = false;
+                            }
+                        } else {
+                            esc = false;
+                        }
+                        parser_pos += 1;
+                    }
+                } else if (opts.e4x && sep === '<') {
+                    //
+                    // handle e4x xml literals
+                    //
+                    var xmlRegExp = /<(\/?)([-a-zA-Z:0-9_.]+|{[^{}]*}|!\[CDATA\[[\s\S]*?\]\])\s*([-a-zA-Z:0-9_.]+=('[^']*'|"[^"]*"|{[^{}]*})\s*)*(\/?)\s*>/g;
+                    var xmlStr = input.slice(parser_pos - 1);
+                    var match = xmlRegExp.exec(xmlStr);
+                    if (match && match.index === 0) {
+                        var rootTag = match[2];
+                        var depth = 0;
+                        while (match) {
+                            var isEndTag = !! match[1];
+                            var tagName = match[2];
+                            var isSingletonTag = ( !! match[match.length - 1]) || (tagName.slice(0, 8) === "![CDATA[");
+                            if (tagName === rootTag && !isSingletonTag) {
+                                if (isEndTag) {
+                                    --depth;
+                                } else {
+                                    ++depth;
+                                }
+                            }
+                            if (depth <= 0) {
+                                break;
+                            }
+                            match = xmlRegExp.exec(xmlStr);
+                        }
+                        var xmlLength = match ? match.index + match[0].length : xmlStr.length;
+                        parser_pos += xmlLength - 1;
+                        return [xmlStr.slice(0, xmlLength), "TK_STRING"];
+                    }
+                } else {
+                    //
+                    // handle string
+                    //
+                    // Template strings can travers lines without escape characters.
+                    // Other strings cannot
+                    while (parser_pos < input_length &&
+                            (esc || (input.charAt(parser_pos) !== sep &&
+                            (sep === '`' || !acorn.newline.test(input.charAt(parser_pos)))))) {
+                        resulting_string += input.charAt(parser_pos);
+                        if (esc) {
+                            if (input.charAt(parser_pos) === 'x' || input.charAt(parser_pos) === 'u') {
+                                has_char_escapes = true;
+                            }
+                            esc = false;
+                        } else {
+                            esc = input.charAt(parser_pos) === '\\';
+                        }
+                        parser_pos += 1;
+                    }
+
+                }
+
+                if (has_char_escapes && opts.unescape_strings) {
+                    resulting_string = unescape_string(resulting_string);
+                }
+
+                if (parser_pos < input_length && input.charAt(parser_pos) === sep) {
+                    resulting_string += sep;
+                    parser_pos += 1;
+
+                    if (sep === '/') {
+                        // regexps may have modifiers /regexp/MOD , so fetch those, too
+                        // Only [gim] are valid, but if the user puts in garbage, do what we can to take it.
+                        while (parser_pos < input_length && acorn.isIdentifierStart(input.charCodeAt(parser_pos))) {
+                            resulting_string += input.charAt(parser_pos);
+                            parser_pos += 1;
+                        }
+                    }
+                }
+                return [resulting_string, 'TK_STRING'];
+            }
+
+            if (c === '#') {
+
+                if (tokens.length === 0 && input.charAt(parser_pos) === '!') {
+                    // shebang
+                    resulting_string = c;
+                    while (parser_pos < input_length && c !== '\n') {
+                        c = input.charAt(parser_pos);
+                        resulting_string += c;
+                        parser_pos += 1;
+                    }
+                    return [trim(resulting_string) + '\n', 'TK_UNKNOWN'];
+                }
+
+
+
+                // Spidermonkey-specific sharp variables for circular references
+                // https://developer.mozilla.org/En/Sharp_variables_in_JavaScript
+                // http://mxr.mozilla.org/mozilla-central/source/js/src/jsscan.cpp around line 1935
+                var sharp = '#';
+                if (parser_pos < input_length && digit.test(input.charAt(parser_pos))) {
+                    do {
+                        c = input.charAt(parser_pos);
+                        sharp += c;
+                        parser_pos += 1;
+                    } while (parser_pos < input_length && c !== '#' && c !== '=');
+                    if (c === '#') {
+                        //
+                    } else if (input.charAt(parser_pos) === '[' && input.charAt(parser_pos + 1) === ']') {
+                        sharp += '[]';
+                        parser_pos += 2;
+                    } else if (input.charAt(parser_pos) === '{' && input.charAt(parser_pos + 1) === '}') {
+                        sharp += '{}';
+                        parser_pos += 2;
+                    }
+                    return [sharp, 'TK_WORD'];
+                }
+            }
+
+            if (c === '<' && input.substring(parser_pos - 1, parser_pos + 3) === '<!--') {
+                parser_pos += 3;
+                c = '<!--';
+                while (input.charAt(parser_pos) !== '\n' && parser_pos < input_length) {
+                    c += input.charAt(parser_pos);
+                    parser_pos++;
+                }
+                in_html_comment = true;
+                return [c, 'TK_COMMENT'];
+            }
+
+            if (c === '-' && in_html_comment && input.substring(parser_pos - 1, parser_pos + 2) === '-->') {
+                in_html_comment = false;
+                parser_pos += 2;
+                return ['-->', 'TK_COMMENT'];
+            }
+
+            if (c === '.') {
+                return [c, 'TK_DOT'];
+            }
+
+            if (in_array(c, punct)) {
+                while (parser_pos < input_length && in_array(c + input.charAt(parser_pos), punct)) {
+                    c += input.charAt(parser_pos);
+                    parser_pos += 1;
+                    if (parser_pos >= input_length) {
+                        break;
+                    }
+                }
+
+                if (c === ',') {
+                    return [c, 'TK_COMMA'];
+                } else if (c === '=') {
+                    return [c, 'TK_EQUALS'];
+                } else {
+                    return [c, 'TK_OPERATOR'];
+                }
+            }
+
+            return [c, 'TK_UNKNOWN'];
+        }
+
+
+        function unescape_string(s) {
+            var esc = false,
+                out = '',
+                pos = 0,
+                s_hex = '',
+                escaped = 0,
+                c;
+
+            while (esc || pos < s.length) {
+
+                c = s.charAt(pos);
+                pos++;
+
+                if (esc) {
+                    esc = false;
+                    if (c === 'x') {
+                        // simple hex-escape \x24
+                        s_hex = s.substr(pos, 2);
+                        pos += 2;
+                    } else if (c === 'u') {
+                        // unicode-escape, \u2134
+                        s_hex = s.substr(pos, 4);
+                        pos += 4;
+                    } else {
+                        // some common escape, e.g \n
+                        out += '\\' + c;
+                        continue;
+                    }
+                    if (!s_hex.match(/^[0123456789abcdefABCDEF]+$/)) {
+                        // some weird escaping, bail out,
+                        // leaving whole string intact
+                        return s;
+                    }
+
+                    escaped = parseInt(s_hex, 16);
+
+                    if (escaped >= 0x00 && escaped < 0x20) {
+                        // leave 0x00...0x1f escaped
+                        if (c === 'x') {
+                            out += '\\x' + s_hex;
+                        } else {
+                            out += '\\u' + s_hex;
+                        }
+                        continue;
+                    } else if (escaped === 0x22 || escaped === 0x27 || escaped === 0x5c) {
+                        // single-quote, apostrophe, backslash - escape these
+                        out += '\\' + String.fromCharCode(escaped);
+                    } else if (c === 'x' && escaped > 0x7e && escaped <= 0xff) {
+                        // we bail out on \x7f..\xff,
+                        // leaving whole string escaped,
+                        // as it's probably completely binary
+                        return s;
+                    } else {
+                        out += String.fromCharCode(escaped);
+                    }
+                } else if (c === '\\') {
+                    esc = true;
+                } else {
+                    out += c;
+                }
+            }
+            return out;
+        }
+
+    }
+
+    return { js_beautify: js_beautify };
+});
+
+define('skylark-parsers-javascript/beautify',[
+    "./js",
+    "./primitives/beautify-js"
+], function(js, beautifyJs) {
+
+	return js.beautify = beautifyJs.js_beautify;
+});
+/*jshint curly:true, eqeqeq:true, laxbreak:true, noempty:false */
+/*
+
+  The MIT License (MIT)
+
+  Copyright (c) 2007-2013 Einar Lielmanis and contributors.
+
+  Permission is hereby granted, free of charge, to any person
+  obtaining a copy of this software and associated documentation files
+  (the "Software"), to deal in the Software without restriction,
+  including without limitation the rights to use, copy, modify, merge,
+  publish, distribute, sublicense, and/or sell copies of the Software,
+  and to permit persons to whom the Software is furnished to do so,
+  subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+
+
+ Style HTML
+---------------
+
+  Written by Nochum Sossonko, (nsossonko@hotmail.com)
+
+  Based on code initially developed by: Einar Lielmanis, <einar@jsbeautifier.org>
+    http://jsbeautifier.org/
+
+  Usage:
+    style_html(html_source);
+
+    style_html(html_source, options);
+
+  The options are:
+    indent_inner_html (default false)  — indent <head> and <body> sections,
+    indent_size (default 4)          — indentation size,
+    indent_char (default space)      — character to indent with,
+    wrap_line_length (default 250)            -  maximum amount of characters per line (0 = disable)
+    brace_style (default "collapse") - "collapse" | "expand" | "end-expand" | "none"
+            put braces on the same line as control statements (default), or put braces on own line (Allman / ANSI style), or just put end braces on own line, or attempt to keep them where they are.
+    unformatted (defaults to inline tags) - list of tags, that shouldn't be reformatted
+    indent_scripts (default normal)  - "keep"|"separate"|"normal"
+    preserve_newlines (default true) - whether existing line breaks before elements should be preserved
+                                        Only works before elements, not inside tags or for text.
+    max_preserve_newlines (default unlimited) - maximum number of line breaks to be preserved in one chunk
+    indent_handlebars (default false) - format and indent {{#foo}} and {{/foo}}
+    end_with_newline (false)          - end with a newline
+
+
+    e.g.
+
+    style_html(html_source, {
+      'indent_inner_html': false,
+      'indent_size': 2,
+      'indent_char': ' ',
+      'wrap_line_length': 78,
+      'brace_style': 'expand',
+      'unformatted': ['a', 'sub', 'sup', 'b', 'i', 'u'],
+      'preserve_newlines': true,
+      'max_preserve_newlines': 5,
+      'indent_handlebars': false
+    });
+*/
+
+define('skylark-parsers-html/primitives/beautify-html',[
+    "skylark-parsers-css/beautify",
+    "skylark-parsers-javascript/beautify"
+], function(beautifyCss, beautifyJs) {
+
+    function trim(s) {
+        return s.replace(/^\s+|\s+$/g, '');
+    }
+
+    function ltrim(s) {
+        return s.replace(/^\s+/g, '');
+    }
+
+    function rtrim(s) {
+        return s.replace(/\s+$/g,'');
+    }
+
+    function style_html(html_source, options, js_beautify, css_beautify) {
+        //Wrapper function to invoke all the necessary constructors and deal with the output.
+
+        var multi_parser,
+            indent_inner_html,
+            indent_size,
+            indent_character,
+            wrap_line_length,
+            brace_style,
+            unformatted,
+            preserve_newlines,
+            max_preserve_newlines,
+            indent_handlebars,
+            end_with_newline;
+
+        options = options || {};
+
+        // backwards compatibility to 1.3.4
+        if ((options.wrap_line_length === undefined || parseInt(options.wrap_line_length, 10) === 0) &&
+                (options.max_char !== undefined && parseInt(options.max_char, 10) !== 0)) {
+            options.wrap_line_length = options.max_char;
+        }
+
+        indent_inner_html = (options.indent_inner_html === undefined) ? false : options.indent_inner_html;
+        indent_size = (options.indent_size === undefined) ? 4 : parseInt(options.indent_size, 10);
+        indent_character = (options.indent_char === undefined) ? ' ' : options.indent_char;
+        brace_style = (options.brace_style === undefined) ? 'collapse' : options.brace_style;
+        wrap_line_length =  parseInt(options.wrap_line_length, 10) === 0 ? 32786 : parseInt(options.wrap_line_length || 250, 10);
+        unformatted = options.unformatted || ['a', 'span', 'img', 'bdo', 'em', 'strong', 'dfn', 'code', 'samp', 'kbd', 'var', 'cite', 'abbr', 'acronym', 'q', 'sub', 'sup', 'tt', 'i', 'b', 'big', 'small', 'u', 's', 'strike', 'font', 'ins', 'del', 'pre', 'address', 'dt', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        preserve_newlines = (options.preserve_newlines === undefined) ? true : options.preserve_newlines;
+        max_preserve_newlines = preserve_newlines ?
+            (isNaN(parseInt(options.max_preserve_newlines, 10)) ? 32786 : parseInt(options.max_preserve_newlines, 10))
+            : 0;
+        indent_handlebars = (options.indent_handlebars === undefined) ? false : options.indent_handlebars;
+        end_with_newline = (options.end_with_newline === undefined) ? false : options.end_with_newline;
+
+        function Parser() {
+
+            this.pos = 0; //Parser position
+            this.token = '';
+            this.current_mode = 'CONTENT'; //reflects the current Parser mode: TAG/CONTENT
+            this.tags = { //An object to hold tags, their position, and their parent-tags, initiated with default values
+                parent: 'parent1',
+                parentcount: 1,
+                parent1: ''
+            };
+            this.tag_type = '';
+            this.token_text = this.last_token = this.last_text = this.token_type = '';
+            this.newlines = 0;
+            this.indent_content = indent_inner_html;
+
+            this.Utils = { //Uilities made available to the various functions
+                whitespace: "\n\r\t ".split(''),
+                single_token: 'br,input,link,meta,!doctype,basefont,base,area,hr,wbr,param,img,isindex,?xml,embed,?php,?,?='.split(','), //all the single tags for HTML
+                extra_liners: 'head,body,/html'.split(','), //for tags that need a line of whitespace before them
+                in_array: function(what, arr) {
+                    for (var i = 0; i < arr.length; i++) {
+                        if (what === arr[i]) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
+
+            // Return true iff the given text is composed entirely of
+            // whitespace.
+            this.is_whitespace = function(text) {
+                for (var n = 0; n < text.length; text++) {
+                    if (!this.Utils.in_array(text.charAt(n), this.Utils.whitespace)) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            this.traverse_whitespace = function() {
+                var input_char = '';
+
+                input_char = this.input.charAt(this.pos);
+                if (this.Utils.in_array(input_char, this.Utils.whitespace)) {
+                    this.newlines = 0;
+                    while (this.Utils.in_array(input_char, this.Utils.whitespace)) {
+                        if (preserve_newlines && input_char === '\n' && this.newlines <= max_preserve_newlines) {
+                            this.newlines += 1;
+                        }
+
+                        this.pos++;
+                        input_char = this.input.charAt(this.pos);
+                    }
+                    return true;
+                }
+                return false;
+            };
+
+            // Append a space to the given content (string array) or, if we are
+            // at the wrap_line_length, append a newline/indentation.
+            this.space_or_wrap = function(content) {
+                if (this.line_char_count >= this.wrap_line_length) { //insert a line when the wrap_line_length is reached
+                    this.print_newline(false, content);
+                    this.print_indentation(content);
+                } else {
+                    this.line_char_count++;
+                    content.push(' ');
+                }
+            };
+
+            this.get_content = function() { //function to capture regular content between tags
+                var input_char = '',
+                    content = [],
+                    space = false; //if a space is needed
+
+                while (this.input.charAt(this.pos) !== '<') {
+                    if (this.pos >= this.input.length) {
+                        return content.length ? content.join('') : ['', 'TK_EOF'];
+                    }
+
+                    if (this.traverse_whitespace()) {
+                        this.space_or_wrap(content);
+                        continue;
+                    }
+
+                    if (indent_handlebars) {
+                        // Handlebars parsing is complicated.
+                        // {{#foo}} and {{/foo}} are formatted tags.
+                        // {{something}} should get treated as content, except:
+                        // {{else}} specifically behaves like {{#if}} and {{/if}}
+                        var peek3 = this.input.substr(this.pos, 3);
+                        if (peek3 === '{{#' || peek3 === '{{/') {
+                            // These are tags and not content.
+                            break;
+                        } else if (this.input.substr(this.pos, 2) === '{{') {
+                            if (this.get_tag(true) === '{{else}}') {
+                                break;
+                            }
+                        }
+                    }
+
+                    input_char = this.input.charAt(this.pos);
+                    this.pos++;
+                    this.line_char_count++;
+                    content.push(input_char); //letter at-a-time (or string) inserted to an array
+                }
+                return content.length ? content.join('') : '';
+            };
+
+            this.get_contents_to = function(name) { //get the full content of a script or style to pass to js_beautify
+                if (this.pos === this.input.length) {
+                    return ['', 'TK_EOF'];
+                }
+                var input_char = '';
+                var content = '';
+                var reg_match = new RegExp('</' + name + '\\s*>', 'igm');
+                reg_match.lastIndex = this.pos;
+                var reg_array = reg_match.exec(this.input);
+                var end_script = reg_array ? reg_array.index : this.input.length; //absolute end of script
+                if (this.pos < end_script) { //get everything in between the script tags
+                    content = this.input.substring(this.pos, end_script);
+                    this.pos = end_script;
+                }
+                return content;
+            };
+
+            this.record_tag = function(tag) { //function to record a tag and its parent in this.tags Object
+                if (this.tags[tag + 'count']) { //check for the existence of this tag type
+                    this.tags[tag + 'count']++;
+                    this.tags[tag + this.tags[tag + 'count']] = this.indent_level; //and record the present indent level
+                } else { //otherwise initialize this tag type
+                    this.tags[tag + 'count'] = 1;
+                    this.tags[tag + this.tags[tag + 'count']] = this.indent_level; //and record the present indent level
+                }
+                this.tags[tag + this.tags[tag + 'count'] + 'parent'] = this.tags.parent; //set the parent (i.e. in the case of a div this.tags.div1parent)
+                this.tags.parent = tag + this.tags[tag + 'count']; //and make this the current parent (i.e. in the case of a div 'div1')
+            };
+
+            this.retrieve_tag = function(tag) { //function to retrieve the opening tag to the corresponding closer
+                if (this.tags[tag + 'count']) { //if the openener is not in the Object we ignore it
+                    var temp_parent = this.tags.parent; //check to see if it's a closable tag.
+                    while (temp_parent) { //till we reach '' (the initial value);
+                        if (tag + this.tags[tag + 'count'] === temp_parent) { //if this is it use it
+                            break;
+                        }
+                        temp_parent = this.tags[temp_parent + 'parent']; //otherwise keep on climbing up the DOM Tree
+                    }
+                    if (temp_parent) { //if we caught something
+                        this.indent_level = this.tags[tag + this.tags[tag + 'count']]; //set the indent_level accordingly
+                        this.tags.parent = this.tags[temp_parent + 'parent']; //and set the current parent
+                    }
+                    delete this.tags[tag + this.tags[tag + 'count'] + 'parent']; //delete the closed tags parent reference...
+                    delete this.tags[tag + this.tags[tag + 'count']]; //...and the tag itself
+                    if (this.tags[tag + 'count'] === 1) {
+                        delete this.tags[tag + 'count'];
+                    } else {
+                        this.tags[tag + 'count']--;
+                    }
+                }
+            };
+
+            this.indent_to_tag = function(tag) {
+                // Match the indentation level to the last use of this tag, but don't remove it.
+                if (!this.tags[tag + 'count']) {
+                    return;
+                }
+                var temp_parent = this.tags.parent;
+                while (temp_parent) {
+                    if (tag + this.tags[tag + 'count'] === temp_parent) {
+                        break;
+                    }
+                    temp_parent = this.tags[temp_parent + 'parent'];
+                }
+                if (temp_parent) {
+                    this.indent_level = this.tags[tag + this.tags[tag + 'count']];
+                }
+            };
+
+            this.get_tag = function(peek) { //function to get a full tag and parse its type
+                var input_char = '',
+                    content = [],
+                    comment = '',
+                    space = false,
+                    tag_start, tag_end,
+                    tag_start_char,
+                    orig_pos = this.pos,
+                    orig_line_char_count = this.line_char_count;
+
+                peek = peek !== undefined ? peek : false;
+
+                do {
+                    if (this.pos >= this.input.length) {
+                        if (peek) {
+                            this.pos = orig_pos;
+                            this.line_char_count = orig_line_char_count;
+                        }
+                        return content.length ? content.join('') : ['', 'TK_EOF'];
+                    }
+
+                    input_char = this.input.charAt(this.pos);
+                    this.pos++;
+
+                    if (this.Utils.in_array(input_char, this.Utils.whitespace)) { //don't want to insert unnecessary space
+                        space = true;
+                        continue;
+                    }
+
+                    if (input_char === "'" || input_char === '"') {
+                        input_char += this.get_unformatted(input_char);
+                        space = true;
+
+                    }
+
+                    if (input_char === '=') { //no space before =
+                        space = false;
+                    }
+
+                    if (content.length && content[content.length - 1] !== '=' && input_char !== '>' && space) {
+                        //no space after = or before >
+                        this.space_or_wrap(content);
+                        space = false;
+                    }
+
+                    if (indent_handlebars && tag_start_char === '<') {
+                        // When inside an angle-bracket tag, put spaces around
+                        // handlebars not inside of strings.
+                        if ((input_char + this.input.charAt(this.pos)) === '{{') {
+                            input_char += this.get_unformatted('}}');
+                            if (content.length && content[content.length - 1] !== ' ' && content[content.length - 1] !== '<') {
+                                input_char = ' ' + input_char;
+                            }
+                            space = true;
+                        }
+                    }
+
+                    if (input_char === '<' && !tag_start_char) {
+                        tag_start = this.pos - 1;
+                        tag_start_char = '<';
+                    }
+
+                    if (indent_handlebars && !tag_start_char) {
+                        if (content.length >= 2 && content[content.length - 1] === '{' && content[content.length - 2] == '{') {
+                            if (input_char === '#' || input_char === '/') {
+                                tag_start = this.pos - 3;
+                            } else {
+                                tag_start = this.pos - 2;
+                            }
+                            tag_start_char = '{';
+                        }
+                    }
+
+                    this.line_char_count++;
+                    content.push(input_char); //inserts character at-a-time (or string)
+
+                    if (content[1] && content[1] === '!') { //if we're in a comment, do something special
+                        // We treat all comments as literals, even more than preformatted tags
+                        // we just look for the appropriate close tag
+                        content = [this.get_comment(tag_start)];
+                        break;
+                    }
+
+                    if (indent_handlebars && tag_start_char === '{' && content.length > 2 && content[content.length - 2] === '}' && content[content.length - 1] === '}') {
+                        break;
+                    }
+                } while (input_char !== '>');
+
+                var tag_complete = content.join('');
+                var tag_index;
+                var tag_offset;
+
+                if (tag_complete.indexOf(' ') !== -1) { //if there's whitespace, thats where the tag name ends
+                    tag_index = tag_complete.indexOf(' ');
+                } else if (tag_complete[0] === '{') {
+                    tag_index = tag_complete.indexOf('}');
+                } else { //otherwise go with the tag ending
+                    tag_index = tag_complete.indexOf('>');
+                }
+                if (tag_complete[0] === '<' || !indent_handlebars) {
+                    tag_offset = 1;
+                } else {
+                    tag_offset = tag_complete[2] === '#' ? 3 : 2;
+                }
+                var tag_check = tag_complete.substring(tag_offset, tag_index).toLowerCase();
+                if (tag_complete.charAt(tag_complete.length - 2) === '/' ||
+                    this.Utils.in_array(tag_check, this.Utils.single_token)) { //if this tag name is a single tag type (either in the list or has a closing /)
+                    if (!peek) {
+                        this.tag_type = 'SINGLE';
+                    }
+                } else if (indent_handlebars && tag_complete[0] === '{' && tag_check === 'else') {
+                    if (!peek) {
+                        this.indent_to_tag('if');
+                        this.tag_type = 'HANDLEBARS_ELSE';
+                        this.indent_content = true;
+                        this.traverse_whitespace();
+                    }
+                } else if (this.is_unformatted(tag_check, unformatted)) { // do not reformat the "unformatted" tags
+                    comment = this.get_unformatted('</' + tag_check + '>', tag_complete); //...delegate to get_unformatted function
+                    content.push(comment);
+                    tag_end = this.pos - 1;
+                    this.tag_type = 'SINGLE';
+                } else if (tag_check === 'script' &&
+                    (tag_complete.search('type') === -1 ||
+                    (tag_complete.search('type') > -1 &&
+                    tag_complete.search(/\b(text|application)\/(x-)?(javascript|ecmascript|jscript|livescript)/) > -1))) {
+                    if (!peek) {
+                        this.record_tag(tag_check);
+                        this.tag_type = 'SCRIPT';
+                    }
+                } else if (tag_check === 'style' &&
+                    (tag_complete.search('type') === -1 ||
+                    (tag_complete.search('type') > -1 && tag_complete.search('text/css') > -1))) {
+                    if (!peek) {
+                        this.record_tag(tag_check);
+                        this.tag_type = 'STYLE';
+                    }
+                } else if (tag_check.charAt(0) === '!') { //peek for <! comment
+                    // for comments content is already correct.
+                    if (!peek) {
+                        this.tag_type = 'SINGLE';
+                        this.traverse_whitespace();
+                    }
+                } else if (!peek) {
+                    if (tag_check.charAt(0) === '/') { //this tag is a double tag so check for tag-ending
+                        this.retrieve_tag(tag_check.substring(1)); //remove it and all ancestors
+                        this.tag_type = 'END';
+                    } else { //otherwise it's a start-tag
+                        this.record_tag(tag_check); //push it on the tag stack
+                        if (tag_check.toLowerCase() !== 'html') {
+                            this.indent_content = true;
+                        }
+                        this.tag_type = 'START';
+                    }
+
+                    // Allow preserving of newlines after a start or end tag
+                    if (this.traverse_whitespace()) {
+                        this.space_or_wrap(content);
+                    }
+
+                    if (this.Utils.in_array(tag_check, this.Utils.extra_liners)) { //check if this double needs an extra line
+                        this.print_newline(false, this.output);
+                        if (this.output.length && this.output[this.output.length - 2] !== '\n') {
+                            this.print_newline(true, this.output);
+                        }
+                    }
+                }
+
+                if (peek) {
+                    this.pos = orig_pos;
+                    this.line_char_count = orig_line_char_count;
+                }
+
+                return content.join(''); //returns fully formatted tag
+            };
+
+            this.get_comment = function(start_pos) { //function to return comment content in its entirety
+                // this is will have very poor perf, but will work for now.
+                var comment = '',
+                    delimiter = '>',
+                    matched = false;
+
+                this.pos = start_pos;
+                input_char = this.input.charAt(this.pos);
+                this.pos++;
+
+                while (this.pos <= this.input.length) {
+                    comment += input_char;
+
+                    // only need to check for the delimiter if the last chars match
+                    if (comment[comment.length - 1] === delimiter[delimiter.length - 1] &&
+                        comment.indexOf(delimiter) !== -1) {
+                        break;
+                    }
+
+                    // only need to search for custom delimiter for the first few characters
+                    if (!matched && comment.length < 10) {
+                        if (comment.indexOf('<![if') === 0) { //peek for <![if conditional comment
+                            delimiter = '<![endif]>';
+                            matched = true;
+                        } else if (comment.indexOf('<![cdata[') === 0) { //if it's a <[cdata[ comment...
+                            delimiter = ']]>';
+                            matched = true;
+                        } else if (comment.indexOf('<![') === 0) { // some other ![ comment? ...
+                            delimiter = ']>';
+                            matched = true;
+                        } else if (comment.indexOf('<!--') === 0) { // <!-- comment ...
+                            delimiter = '-->';
+                            matched = true;
+                        }
+                    }
+
+                    input_char = this.input.charAt(this.pos);
+                    this.pos++;
+                }
+
+                return comment;
+            };
+
+            this.get_unformatted = function(delimiter, orig_tag) { //function to return unformatted content in its entirety
+
+                if (orig_tag && orig_tag.toLowerCase().indexOf(delimiter) !== -1) {
+                    return '';
+                }
+                var input_char = '';
+                var content = '';
+                var min_index = 0;
+                var space = true;
+                do {
+
+                    if (this.pos >= this.input.length) {
+                        return content;
+                    }
+
+                    input_char = this.input.charAt(this.pos);
+                    this.pos++;
+
+                    if (this.Utils.in_array(input_char, this.Utils.whitespace)) {
+                        if (!space) {
+                            this.line_char_count--;
+                            continue;
+                        }
+                        if (input_char === '\n' || input_char === '\r') {
+                            content += '\n';
+                            /*  Don't change tab indention for unformatted blocks.  If using code for html editing, this will greatly affect <pre> tags if they are specified in the 'unformatted array'
+                for (var i=0; i<this.indent_level; i++) {
+                  content += this.indent_string;
+                }
+                space = false; //...and make sure other indentation is erased
+                */
+                            this.line_char_count = 0;
+                            continue;
+                        }
+                    }
+                    content += input_char;
+                    this.line_char_count++;
+                    space = true;
+
+                    if (indent_handlebars && input_char === '{' && content.length && content[content.length - 2] === '{') {
+                        // Handlebars expressions in strings should also be unformatted.
+                        content += this.get_unformatted('}}');
+                        // These expressions are opaque.  Ignore delimiters found in them.
+                        min_index = content.length;
+                    }
+                } while (content.toLowerCase().indexOf(delimiter, min_index) === -1);
+                return content;
+            };
+
+            this.get_token = function() { //initial handler for token-retrieval
+                var token;
+
+                if (this.last_token === 'TK_TAG_SCRIPT' || this.last_token === 'TK_TAG_STYLE') { //check if we need to format javascript
+                    var type = this.last_token.substr(7);
+                    token = this.get_contents_to(type);
+                    if (typeof token !== 'string') {
+                        return token;
+                    }
+                    return [token, 'TK_' + type];
+                }
+                if (this.current_mode === 'CONTENT') {
+                    token = this.get_content();
+                    if (typeof token !== 'string') {
+                        return token;
+                    } else {
+                        return [token, 'TK_CONTENT'];
+                    }
+                }
+
+                if (this.current_mode === 'TAG') {
+                    token = this.get_tag();
+                    if (typeof token !== 'string') {
+                        return token;
+                    } else {
+                        var tag_name_type = 'TK_TAG_' + this.tag_type;
+                        return [token, tag_name_type];
+                    }
+                }
+            };
+
+            this.get_full_indent = function(level) {
+                level = this.indent_level + level || 0;
+                if (level < 1) {
+                    return '';
+                }
+
+                return Array(level + 1).join(this.indent_string);
+            };
+
+            this.is_unformatted = function(tag_check, unformatted) {
+                //is this an HTML5 block-level link?
+                if (!this.Utils.in_array(tag_check, unformatted)) {
+                    return false;
+                }
+
+                if (tag_check.toLowerCase() !== 'a' || !this.Utils.in_array('a', unformatted)) {
+                    return true;
+                }
+
+                //at this point we have an  tag; is its first child something we want to remain
+                //unformatted?
+                var next_tag = this.get_tag(true /* peek. */ );
+
+                // test next_tag to see if it is just html tag (no external content)
+                var tag = (next_tag || "").match(/^\s*<\s*\/?([a-z]*)\s*[^>]*>\s*$/);
+
+                // if next_tag comes back but is not an isolated tag, then
+                // let's treat the 'a' tag as having content
+                // and respect the unformatted option
+                if (!tag || this.Utils.in_array(tag, unformatted)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            this.printer = function(js_source, indent_character, indent_size, wrap_line_length, brace_style) { //handles input/output and some other printing functions
+
+                this.input = js_source || ''; //gets the input for the Parser
+                this.output = [];
+                this.indent_character = indent_character;
+                this.indent_string = '';
+                this.indent_size = indent_size;
+                this.brace_style = brace_style;
+                this.indent_level = 0;
+                this.wrap_line_length = wrap_line_length;
+                this.line_char_count = 0; //count to see if wrap_line_length was exceeded
+
+                for (var i = 0; i < this.indent_size; i++) {
+                    this.indent_string += this.indent_character;
+                }
+
+                this.print_newline = function(force, arr) {
+                    this.line_char_count = 0;
+                    if (!arr || !arr.length) {
+                        return;
+                    }
+                    if (force || (arr[arr.length - 1] !== '\n')) { //we might want the extra line
+                        if ((arr[arr.length - 1] !== '\n')) {
+                            arr[arr.length - 1] = rtrim(arr[arr.length - 1]);
+                        }
+                        arr.push('\n');
+                    }
+                };
+
+                this.print_indentation = function(arr) {
+                    for (var i = 0; i < this.indent_level; i++) {
+                        arr.push(this.indent_string);
+                        this.line_char_count += this.indent_string.length;
+                    }
+                };
+
+                this.print_token = function(text) {
+                    // Avoid printing initial whitespace.
+                    if (this.is_whitespace(text) && !this.output.length) {
+                        return;
+                    }
+                    if (text || text !== '') {
+                        if (this.output.length && this.output[this.output.length - 1] === '\n') {
+                            this.print_indentation(this.output);
+                            text = ltrim(text);
+                        }
+                    }
+                    this.print_token_raw(text);
+                };
+
+                this.print_token_raw = function(text) {
+                    // If we are going to print newlines, truncate trailing
+                    // whitespace, as the newlines will represent the space.
+                    if (this.newlines > 0) {
+                        text = rtrim(text);
+                    }
+
+                    if (text && text !== '') {
+                        if (text.length > 1 && text[text.length - 1] === '\n') {
+                            // unformatted tags can grab newlines as their last character
+                            this.output.push(text.slice(0, -1));
+                            this.print_newline(false, this.output);
+                        } else {
+                            this.output.push(text);
+                        }
+                    }
+
+                    for (var n = 0; n < this.newlines; n++) {
+                        this.print_newline(n > 0, this.output);
+                    }
+                    this.newlines = 0;
+                };
+
+                this.indent = function() {
+                    this.indent_level++;
+                };
+
+                this.unindent = function() {
+                    if (this.indent_level > 0) {
+                        this.indent_level--;
+                    }
+                };
+            };
+            return this;
+        }
+
+        /*_____________________--------------------_____________________*/
+
+        multi_parser = new Parser(); //wrapping functions Parser
+        multi_parser.printer(html_source, indent_character, indent_size, wrap_line_length, brace_style); //initialize starting values
+
+        while (true) {
+            var t = multi_parser.get_token();
+            multi_parser.token_text = t[0];
+            multi_parser.token_type = t[1];
+
+            if (multi_parser.token_type === 'TK_EOF') {
+                break;
+            }
+
+            switch (multi_parser.token_type) {
+                case 'TK_TAG_START':
+                    multi_parser.print_newline(false, multi_parser.output);
+                    multi_parser.print_token(multi_parser.token_text);
+                    if (multi_parser.indent_content) {
+                        multi_parser.indent();
+                        multi_parser.indent_content = false;
+                    }
+                    multi_parser.current_mode = 'CONTENT';
+                    break;
+                case 'TK_TAG_STYLE':
+                case 'TK_TAG_SCRIPT':
+                    multi_parser.print_newline(false, multi_parser.output);
+                    multi_parser.print_token(multi_parser.token_text);
+                    multi_parser.current_mode = 'CONTENT';
+                    break;
+                case 'TK_TAG_END':
+                    //Print new line only if the tag has no content and has child
+                    if (multi_parser.last_token === 'TK_CONTENT' && multi_parser.last_text === '') {
+                        var tag_name = multi_parser.token_text.match(/\w+/)[0];
+                        var tag_extracted_from_last_output = null;
+                        if (multi_parser.output.length) {
+                            tag_extracted_from_last_output = multi_parser.output[multi_parser.output.length - 1].match(/(?:<|{{#)\s*(\w+)/);
+                        }
+                        if (tag_extracted_from_last_output === null ||
+                            tag_extracted_from_last_output[1] !== tag_name) {
+                            multi_parser.print_newline(false, multi_parser.output);
+                        }
+                    }
+                    multi_parser.print_token(multi_parser.token_text);
+                    multi_parser.current_mode = 'CONTENT';
+                    break;
+                case 'TK_TAG_SINGLE':
+                    // Don't add a newline before elements that should remain unformatted.
+                    var tag_check = multi_parser.token_text.match(/^\s*<([a-z-]+)/i);
+                    if (!tag_check || !multi_parser.Utils.in_array(tag_check[1], unformatted)) {
+                        multi_parser.print_newline(false, multi_parser.output);
+                    }
+                    multi_parser.print_token(multi_parser.token_text);
+                    multi_parser.current_mode = 'CONTENT';
+                    break;
+                case 'TK_TAG_HANDLEBARS_ELSE':
+                    multi_parser.print_token(multi_parser.token_text);
+                    if (multi_parser.indent_content) {
+                        multi_parser.indent();
+                        multi_parser.indent_content = false;
+                    }
+                    multi_parser.current_mode = 'CONTENT';
+                    break;
+                case 'TK_CONTENT':
+                    multi_parser.print_token(multi_parser.token_text);
+                    multi_parser.current_mode = 'TAG';
+                    break;
+                case 'TK_STYLE':
+                case 'TK_SCRIPT':
+                    if (multi_parser.token_text !== '') {
+                        multi_parser.print_newline(false, multi_parser.output);
+                        var text = multi_parser.token_text,
+                            _beautifier,
+                            script_indent_level = 1;
+                        if (multi_parser.token_type === 'TK_SCRIPT') {
+                            _beautifier = typeof js_beautify === 'function' && js_beautify;
+                        } else if (multi_parser.token_type === 'TK_STYLE') {
+                            _beautifier = typeof css_beautify === 'function' && css_beautify;
+                        }
+
+                        if (options.indent_scripts === "keep") {
+                            script_indent_level = 0;
+                        } else if (options.indent_scripts === "separate") {
+                            script_indent_level = -multi_parser.indent_level;
+                        }
+
+                        var indentation = multi_parser.get_full_indent(script_indent_level);
+                        if (_beautifier) {
+                            // call the Beautifier if avaliable
+                            text = _beautifier(text.replace(/^\s*/, indentation), options);
+                        } else {
+                            // simply indent the string otherwise
+                            var white = text.match(/^\s*/)[0];
+                            var _level = white.match(/[^\n\r]*$/)[0].split(multi_parser.indent_string).length - 1;
+                            var reindent = multi_parser.get_full_indent(script_indent_level - _level);
+                            text = text.replace(/^\s*/, indentation)
+                                .replace(/\r\n|\r|\n/g, '\n' + reindent)
+                                .replace(/\s+$/, '');
+                        }
+                        if (text) {
+                            multi_parser.print_token_raw(text);
+                            multi_parser.print_newline(true, multi_parser.output);
+                        }
+                    }
+                    multi_parser.current_mode = 'TAG';
+                    break;
+                default:
+                    // We should not be getting here but we don't want to drop input on the floor
+                    // Just output the text and move on
+                    if (multi_parser.token_text !== '') {
+                        multi_parser.print_token(multi_parser.token_text);
+                    }
+                    break;
+            }
+            multi_parser.last_token = multi_parser.token_type;
+            multi_parser.last_text = multi_parser.token_text;
+        }
+        var sweet_code = multi_parser.output.join('').replace(/[\r\n\t ]+$/, '');
+        if (end_with_newline) {
+            sweet_code += '\n';
+        }
+        return sweet_code;
+    }
+
+
+    return {
+      html_beautify: function(html_source, options) {
+        return style_html(html_source, options, beautifyJs, beautifyCss);
+      }
+    };
+
+});
+
+define('skylark-parsers-html/beautify',[
+    "./html",
+    "./primitives/beautify-html"
+], function(html, beautifyHtml) {
+
+	return html.beautify = beautifyHtml.html_beautify;
+});
+define('skylark-parsers-html/main',[
+    "./html",
+    "./beautify"
+], function(html) {
+    return html;
+});
+
+define('skylark-parsers-html', ['skylark-parsers-html/main'], function (main) { return main; });
+
+define('skylark-codemirror/addon/beautify/beautify',[
+  "skylark-langx/langx",
+  "../../CodeMirror"
+], function(langx,CodeMirror) {
+  'use strict';
+  var Pos = CodeMirror.Pos;
+
+  var defaultOptions = {
+    initialBeautify: true,
+    autoBeautify: true,
+    javascript: {
+      beautifyFunc: null,
+      completionFunc: function (cm, change) {
+        return ['}', ']', ';'].indexOf(change.text[0]) !== -1;
+      }
+    },
+    css: {
+      beautifyFunc: null,
+      completionFunc: function (cm, change) {
+        return ['}', ';'].indexOf(change.text[0]) !== -1;
+      }
+    },
+    html: {
+      beautifyFunc: null,
+      completionFunc: function (cm, change) {
+        return ['>'].indexOf(change.text[0]) !== -1;
+      }
+    }
+  };
+
+  function getOptions (cm) {
+    if (!cm || !cm.doc || !cm.doc.mode || !cm.state)
+      return;
+
+    if (cm.doc.mode.name === 'javascript')
+      return cm.state.beautify.javascript;
+    else if (cm.doc.mode.name === 'css')
+      return cm.state.beautify.css;
+    else if (cm.doc.mode.name === 'htmlmixed')
+      return cm.state.beautify.html;
+  }
+
+  function beautify (cm) {
+    var options = getOptions(cm);
+
+    if (options && options.beautifyFunc)
+      cm.setValue(options.beautifyFunc(cm.getValue(), options));
+  }
+
+  function shouldComplete(cm, change) {
+    var options = getOptions(cm);
+
+    if (options.completionFunc)
+      return options.completionFunc(cm, change);
+
+    return false;
+  }
+
+  function onChange (cm, change) {
+    if (cm.state.beautify && !cm.state.beautify.autoBeautify)
+      return;
+
+    if (shouldComplete(cm, change)) {
+      var bracketChar = change.text[0];
+      var bracketCount = cm.getRange(new Pos(0, 0), change.to).split(bracketChar).length;
+
+      beautify(cm);
+
+      var searchCount = 0;
+
+      for (var i = 0; i < cm.lineCount(); i++) {
+        var offset = -1;
+        var lineText = cm.getLine(i);
+
+        while ((offset = lineText.indexOf(bracketChar, offset + 1)) !== -1) {
+          searchCount++;
+
+          if (bracketCount === searchCount) {
+            cm.setCursor(new Pos(i, offset + 1));
+            break;
+          }
+        }
+
+        if (bracketCount === searchCount)
+          break;
+      }
+    }
+  }
+
+  CodeMirror.defineOption('beautify', false, function(cm, val, old) {
+    if (old && old !== CodeMirror.Init)
+      cm.off('change', onChange);
+    if (val) {
+      var indentUnit = cm.getOption('indentUnit');
+
+      var cmOptions = {
+        javascript: {
+          indent_size: indentUnit
+        },
+        css: {
+          indent_size: indentUnit
+        },
+        html: {
+          indent_size: indentUnit
+        }
+      };
+
+      if (typeof val === 'object')
+        cm.state.beautify = langx.mixin({}, defaultOptions, cmOptions, val,true);
+      else
+        cm.state.beautify = langx.mixin({}, defaultOptions, cmOptions,true);
+
+      if (cm.state.beautify.initialBeautify)
+        beautify(cm);
+
+      cm.on('change', onChange);
+    }
+  });
+
+  CodeMirror.defineExtension('beautify', function () {
+    beautify(this);
+  });
+});
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: https://codemirror.net/LICENSE
+
+define('skylark-codemirror/mode/xml/xml',["../../CodeMirror"], function(CodeMirror) {
+
+
+var htmlConfig = {
+  autoSelfClosers: {'area': true, 'base': true, 'br': true, 'col': true, 'command': true,
+                    'embed': true, 'frame': true, 'hr': true, 'img': true, 'input': true,
+                    'keygen': true, 'link': true, 'meta': true, 'param': true, 'source': true,
+                    'track': true, 'wbr': true, 'menuitem': true},
+  implicitlyClosed: {'dd': true, 'li': true, 'optgroup': true, 'option': true, 'p': true,
+                     'rp': true, 'rt': true, 'tbody': true, 'td': true, 'tfoot': true,
+                     'th': true, 'tr': true},
+  contextGrabbers: {
+    'dd': {'dd': true, 'dt': true},
+    'dt': {'dd': true, 'dt': true},
+    'li': {'li': true},
+    'option': {'option': true, 'optgroup': true},
+    'optgroup': {'optgroup': true},
+    'p': {'address': true, 'article': true, 'aside': true, 'blockquote': true, 'dir': true,
+          'div': true, 'dl': true, 'fieldset': true, 'footer': true, 'form': true,
+          'h1': true, 'h2': true, 'h3': true, 'h4': true, 'h5': true, 'h6': true,
+          'header': true, 'hgroup': true, 'hr': true, 'menu': true, 'nav': true, 'ol': true,
+          'p': true, 'pre': true, 'section': true, 'table': true, 'ul': true},
+    'rp': {'rp': true, 'rt': true},
+    'rt': {'rp': true, 'rt': true},
+    'tbody': {'tbody': true, 'tfoot': true},
+    'td': {'td': true, 'th': true},
+    'tfoot': {'tbody': true},
+    'th': {'td': true, 'th': true},
+    'thead': {'tbody': true, 'tfoot': true},
+    'tr': {'tr': true}
+  },
+  doNotIndent: {"pre": true},
+  allowUnquoted: true,
+  allowMissing: true,
+  caseFold: true
+}
+
+var xmlConfig = {
+  autoSelfClosers: {},
+  implicitlyClosed: {},
+  contextGrabbers: {},
+  doNotIndent: {},
+  allowUnquoted: false,
+  allowMissing: false,
+  allowMissingTagName: false,
+  caseFold: false
+}
+
+CodeMirror.defineMode("xml", function(editorConf, config_) {
+  var indentUnit = editorConf.indentUnit
+  var config = {}
+  var defaults = config_.htmlMode ? htmlConfig : xmlConfig
+  for (var prop in defaults) config[prop] = defaults[prop]
+  for (var prop in config_) config[prop] = config_[prop]
+
+  // Return variables for tokenizers
+  var type, setStyle;
+
+  function inText(stream, state) {
+    function chain(parser) {
+      state.tokenize = parser;
+      return parser(stream, state);
+    }
+
+    var ch = stream.next();
+    if (ch == "<") {
+      if (stream.eat("!")) {
+        if (stream.eat("[")) {
+          if (stream.match("CDATA[")) return chain(inBlock("atom", "]]>"));
+          else return null;
+        } else if (stream.match("--")) {
+          return chain(inBlock("comment", "-->"));
+        } else if (stream.match("DOCTYPE", true, true)) {
+          stream.eatWhile(/[\w\._\-]/);
+          return chain(doctype(1));
+        } else {
+          return null;
+        }
+      } else if (stream.eat("?")) {
+        stream.eatWhile(/[\w\._\-]/);
+        state.tokenize = inBlock("meta", "?>");
+        return "meta";
+      } else {
+        type = stream.eat("/") ? "closeTag" : "openTag";
+        state.tokenize = inTag;
+        return "tag bracket";
+      }
+    } else if (ch == "&") {
+      var ok;
+      if (stream.eat("#")) {
+        if (stream.eat("x")) {
+          ok = stream.eatWhile(/[a-fA-F\d]/) && stream.eat(";");
+        } else {
+          ok = stream.eatWhile(/[\d]/) && stream.eat(";");
+        }
+      } else {
+        ok = stream.eatWhile(/[\w\.\-:]/) && stream.eat(";");
+      }
+      return ok ? "atom" : "error";
+    } else {
+      stream.eatWhile(/[^&<]/);
+      return null;
+    }
+  }
+  inText.isInText = true;
+
+  function inTag(stream, state) {
+    var ch = stream.next();
+    if (ch == ">" || (ch == "/" && stream.eat(">"))) {
+      state.tokenize = inText;
+      type = ch == ">" ? "endTag" : "selfcloseTag";
+      return "tag bracket";
+    } else if (ch == "=") {
+      type = "equals";
+      return null;
+    } else if (ch == "<") {
+      state.tokenize = inText;
+      state.state = baseState;
+      state.tagName = state.tagStart = null;
+      var next = state.tokenize(stream, state);
+      return next ? next + " tag error" : "tag error";
+    } else if (/[\'\"]/.test(ch)) {
+      state.tokenize = inAttribute(ch);
+      state.stringStartCol = stream.column();
+      return state.tokenize(stream, state);
+    } else {
+      stream.match(/^[^\s\u00a0=<>\"\']*[^\s\u00a0=<>\"\'\/]/);
+      return "word";
+    }
+  }
+
+  function inAttribute(quote) {
+    var closure = function(stream, state) {
+      while (!stream.eol()) {
+        if (stream.next() == quote) {
+          state.tokenize = inTag;
+          break;
+        }
+      }
+      return "string";
+    };
+    closure.isInAttribute = true;
+    return closure;
+  }
+
+  function inBlock(style, terminator) {
+    return function(stream, state) {
+      while (!stream.eol()) {
+        if (stream.match(terminator)) {
+          state.tokenize = inText;
+          break;
+        }
+        stream.next();
+      }
+      return style;
+    }
+  }
+
+  function doctype(depth) {
+    return function(stream, state) {
+      var ch;
+      while ((ch = stream.next()) != null) {
+        if (ch == "<") {
+          state.tokenize = doctype(depth + 1);
+          return state.tokenize(stream, state);
+        } else if (ch == ">") {
+          if (depth == 1) {
+            state.tokenize = inText;
+            break;
+          } else {
+            state.tokenize = doctype(depth - 1);
+            return state.tokenize(stream, state);
+          }
+        }
+      }
+      return "meta";
+    };
+  }
+
+  function Context(state, tagName, startOfLine) {
+    this.prev = state.context;
+    this.tagName = tagName;
+    this.indent = state.indented;
+    this.startOfLine = startOfLine;
+    if (config.doNotIndent.hasOwnProperty(tagName) || (state.context && state.context.noIndent))
+      this.noIndent = true;
+  }
+  function popContext(state) {
+    if (state.context) state.context = state.context.prev;
+  }
+  function maybePopContext(state, nextTagName) {
+    var parentTagName;
+    while (true) {
+      if (!state.context) {
+        return;
+      }
+      parentTagName = state.context.tagName;
+      if (!config.contextGrabbers.hasOwnProperty(parentTagName) ||
+          !config.contextGrabbers[parentTagName].hasOwnProperty(nextTagName)) {
+        return;
+      }
+      popContext(state);
+    }
+  }
+
+  function baseState(type, stream, state) {
+    if (type == "openTag") {
+      state.tagStart = stream.column();
+      return tagNameState;
+    } else if (type == "closeTag") {
+      return closeTagNameState;
+    } else {
+      return baseState;
+    }
+  }
+  function tagNameState(type, stream, state) {
+    if (type == "word") {
+      state.tagName = stream.current();
+      setStyle = "tag";
+      return attrState;
+    } else if (config.allowMissingTagName && type == "endTag") {
+      setStyle = "tag bracket";
+      return attrState(type, stream, state);
+    } else {
+      setStyle = "error";
+      return tagNameState;
+    }
+  }
+  function closeTagNameState(type, stream, state) {
+    if (type == "word") {
+      var tagName = stream.current();
+      if (state.context && state.context.tagName != tagName &&
+          config.implicitlyClosed.hasOwnProperty(state.context.tagName))
+        popContext(state);
+      if ((state.context && state.context.tagName == tagName) || config.matchClosing === false) {
+        setStyle = "tag";
+        return closeState;
+      } else {
+        setStyle = "tag error";
+        return closeStateErr;
+      }
+    } else if (config.allowMissingTagName && type == "endTag") {
+      setStyle = "tag bracket";
+      return closeState(type, stream, state);
+    } else {
+      setStyle = "error";
+      return closeStateErr;
+    }
+  }
+
+  function closeState(type, _stream, state) {
+    if (type != "endTag") {
+      setStyle = "error";
+      return closeState;
+    }
+    popContext(state);
+    return baseState;
+  }
+  function closeStateErr(type, stream, state) {
+    setStyle = "error";
+    return closeState(type, stream, state);
+  }
+
+  function attrState(type, _stream, state) {
+    if (type == "word") {
+      setStyle = "attribute";
+      return attrEqState;
+    } else if (type == "endTag" || type == "selfcloseTag") {
+      var tagName = state.tagName, tagStart = state.tagStart;
+      state.tagName = state.tagStart = null;
+      if (type == "selfcloseTag" ||
+          config.autoSelfClosers.hasOwnProperty(tagName)) {
+        maybePopContext(state, tagName);
+      } else {
+        maybePopContext(state, tagName);
+        state.context = new Context(state, tagName, tagStart == state.indented);
+      }
+      return baseState;
+    }
+    setStyle = "error";
+    return attrState;
+  }
+  function attrEqState(type, stream, state) {
+    if (type == "equals") return attrValueState;
+    if (!config.allowMissing) setStyle = "error";
+    return attrState(type, stream, state);
+  }
+  function attrValueState(type, stream, state) {
+    if (type == "string") return attrContinuedState;
+    if (type == "word" && config.allowUnquoted) {setStyle = "string"; return attrState;}
+    setStyle = "error";
+    return attrState(type, stream, state);
+  }
+  function attrContinuedState(type, stream, state) {
+    if (type == "string") return attrContinuedState;
+    return attrState(type, stream, state);
+  }
+
+  return {
+    startState: function(baseIndent) {
+      var state = {tokenize: inText,
+                   state: baseState,
+                   indented: baseIndent || 0,
+                   tagName: null, tagStart: null,
+                   context: null}
+      if (baseIndent != null) state.baseIndent = baseIndent
+      return state
+    },
+
+    token: function(stream, state) {
+      if (!state.tagName && stream.sol())
+        state.indented = stream.indentation();
+
+      if (stream.eatSpace()) return null;
+      type = null;
+      var style = state.tokenize(stream, state);
+      if ((style || type) && style != "comment") {
+        setStyle = null;
+        state.state = state.state(type || style, stream, state);
+        if (setStyle)
+          style = setStyle == "error" ? style + " error" : setStyle;
+      }
+      return style;
+    },
+
+    indent: function(state, textAfter, fullLine) {
+      var context = state.context;
+      // Indent multi-line strings (e.g. css).
+      if (state.tokenize.isInAttribute) {
+        if (state.tagStart == state.indented)
+          return state.stringStartCol + 1;
+        else
+          return state.indented + indentUnit;
+      }
+      if (context && context.noIndent) return CodeMirror.Pass;
+      if (state.tokenize != inTag && state.tokenize != inText)
+        return fullLine ? fullLine.match(/^(\s*)/)[0].length : 0;
+      // Indent the starts of attribute names.
+      if (state.tagName) {
+        if (config.multilineTagIndentPastTag !== false)
+          return state.tagStart + state.tagName.length + 2;
+        else
+          return state.tagStart + indentUnit * (config.multilineTagIndentFactor || 1);
+      }
+      if (config.alignCDATA && /<!\[CDATA\[/.test(textAfter)) return 0;
+      var tagAfter = textAfter && /^<(\/)?([\w_:\.-]*)/.exec(textAfter);
+      if (tagAfter && tagAfter[1]) { // Closing tag spotted
+        while (context) {
+          if (context.tagName == tagAfter[2]) {
+            context = context.prev;
+            break;
+          } else if (config.implicitlyClosed.hasOwnProperty(context.tagName)) {
+            context = context.prev;
+          } else {
+            break;
+          }
+        }
+      } else if (tagAfter) { // Opening tag spotted
+        while (context) {
+          var grabbers = config.contextGrabbers[context.tagName];
+          if (grabbers && grabbers.hasOwnProperty(tagAfter[2]))
+            context = context.prev;
+          else
+            break;
+        }
+      }
+      while (context && context.prev && !context.startOfLine)
+        context = context.prev;
+      if (context) return context.indent + indentUnit;
+      else return state.baseIndent || 0;
+    },
+
+    electricInput: /<\/[\s\w:]+>$/,
+    blockCommentStart: "<!--",
+    blockCommentEnd: "-->",
+
+    configuration: config.htmlMode ? "html" : "xml",
+    helperType: config.htmlMode ? "html" : "xml",
+
+    skipAttribute: function(state) {
+      if (state.state == attrValueState)
+        state.state = attrState
+    }
+  };
+});
+
+CodeMirror.defineMIME("text/xml", "xml");
+CodeMirror.defineMIME("application/xml", "xml");
+if (!CodeMirror.mimeModes.hasOwnProperty("text/html"))
+  CodeMirror.defineMIME("text/html", {name: "xml", htmlMode: true});
+
+});
+
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: https://codemirror.net/LICENSE
+
+define('skylark-codemirror/mode/css/css',["../../CodeMirror"], function(CodeMirror) {
+
+
+CodeMirror.defineMode("css", function(config, parserConfig) {
+  var inline = parserConfig.inline
+  if (!parserConfig.propertyKeywords) parserConfig = CodeMirror.resolveMode("text/css");
+
+  var indentUnit = config.indentUnit,
+      tokenHooks = parserConfig.tokenHooks,
+      documentTypes = parserConfig.documentTypes || {},
+      mediaTypes = parserConfig.mediaTypes || {},
+      mediaFeatures = parserConfig.mediaFeatures || {},
+      mediaValueKeywords = parserConfig.mediaValueKeywords || {},
+      propertyKeywords = parserConfig.propertyKeywords || {},
+      nonStandardPropertyKeywords = parserConfig.nonStandardPropertyKeywords || {},
+      fontProperties = parserConfig.fontProperties || {},
+      counterDescriptors = parserConfig.counterDescriptors || {},
+      colorKeywords = parserConfig.colorKeywords || {},
+      valueKeywords = parserConfig.valueKeywords || {},
+      allowNested = parserConfig.allowNested,
+      lineComment = parserConfig.lineComment,
+      supportsAtComponent = parserConfig.supportsAtComponent === true;
+
+  var type, override;
+  function ret(style, tp) { type = tp; return style; }
+
+  // Tokenizers
+
+  function tokenBase(stream, state) {
+    var ch = stream.next();
+    if (tokenHooks[ch]) {
+      var result = tokenHooks[ch](stream, state);
+      if (result !== false) return result;
+    }
+    if (ch == "@") {
+      stream.eatWhile(/[\w\\\-]/);
+      return ret("def", stream.current());
+    } else if (ch == "=" || (ch == "~" || ch == "|") && stream.eat("=")) {
+      return ret(null, "compare");
+    } else if (ch == "\"" || ch == "'") {
+      state.tokenize = tokenString(ch);
+      return state.tokenize(stream, state);
+    } else if (ch == "#") {
+      stream.eatWhile(/[\w\\\-]/);
+      return ret("atom", "hash");
+    } else if (ch == "!") {
+      stream.match(/^\s*\w*/);
+      return ret("keyword", "important");
+    } else if (/\d/.test(ch) || ch == "." && stream.eat(/\d/)) {
+      stream.eatWhile(/[\w.%]/);
+      return ret("number", "unit");
+    } else if (ch === "-") {
+      if (/[\d.]/.test(stream.peek())) {
+        stream.eatWhile(/[\w.%]/);
+        return ret("number", "unit");
+      } else if (stream.match(/^-[\w\\\-]*/)) {
+        stream.eatWhile(/[\w\\\-]/);
+        if (stream.match(/^\s*:/, false))
+          return ret("variable-2", "variable-definition");
+        return ret("variable-2", "variable");
+      } else if (stream.match(/^\w+-/)) {
+        return ret("meta", "meta");
+      }
+    } else if (/[,+>*\/]/.test(ch)) {
+      return ret(null, "select-op");
+    } else if (ch == "." && stream.match(/^-?[_a-z][_a-z0-9-]*/i)) {
+      return ret("qualifier", "qualifier");
+    } else if (/[:;{}\[\]\(\)]/.test(ch)) {
+      return ret(null, ch);
+    } else if (stream.match(/[\w-.]+(?=\()/)) {
+      if (/^(url(-prefix)?|domain|regexp)$/.test(stream.current().toLowerCase())) {
+        state.tokenize = tokenParenthesized;
+      }
+      return ret("variable callee", "variable");
+    } else if (/[\w\\\-]/.test(ch)) {
+      stream.eatWhile(/[\w\\\-]/);
+      return ret("property", "word");
+    } else {
+      return ret(null, null);
+    }
+  }
+
+  function tokenString(quote) {
+    return function(stream, state) {
+      var escaped = false, ch;
+      while ((ch = stream.next()) != null) {
+        if (ch == quote && !escaped) {
+          if (quote == ")") stream.backUp(1);
+          break;
+        }
+        escaped = !escaped && ch == "\\";
+      }
+      if (ch == quote || !escaped && quote != ")") state.tokenize = null;
+      return ret("string", "string");
+    };
+  }
+
+  function tokenParenthesized(stream, state) {
+    stream.next(); // Must be '('
+    if (!stream.match(/\s*[\"\')]/, false))
+      state.tokenize = tokenString(")");
+    else
+      state.tokenize = null;
+    return ret(null, "(");
+  }
+
+  // Context management
+
+  function Context(type, indent, prev) {
+    this.type = type;
+    this.indent = indent;
+    this.prev = prev;
+  }
+
+  function pushContext(state, stream, type, indent) {
+    state.context = new Context(type, stream.indentation() + (indent === false ? 0 : indentUnit), state.context);
+    return type;
+  }
+
+  function popContext(state) {
+    if (state.context.prev)
+      state.context = state.context.prev;
+    return state.context.type;
+  }
+
+  function pass(type, stream, state) {
+    return states[state.context.type](type, stream, state);
+  }
+  function popAndPass(type, stream, state, n) {
+    for (var i = n || 1; i > 0; i--)
+      state.context = state.context.prev;
+    return pass(type, stream, state);
+  }
+
+  // Parser
+
+  function wordAsValue(stream) {
+    var word = stream.current().toLowerCase();
+    if (valueKeywords.hasOwnProperty(word))
+      override = "atom";
+    else if (colorKeywords.hasOwnProperty(word))
+      override = "keyword";
+    else
+      override = "variable";
+  }
+
+  var states = {};
+
+  states.top = function(type, stream, state) {
+    if (type == "{") {
+      return pushContext(state, stream, "block");
+    } else if (type == "}" && state.context.prev) {
+      return popContext(state);
+    } else if (supportsAtComponent && /@component/i.test(type)) {
+      return pushContext(state, stream, "atComponentBlock");
+    } else if (/^@(-moz-)?document$/i.test(type)) {
+      return pushContext(state, stream, "documentTypes");
+    } else if (/^@(media|supports|(-moz-)?document|import)$/i.test(type)) {
+      return pushContext(state, stream, "atBlock");
+    } else if (/^@(font-face|counter-style)/i.test(type)) {
+      state.stateArg = type;
+      return "restricted_atBlock_before";
+    } else if (/^@(-(moz|ms|o|webkit)-)?keyframes$/i.test(type)) {
+      return "keyframes";
+    } else if (type && type.charAt(0) == "@") {
+      return pushContext(state, stream, "at");
+    } else if (type == "hash") {
+      override = "builtin";
+    } else if (type == "word") {
+      override = "tag";
+    } else if (type == "variable-definition") {
+      return "maybeprop";
+    } else if (type == "interpolation") {
+      return pushContext(state, stream, "interpolation");
+    } else if (type == ":") {
+      return "pseudo";
+    } else if (allowNested && type == "(") {
+      return pushContext(state, stream, "parens");
+    }
+    return state.context.type;
+  };
+
+  states.block = function(type, stream, state) {
+    if (type == "word") {
+      var word = stream.current().toLowerCase();
+      if (propertyKeywords.hasOwnProperty(word)) {
+        override = "property";
+        return "maybeprop";
+      } else if (nonStandardPropertyKeywords.hasOwnProperty(word)) {
+        override = "string-2";
+        return "maybeprop";
+      } else if (allowNested) {
+        override = stream.match(/^\s*:(?:\s|$)/, false) ? "property" : "tag";
+        return "block";
+      } else {
+        override += " error";
+        return "maybeprop";
+      }
+    } else if (type == "meta") {
+      return "block";
+    } else if (!allowNested && (type == "hash" || type == "qualifier")) {
+      override = "error";
+      return "block";
+    } else {
+      return states.top(type, stream, state);
+    }
+  };
+
+  states.maybeprop = function(type, stream, state) {
+    if (type == ":") return pushContext(state, stream, "prop");
+    return pass(type, stream, state);
+  };
+
+  states.prop = function(type, stream, state) {
+    if (type == ";") return popContext(state);
+    if (type == "{" && allowNested) return pushContext(state, stream, "propBlock");
+    if (type == "}" || type == "{") return popAndPass(type, stream, state);
+    if (type == "(") return pushContext(state, stream, "parens");
+
+    if (type == "hash" && !/^#([0-9a-fA-f]{3,4}|[0-9a-fA-f]{6}|[0-9a-fA-f]{8})$/.test(stream.current())) {
+      override += " error";
+    } else if (type == "word") {
+      wordAsValue(stream);
+    } else if (type == "interpolation") {
+      return pushContext(state, stream, "interpolation");
+    }
+    return "prop";
+  };
+
+  states.propBlock = function(type, _stream, state) {
+    if (type == "}") return popContext(state);
+    if (type == "word") { override = "property"; return "maybeprop"; }
+    return state.context.type;
+  };
+
+  states.parens = function(type, stream, state) {
+    if (type == "{" || type == "}") return popAndPass(type, stream, state);
+    if (type == ")") return popContext(state);
+    if (type == "(") return pushContext(state, stream, "parens");
+    if (type == "interpolation") return pushContext(state, stream, "interpolation");
+    if (type == "word") wordAsValue(stream);
+    return "parens";
+  };
+
+  states.pseudo = function(type, stream, state) {
+    if (type == "meta") return "pseudo";
+
+    if (type == "word") {
+      override = "variable-3";
+      return state.context.type;
+    }
+    return pass(type, stream, state);
+  };
+
+  states.documentTypes = function(type, stream, state) {
+    if (type == "word" && documentTypes.hasOwnProperty(stream.current())) {
+      override = "tag";
+      return state.context.type;
+    } else {
+      return states.atBlock(type, stream, state);
+    }
+  };
+
+  states.atBlock = function(type, stream, state) {
+    if (type == "(") return pushContext(state, stream, "atBlock_parens");
+    if (type == "}" || type == ";") return popAndPass(type, stream, state);
+    if (type == "{") return popContext(state) && pushContext(state, stream, allowNested ? "block" : "top");
+
+    if (type == "interpolation") return pushContext(state, stream, "interpolation");
+
+    if (type == "word") {
+      var word = stream.current().toLowerCase();
+      if (word == "only" || word == "not" || word == "and" || word == "or")
+        override = "keyword";
+      else if (mediaTypes.hasOwnProperty(word))
+        override = "attribute";
+      else if (mediaFeatures.hasOwnProperty(word))
+        override = "property";
+      else if (mediaValueKeywords.hasOwnProperty(word))
+        override = "keyword";
+      else if (propertyKeywords.hasOwnProperty(word))
+        override = "property";
+      else if (nonStandardPropertyKeywords.hasOwnProperty(word))
+        override = "string-2";
+      else if (valueKeywords.hasOwnProperty(word))
+        override = "atom";
+      else if (colorKeywords.hasOwnProperty(word))
+        override = "keyword";
+      else
+        override = "error";
+    }
+    return state.context.type;
+  };
+
+  states.atComponentBlock = function(type, stream, state) {
+    if (type == "}")
+      return popAndPass(type, stream, state);
+    if (type == "{")
+      return popContext(state) && pushContext(state, stream, allowNested ? "block" : "top", false);
+    if (type == "word")
+      override = "error";
+    return state.context.type;
+  };
+
+  states.atBlock_parens = function(type, stream, state) {
+    if (type == ")") return popContext(state);
+    if (type == "{" || type == "}") return popAndPass(type, stream, state, 2);
+    return states.atBlock(type, stream, state);
+  };
+
+  states.restricted_atBlock_before = function(type, stream, state) {
+    if (type == "{")
+      return pushContext(state, stream, "restricted_atBlock");
+    if (type == "word" && state.stateArg == "@counter-style") {
+      override = "variable";
+      return "restricted_atBlock_before";
+    }
+    return pass(type, stream, state);
+  };
+
+  states.restricted_atBlock = function(type, stream, state) {
+    if (type == "}") {
+      state.stateArg = null;
+      return popContext(state);
+    }
+    if (type == "word") {
+      if ((state.stateArg == "@font-face" && !fontProperties.hasOwnProperty(stream.current().toLowerCase())) ||
+          (state.stateArg == "@counter-style" && !counterDescriptors.hasOwnProperty(stream.current().toLowerCase())))
+        override = "error";
+      else
+        override = "property";
+      return "maybeprop";
+    }
+    return "restricted_atBlock";
+  };
+
+  states.keyframes = function(type, stream, state) {
+    if (type == "word") { override = "variable"; return "keyframes"; }
+    if (type == "{") return pushContext(state, stream, "top");
+    return pass(type, stream, state);
+  };
+
+  states.at = function(type, stream, state) {
+    if (type == ";") return popContext(state);
+    if (type == "{" || type == "}") return popAndPass(type, stream, state);
+    if (type == "word") override = "tag";
+    else if (type == "hash") override = "builtin";
+    return "at";
+  };
+
+  states.interpolation = function(type, stream, state) {
+    if (type == "}") return popContext(state);
+    if (type == "{" || type == ";") return popAndPass(type, stream, state);
+    if (type == "word") override = "variable";
+    else if (type != "variable" && type != "(" && type != ")") override = "error";
+    return "interpolation";
+  };
+
+  return {
+    startState: function(base) {
+      return {tokenize: null,
+              state: inline ? "block" : "top",
+              stateArg: null,
+              context: new Context(inline ? "block" : "top", base || 0, null)};
+    },
+
+    token: function(stream, state) {
+      if (!state.tokenize && stream.eatSpace()) return null;
+      var style = (state.tokenize || tokenBase)(stream, state);
+      if (style && typeof style == "object") {
+        type = style[1];
+        style = style[0];
+      }
+      override = style;
+      if (type != "comment")
+        state.state = states[state.state](type, stream, state);
+      return override;
+    },
+
+    indent: function(state, textAfter) {
+      var cx = state.context, ch = textAfter && textAfter.charAt(0);
+      var indent = cx.indent;
+      if (cx.type == "prop" && (ch == "}" || ch == ")")) cx = cx.prev;
+      if (cx.prev) {
+        if (ch == "}" && (cx.type == "block" || cx.type == "top" ||
+                          cx.type == "interpolation" || cx.type == "restricted_atBlock")) {
+          // Resume indentation from parent context.
+          cx = cx.prev;
+          indent = cx.indent;
+        } else if (ch == ")" && (cx.type == "parens" || cx.type == "atBlock_parens") ||
+            ch == "{" && (cx.type == "at" || cx.type == "atBlock")) {
+          // Dedent relative to current context.
+          indent = Math.max(0, cx.indent - indentUnit);
+        }
+      }
+      return indent;
+    },
+
+    electricChars: "}",
+    blockCommentStart: "/*",
+    blockCommentEnd: "*/",
+    blockCommentContinue: " * ",
+    lineComment: lineComment,
+    fold: "brace"
+  };
+});
+
+  function keySet(array) {
+    var keys = {};
+    for (var i = 0; i < array.length; ++i) {
+      keys[array[i].toLowerCase()] = true;
+    }
+    return keys;
+  }
+
+  var documentTypes_ = [
+    "domain", "regexp", "url", "url-prefix"
+  ], documentTypes = keySet(documentTypes_);
+
+  var mediaTypes_ = [
+    "all", "aural", "braille", "handheld", "print", "projection", "screen",
+    "tty", "tv", "embossed"
+  ], mediaTypes = keySet(mediaTypes_);
+
+  var mediaFeatures_ = [
+    "width", "min-width", "max-width", "height", "min-height", "max-height",
+    "device-width", "min-device-width", "max-device-width", "device-height",
+    "min-device-height", "max-device-height", "aspect-ratio",
+    "min-aspect-ratio", "max-aspect-ratio", "device-aspect-ratio",
+    "min-device-aspect-ratio", "max-device-aspect-ratio", "color", "min-color",
+    "max-color", "color-index", "min-color-index", "max-color-index",
+    "monochrome", "min-monochrome", "max-monochrome", "resolution",
+    "min-resolution", "max-resolution", "scan", "grid", "orientation",
+    "device-pixel-ratio", "min-device-pixel-ratio", "max-device-pixel-ratio",
+    "pointer", "any-pointer", "hover", "any-hover"
+  ], mediaFeatures = keySet(mediaFeatures_);
+
+  var mediaValueKeywords_ = [
+    "landscape", "portrait", "none", "coarse", "fine", "on-demand", "hover",
+    "interlace", "progressive"
+  ], mediaValueKeywords = keySet(mediaValueKeywords_);
+
+  var propertyKeywords_ = [
+    "align-content", "align-items", "align-self", "alignment-adjust",
+    "alignment-baseline", "anchor-point", "animation", "animation-delay",
+    "animation-direction", "animation-duration", "animation-fill-mode",
+    "animation-iteration-count", "animation-name", "animation-play-state",
+    "animation-timing-function", "appearance", "azimuth", "backface-visibility",
+    "background", "background-attachment", "background-blend-mode", "background-clip",
+    "background-color", "background-image", "background-origin", "background-position",
+    "background-repeat", "background-size", "baseline-shift", "binding",
+    "bleed", "bookmark-label", "bookmark-level", "bookmark-state",
+    "bookmark-target", "border", "border-bottom", "border-bottom-color",
+    "border-bottom-left-radius", "border-bottom-right-radius",
+    "border-bottom-style", "border-bottom-width", "border-collapse",
+    "border-color", "border-image", "border-image-outset",
+    "border-image-repeat", "border-image-slice", "border-image-source",
+    "border-image-width", "border-left", "border-left-color",
+    "border-left-style", "border-left-width", "border-radius", "border-right",
+    "border-right-color", "border-right-style", "border-right-width",
+    "border-spacing", "border-style", "border-top", "border-top-color",
+    "border-top-left-radius", "border-top-right-radius", "border-top-style",
+    "border-top-width", "border-width", "bottom", "box-decoration-break",
+    "box-shadow", "box-sizing", "break-after", "break-before", "break-inside",
+    "caption-side", "caret-color", "clear", "clip", "color", "color-profile", "column-count",
+    "column-fill", "column-gap", "column-rule", "column-rule-color",
+    "column-rule-style", "column-rule-width", "column-span", "column-width",
+    "columns", "content", "counter-increment", "counter-reset", "crop", "cue",
+    "cue-after", "cue-before", "cursor", "direction", "display",
+    "dominant-baseline", "drop-initial-after-adjust",
+    "drop-initial-after-align", "drop-initial-before-adjust",
+    "drop-initial-before-align", "drop-initial-size", "drop-initial-value",
+    "elevation", "empty-cells", "fit", "fit-position", "flex", "flex-basis",
+    "flex-direction", "flex-flow", "flex-grow", "flex-shrink", "flex-wrap",
+    "float", "float-offset", "flow-from", "flow-into", "font", "font-feature-settings",
+    "font-family", "font-kerning", "font-language-override", "font-size", "font-size-adjust",
+    "font-stretch", "font-style", "font-synthesis", "font-variant",
+    "font-variant-alternates", "font-variant-caps", "font-variant-east-asian",
+    "font-variant-ligatures", "font-variant-numeric", "font-variant-position",
+    "font-weight", "grid", "grid-area", "grid-auto-columns", "grid-auto-flow",
+    "grid-auto-rows", "grid-column", "grid-column-end", "grid-column-gap",
+    "grid-column-start", "grid-gap", "grid-row", "grid-row-end", "grid-row-gap",
+    "grid-row-start", "grid-template", "grid-template-areas", "grid-template-columns",
+    "grid-template-rows", "hanging-punctuation", "height", "hyphens",
+    "icon", "image-orientation", "image-rendering", "image-resolution",
+    "inline-box-align", "justify-content", "justify-items", "justify-self", "left", "letter-spacing",
+    "line-break", "line-height", "line-stacking", "line-stacking-ruby",
+    "line-stacking-shift", "line-stacking-strategy", "list-style",
+    "list-style-image", "list-style-position", "list-style-type", "margin",
+    "margin-bottom", "margin-left", "margin-right", "margin-top",
+    "marks", "marquee-direction", "marquee-loop",
+    "marquee-play-count", "marquee-speed", "marquee-style", "max-height",
+    "max-width", "min-height", "min-width", "mix-blend-mode", "move-to", "nav-down", "nav-index",
+    "nav-left", "nav-right", "nav-up", "object-fit", "object-position",
+    "opacity", "order", "orphans", "outline",
+    "outline-color", "outline-offset", "outline-style", "outline-width",
+    "overflow", "overflow-style", "overflow-wrap", "overflow-x", "overflow-y",
+    "padding", "padding-bottom", "padding-left", "padding-right", "padding-top",
+    "page", "page-break-after", "page-break-before", "page-break-inside",
+    "page-policy", "pause", "pause-after", "pause-before", "perspective",
+    "perspective-origin", "pitch", "pitch-range", "place-content", "place-items", "place-self", "play-during", "position",
+    "presentation-level", "punctuation-trim", "quotes", "region-break-after",
+    "region-break-before", "region-break-inside", "region-fragment",
+    "rendering-intent", "resize", "rest", "rest-after", "rest-before", "richness",
+    "right", "rotation", "rotation-point", "ruby-align", "ruby-overhang",
+    "ruby-position", "ruby-span", "shape-image-threshold", "shape-inside", "shape-margin",
+    "shape-outside", "size", "speak", "speak-as", "speak-header",
+    "speak-numeral", "speak-punctuation", "speech-rate", "stress", "string-set",
+    "tab-size", "table-layout", "target", "target-name", "target-new",
+    "target-position", "text-align", "text-align-last", "text-decoration",
+    "text-decoration-color", "text-decoration-line", "text-decoration-skip",
+    "text-decoration-style", "text-emphasis", "text-emphasis-color",
+    "text-emphasis-position", "text-emphasis-style", "text-height",
+    "text-indent", "text-justify", "text-outline", "text-overflow", "text-shadow",
+    "text-size-adjust", "text-space-collapse", "text-transform", "text-underline-position",
+    "text-wrap", "top", "transform", "transform-origin", "transform-style",
+    "transition", "transition-delay", "transition-duration",
+    "transition-property", "transition-timing-function", "unicode-bidi",
+    "user-select", "vertical-align", "visibility", "voice-balance", "voice-duration",
+    "voice-family", "voice-pitch", "voice-range", "voice-rate", "voice-stress",
+    "voice-volume", "volume", "white-space", "widows", "width", "will-change", "word-break",
+    "word-spacing", "word-wrap", "z-index",
+    // SVG-specific
+    "clip-path", "clip-rule", "mask", "enable-background", "filter", "flood-color",
+    "flood-opacity", "lighting-color", "stop-color", "stop-opacity", "pointer-events",
+    "color-interpolation", "color-interpolation-filters",
+    "color-rendering", "fill", "fill-opacity", "fill-rule", "image-rendering",
+    "marker", "marker-end", "marker-mid", "marker-start", "shape-rendering", "stroke",
+    "stroke-dasharray", "stroke-dashoffset", "stroke-linecap", "stroke-linejoin",
+    "stroke-miterlimit", "stroke-opacity", "stroke-width", "text-rendering",
+    "baseline-shift", "dominant-baseline", "glyph-orientation-horizontal",
+    "glyph-orientation-vertical", "text-anchor", "writing-mode"
+  ], propertyKeywords = keySet(propertyKeywords_);
+
+  var nonStandardPropertyKeywords_ = [
+    "scrollbar-arrow-color", "scrollbar-base-color", "scrollbar-dark-shadow-color",
+    "scrollbar-face-color", "scrollbar-highlight-color", "scrollbar-shadow-color",
+    "scrollbar-3d-light-color", "scrollbar-track-color", "shape-inside",
+    "searchfield-cancel-button", "searchfield-decoration", "searchfield-results-button",
+    "searchfield-results-decoration", "zoom"
+  ], nonStandardPropertyKeywords = keySet(nonStandardPropertyKeywords_);
+
+  var fontProperties_ = [
+    "font-family", "src", "unicode-range", "font-variant", "font-feature-settings",
+    "font-stretch", "font-weight", "font-style"
+  ], fontProperties = keySet(fontProperties_);
+
+  var counterDescriptors_ = [
+    "additive-symbols", "fallback", "negative", "pad", "prefix", "range",
+    "speak-as", "suffix", "symbols", "system"
+  ], counterDescriptors = keySet(counterDescriptors_);
+
+  var colorKeywords_ = [
+    "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige",
+    "bisque", "black", "blanchedalmond", "blue", "blueviolet", "brown",
+    "burlywood", "cadetblue", "chartreuse", "chocolate", "coral", "cornflowerblue",
+    "cornsilk", "crimson", "cyan", "darkblue", "darkcyan", "darkgoldenrod",
+    "darkgray", "darkgreen", "darkkhaki", "darkmagenta", "darkolivegreen",
+    "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen",
+    "darkslateblue", "darkslategray", "darkturquoise", "darkviolet",
+    "deeppink", "deepskyblue", "dimgray", "dodgerblue", "firebrick",
+    "floralwhite", "forestgreen", "fuchsia", "gainsboro", "ghostwhite",
+    "gold", "goldenrod", "gray", "grey", "green", "greenyellow", "honeydew",
+    "hotpink", "indianred", "indigo", "ivory", "khaki", "lavender",
+    "lavenderblush", "lawngreen", "lemonchiffon", "lightblue", "lightcoral",
+    "lightcyan", "lightgoldenrodyellow", "lightgray", "lightgreen", "lightpink",
+    "lightsalmon", "lightseagreen", "lightskyblue", "lightslategray",
+    "lightsteelblue", "lightyellow", "lime", "limegreen", "linen", "magenta",
+    "maroon", "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple",
+    "mediumseagreen", "mediumslateblue", "mediumspringgreen", "mediumturquoise",
+    "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin",
+    "navajowhite", "navy", "oldlace", "olive", "olivedrab", "orange", "orangered",
+    "orchid", "palegoldenrod", "palegreen", "paleturquoise", "palevioletred",
+    "papayawhip", "peachpuff", "peru", "pink", "plum", "powderblue",
+    "purple", "rebeccapurple", "red", "rosybrown", "royalblue", "saddlebrown",
+    "salmon", "sandybrown", "seagreen", "seashell", "sienna", "silver", "skyblue",
+    "slateblue", "slategray", "snow", "springgreen", "steelblue", "tan",
+    "teal", "thistle", "tomato", "turquoise", "violet", "wheat", "white",
+    "whitesmoke", "yellow", "yellowgreen"
+  ], colorKeywords = keySet(colorKeywords_);
+
+  var valueKeywords_ = [
+    "above", "absolute", "activeborder", "additive", "activecaption", "afar",
+    "after-white-space", "ahead", "alias", "all", "all-scroll", "alphabetic", "alternate",
+    "always", "amharic", "amharic-abegede", "antialiased", "appworkspace",
+    "arabic-indic", "armenian", "asterisks", "attr", "auto", "auto-flow", "avoid", "avoid-column", "avoid-page",
+    "avoid-region", "background", "backwards", "baseline", "below", "bidi-override", "binary",
+    "bengali", "blink", "block", "block-axis", "bold", "bolder", "border", "border-box",
+    "both", "bottom", "break", "break-all", "break-word", "bullets", "button", "button-bevel",
+    "buttonface", "buttonhighlight", "buttonshadow", "buttontext", "calc", "cambodian",
+    "capitalize", "caps-lock-indicator", "caption", "captiontext", "caret",
+    "cell", "center", "checkbox", "circle", "cjk-decimal", "cjk-earthly-branch",
+    "cjk-heavenly-stem", "cjk-ideographic", "clear", "clip", "close-quote",
+    "col-resize", "collapse", "color", "color-burn", "color-dodge", "column", "column-reverse",
+    "compact", "condensed", "contain", "content", "contents",
+    "content-box", "context-menu", "continuous", "copy", "counter", "counters", "cover", "crop",
+    "cross", "crosshair", "currentcolor", "cursive", "cyclic", "darken", "dashed", "decimal",
+    "decimal-leading-zero", "default", "default-button", "dense", "destination-atop",
+    "destination-in", "destination-out", "destination-over", "devanagari", "difference",
+    "disc", "discard", "disclosure-closed", "disclosure-open", "document",
+    "dot-dash", "dot-dot-dash",
+    "dotted", "double", "down", "e-resize", "ease", "ease-in", "ease-in-out", "ease-out",
+    "element", "ellipse", "ellipsis", "embed", "end", "ethiopic", "ethiopic-abegede",
+    "ethiopic-abegede-am-et", "ethiopic-abegede-gez", "ethiopic-abegede-ti-er",
+    "ethiopic-abegede-ti-et", "ethiopic-halehame-aa-er",
+    "ethiopic-halehame-aa-et", "ethiopic-halehame-am-et",
+    "ethiopic-halehame-gez", "ethiopic-halehame-om-et",
+    "ethiopic-halehame-sid-et", "ethiopic-halehame-so-et",
+    "ethiopic-halehame-ti-er", "ethiopic-halehame-ti-et", "ethiopic-halehame-tig",
+    "ethiopic-numeric", "ew-resize", "exclusion", "expanded", "extends", "extra-condensed",
+    "extra-expanded", "fantasy", "fast", "fill", "fixed", "flat", "flex", "flex-end", "flex-start", "footnotes",
+    "forwards", "from", "geometricPrecision", "georgian", "graytext", "grid", "groove",
+    "gujarati", "gurmukhi", "hand", "hangul", "hangul-consonant", "hard-light", "hebrew",
+    "help", "hidden", "hide", "higher", "highlight", "highlighttext",
+    "hiragana", "hiragana-iroha", "horizontal", "hsl", "hsla", "hue", "icon", "ignore",
+    "inactiveborder", "inactivecaption", "inactivecaptiontext", "infinite",
+    "infobackground", "infotext", "inherit", "initial", "inline", "inline-axis",
+    "inline-block", "inline-flex", "inline-grid", "inline-table", "inset", "inside", "intrinsic", "invert",
+    "italic", "japanese-formal", "japanese-informal", "justify", "kannada",
+    "katakana", "katakana-iroha", "keep-all", "khmer",
+    "korean-hangul-formal", "korean-hanja-formal", "korean-hanja-informal",
+    "landscape", "lao", "large", "larger", "left", "level", "lighter", "lighten",
+    "line-through", "linear", "linear-gradient", "lines", "list-item", "listbox", "listitem",
+    "local", "logical", "loud", "lower", "lower-alpha", "lower-armenian",
+    "lower-greek", "lower-hexadecimal", "lower-latin", "lower-norwegian",
+    "lower-roman", "lowercase", "ltr", "luminosity", "malayalam", "match", "matrix", "matrix3d",
+    "media-controls-background", "media-current-time-display",
+    "media-fullscreen-button", "media-mute-button", "media-play-button",
+    "media-return-to-realtime-button", "media-rewind-button",
+    "media-seek-back-button", "media-seek-forward-button", "media-slider",
+    "media-sliderthumb", "media-time-remaining-display", "media-volume-slider",
+    "media-volume-slider-container", "media-volume-sliderthumb", "medium",
+    "menu", "menulist", "menulist-button", "menulist-text",
+    "menulist-textfield", "menutext", "message-box", "middle", "min-intrinsic",
+    "mix", "mongolian", "monospace", "move", "multiple", "multiply", "myanmar", "n-resize",
+    "narrower", "ne-resize", "nesw-resize", "no-close-quote", "no-drop",
+    "no-open-quote", "no-repeat", "none", "normal", "not-allowed", "nowrap",
+    "ns-resize", "numbers", "numeric", "nw-resize", "nwse-resize", "oblique", "octal", "opacity", "open-quote",
+    "optimizeLegibility", "optimizeSpeed", "oriya", "oromo", "outset",
+    "outside", "outside-shape", "overlay", "overline", "padding", "padding-box",
+    "painted", "page", "paused", "persian", "perspective", "plus-darker", "plus-lighter",
+    "pointer", "polygon", "portrait", "pre", "pre-line", "pre-wrap", "preserve-3d",
+    "progress", "push-button", "radial-gradient", "radio", "read-only",
+    "read-write", "read-write-plaintext-only", "rectangle", "region",
+    "relative", "repeat", "repeating-linear-gradient",
+    "repeating-radial-gradient", "repeat-x", "repeat-y", "reset", "reverse",
+    "rgb", "rgba", "ridge", "right", "rotate", "rotate3d", "rotateX", "rotateY",
+    "rotateZ", "round", "row", "row-resize", "row-reverse", "rtl", "run-in", "running",
+    "s-resize", "sans-serif", "saturation", "scale", "scale3d", "scaleX", "scaleY", "scaleZ", "screen",
+    "scroll", "scrollbar", "scroll-position", "se-resize", "searchfield",
+    "searchfield-cancel-button", "searchfield-decoration",
+    "searchfield-results-button", "searchfield-results-decoration", "self-start", "self-end",
+    "semi-condensed", "semi-expanded", "separate", "serif", "show", "sidama",
+    "simp-chinese-formal", "simp-chinese-informal", "single",
+    "skew", "skewX", "skewY", "skip-white-space", "slide", "slider-horizontal",
+    "slider-vertical", "sliderthumb-horizontal", "sliderthumb-vertical", "slow",
+    "small", "small-caps", "small-caption", "smaller", "soft-light", "solid", "somali",
+    "source-atop", "source-in", "source-out", "source-over", "space", "space-around", "space-between", "space-evenly", "spell-out", "square",
+    "square-button", "start", "static", "status-bar", "stretch", "stroke", "sub",
+    "subpixel-antialiased", "super", "sw-resize", "symbolic", "symbols", "system-ui", "table",
+    "table-caption", "table-cell", "table-column", "table-column-group",
+    "table-footer-group", "table-header-group", "table-row", "table-row-group",
+    "tamil",
+    "telugu", "text", "text-bottom", "text-top", "textarea", "textfield", "thai",
+    "thick", "thin", "threeddarkshadow", "threedface", "threedhighlight",
+    "threedlightshadow", "threedshadow", "tibetan", "tigre", "tigrinya-er",
+    "tigrinya-er-abegede", "tigrinya-et", "tigrinya-et-abegede", "to", "top",
+    "trad-chinese-formal", "trad-chinese-informal", "transform",
+    "translate", "translate3d", "translateX", "translateY", "translateZ",
+    "transparent", "ultra-condensed", "ultra-expanded", "underline", "unset", "up",
+    "upper-alpha", "upper-armenian", "upper-greek", "upper-hexadecimal",
+    "upper-latin", "upper-norwegian", "upper-roman", "uppercase", "urdu", "url",
+    "var", "vertical", "vertical-text", "visible", "visibleFill", "visiblePainted",
+    "visibleStroke", "visual", "w-resize", "wait", "wave", "wider",
+    "window", "windowframe", "windowtext", "words", "wrap", "wrap-reverse", "x-large", "x-small", "xor",
+    "xx-large", "xx-small"
+  ], valueKeywords = keySet(valueKeywords_);
+
+  var allWords = documentTypes_.concat(mediaTypes_).concat(mediaFeatures_).concat(mediaValueKeywords_)
+    .concat(propertyKeywords_).concat(nonStandardPropertyKeywords_).concat(colorKeywords_)
+    .concat(valueKeywords_);
+  CodeMirror.registerHelper("hintWords", "css", allWords);
+
+  function tokenCComment(stream, state) {
+    var maybeEnd = false, ch;
+    while ((ch = stream.next()) != null) {
+      if (maybeEnd && ch == "/") {
+        state.tokenize = null;
+        break;
+      }
+      maybeEnd = (ch == "*");
+    }
+    return ["comment", "comment"];
+  }
+
+  CodeMirror.defineMIME("text/css", {
+    documentTypes: documentTypes,
+    mediaTypes: mediaTypes,
+    mediaFeatures: mediaFeatures,
+    mediaValueKeywords: mediaValueKeywords,
+    propertyKeywords: propertyKeywords,
+    nonStandardPropertyKeywords: nonStandardPropertyKeywords,
+    fontProperties: fontProperties,
+    counterDescriptors: counterDescriptors,
+    colorKeywords: colorKeywords,
+    valueKeywords: valueKeywords,
+    tokenHooks: {
+      "/": function(stream, state) {
+        if (!stream.eat("*")) return false;
+        state.tokenize = tokenCComment;
+        return tokenCComment(stream, state);
+      }
+    },
+    name: "css"
+  });
+
+  CodeMirror.defineMIME("text/x-scss", {
+    mediaTypes: mediaTypes,
+    mediaFeatures: mediaFeatures,
+    mediaValueKeywords: mediaValueKeywords,
+    propertyKeywords: propertyKeywords,
+    nonStandardPropertyKeywords: nonStandardPropertyKeywords,
+    colorKeywords: colorKeywords,
+    valueKeywords: valueKeywords,
+    fontProperties: fontProperties,
+    allowNested: true,
+    lineComment: "//",
+    tokenHooks: {
+      "/": function(stream, state) {
+        if (stream.eat("/")) {
+          stream.skipToEnd();
+          return ["comment", "comment"];
+        } else if (stream.eat("*")) {
+          state.tokenize = tokenCComment;
+          return tokenCComment(stream, state);
+        } else {
+          return ["operator", "operator"];
+        }
+      },
+      ":": function(stream) {
+        if (stream.match(/\s*\{/, false))
+          return [null, null]
+        return false;
+      },
+      "$": function(stream) {
+        stream.match(/^[\w-]+/);
+        if (stream.match(/^\s*:/, false))
+          return ["variable-2", "variable-definition"];
+        return ["variable-2", "variable"];
+      },
+      "#": function(stream) {
+        if (!stream.eat("{")) return false;
+        return [null, "interpolation"];
+      }
+    },
+    name: "css",
+    helperType: "scss"
+  });
+
+  CodeMirror.defineMIME("text/x-less", {
+    mediaTypes: mediaTypes,
+    mediaFeatures: mediaFeatures,
+    mediaValueKeywords: mediaValueKeywords,
+    propertyKeywords: propertyKeywords,
+    nonStandardPropertyKeywords: nonStandardPropertyKeywords,
+    colorKeywords: colorKeywords,
+    valueKeywords: valueKeywords,
+    fontProperties: fontProperties,
+    allowNested: true,
+    lineComment: "//",
+    tokenHooks: {
+      "/": function(stream, state) {
+        if (stream.eat("/")) {
+          stream.skipToEnd();
+          return ["comment", "comment"];
+        } else if (stream.eat("*")) {
+          state.tokenize = tokenCComment;
+          return tokenCComment(stream, state);
+        } else {
+          return ["operator", "operator"];
+        }
+      },
+      "@": function(stream) {
+        if (stream.eat("{")) return [null, "interpolation"];
+        if (stream.match(/^(charset|document|font-face|import|(-(moz|ms|o|webkit)-)?keyframes|media|namespace|page|supports)\b/i, false)) return false;
+        stream.eatWhile(/[\w\\\-]/);
+        if (stream.match(/^\s*:/, false))
+          return ["variable-2", "variable-definition"];
+        return ["variable-2", "variable"];
+      },
+      "&": function() {
+        return ["atom", "atom"];
+      }
+    },
+    name: "css",
+    helperType: "less"
+  });
+
+  CodeMirror.defineMIME("text/x-gss", {
+    documentTypes: documentTypes,
+    mediaTypes: mediaTypes,
+    mediaFeatures: mediaFeatures,
+    propertyKeywords: propertyKeywords,
+    nonStandardPropertyKeywords: nonStandardPropertyKeywords,
+    fontProperties: fontProperties,
+    counterDescriptors: counterDescriptors,
+    colorKeywords: colorKeywords,
+    valueKeywords: valueKeywords,
+    supportsAtComponent: true,
+    tokenHooks: {
+      "/": function(stream, state) {
+        if (!stream.eat("*")) return false;
+        state.tokenize = tokenCComment;
+        return tokenCComment(stream, state);
+      }
+    },
+    name: "css",
+    helperType: "gss"
+  });
+
+});
+
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: https://codemirror.net/LICENSE
+
+define('skylark-codemirror/mode/javascript/javascript',["../../CodeMirror"], function(CodeMirror) {
+
+
+CodeMirror.defineMode("javascript", function(config, parserConfig) {
+  var indentUnit = config.indentUnit;
+  var statementIndent = parserConfig.statementIndent;
+  var jsonldMode = parserConfig.jsonld;
+  var jsonMode = parserConfig.json || jsonldMode;
+  var isTS = parserConfig.typescript;
+  var wordRE = parserConfig.wordCharacters || /[\w$\xa1-\uffff]/;
+
+  // Tokenizer
+
+  var keywords = function(){
+    function kw(type) {return {type: type, style: "keyword"};}
+    var A = kw("keyword a"), B = kw("keyword b"), C = kw("keyword c"), D = kw("keyword d");
+    var operator = kw("operator"), atom = {type: "atom", style: "atom"};
+
+    return {
+      "if": kw("if"), "while": A, "with": A, "else": B, "do": B, "try": B, "finally": B,
+      "return": D, "break": D, "continue": D, "new": kw("new"), "delete": C, "void": C, "throw": C,
+      "debugger": kw("debugger"), "var": kw("var"), "const": kw("var"), "let": kw("var"),
+      "function": kw("function"), "catch": kw("catch"),
+      "for": kw("for"), "switch": kw("switch"), "case": kw("case"), "default": kw("default"),
+      "in": operator, "typeof": operator, "instanceof": operator,
+      "true": atom, "false": atom, "null": atom, "undefined": atom, "NaN": atom, "Infinity": atom,
+      "this": kw("this"), "class": kw("class"), "super": kw("atom"),
+      "yield": C, "export": kw("export"), "import": kw("import"), "extends": C,
+      "await": C
+    };
+  }();
+
+  var isOperatorChar = /[+\-*&%=<>!?|~^@]/;
+  var isJsonldKeyword = /^@(context|id|value|language|type|container|list|set|reverse|index|base|vocab|graph)"/;
+
+  function readRegexp(stream) {
+    var escaped = false, next, inSet = false;
+    while ((next = stream.next()) != null) {
+      if (!escaped) {
+        if (next == "/" && !inSet) return;
+        if (next == "[") inSet = true;
+        else if (inSet && next == "]") inSet = false;
+      }
+      escaped = !escaped && next == "\\";
+    }
+  }
+
+  // Used as scratch variables to communicate multiple values without
+  // consing up tons of objects.
+  var type, content;
+  function ret(tp, style, cont) {
+    type = tp; content = cont;
+    return style;
+  }
+  function tokenBase(stream, state) {
+    var ch = stream.next();
+    if (ch == '"' || ch == "'") {
+      state.tokenize = tokenString(ch);
+      return state.tokenize(stream, state);
+    } else if (ch == "." && stream.match(/^\d+(?:[eE][+\-]?\d+)?/)) {
+      return ret("number", "number");
+    } else if (ch == "." && stream.match("..")) {
+      return ret("spread", "meta");
+    } else if (/[\[\]{}\(\),;\:\.]/.test(ch)) {
+      return ret(ch);
+    } else if (ch == "=" && stream.eat(">")) {
+      return ret("=>", "operator");
+    } else if (ch == "0" && stream.match(/^(?:x[\da-f]+|o[0-7]+|b[01]+)n?/i)) {
+      return ret("number", "number");
+    } else if (/\d/.test(ch)) {
+      stream.match(/^\d*(?:n|(?:\.\d*)?(?:[eE][+\-]?\d+)?)?/);
+      return ret("number", "number");
+    } else if (ch == "/") {
+      if (stream.eat("*")) {
+        state.tokenize = tokenComment;
+        return tokenComment(stream, state);
+      } else if (stream.eat("/")) {
+        stream.skipToEnd();
+        return ret("comment", "comment");
+      } else if (expressionAllowed(stream, state, 1)) {
+        readRegexp(stream);
+        stream.match(/^\b(([gimyus])(?![gimyus]*\2))+\b/);
+        return ret("regexp", "string-2");
+      } else {
+        stream.eat("=");
+        return ret("operator", "operator", stream.current());
+      }
+    } else if (ch == "`") {
+      state.tokenize = tokenQuasi;
+      return tokenQuasi(stream, state);
+    } else if (ch == "#") {
+      stream.skipToEnd();
+      return ret("error", "error");
+    } else if (isOperatorChar.test(ch)) {
+      if (ch != ">" || !state.lexical || state.lexical.type != ">") {
+        if (stream.eat("=")) {
+          if (ch == "!" || ch == "=") stream.eat("=")
+        } else if (/[<>*+\-]/.test(ch)) {
+          stream.eat(ch)
+          if (ch == ">") stream.eat(ch)
+        }
+      }
+      return ret("operator", "operator", stream.current());
+    } else if (wordRE.test(ch)) {
+      stream.eatWhile(wordRE);
+      var word = stream.current()
+      if (state.lastType != ".") {
+        if (keywords.propertyIsEnumerable(word)) {
+          var kw = keywords[word]
+          return ret(kw.type, kw.style, word)
+        }
+        if (word == "async" && stream.match(/^(\s|\/\*.*?\*\/)*[\[\(\w]/, false))
+          return ret("async", "keyword", word)
+      }
+      return ret("variable", "variable", word)
+    }
+  }
+
+  function tokenString(quote) {
+    return function(stream, state) {
+      var escaped = false, next;
+      if (jsonldMode && stream.peek() == "@" && stream.match(isJsonldKeyword)){
+        state.tokenize = tokenBase;
+        return ret("jsonld-keyword", "meta");
+      }
+      while ((next = stream.next()) != null) {
+        if (next == quote && !escaped) break;
+        escaped = !escaped && next == "\\";
+      }
+      if (!escaped) state.tokenize = tokenBase;
+      return ret("string", "string");
+    };
+  }
+
+  function tokenComment(stream, state) {
+    var maybeEnd = false, ch;
+    while (ch = stream.next()) {
+      if (ch == "/" && maybeEnd) {
+        state.tokenize = tokenBase;
+        break;
+      }
+      maybeEnd = (ch == "*");
+    }
+    return ret("comment", "comment");
+  }
+
+  function tokenQuasi(stream, state) {
+    var escaped = false, next;
+    while ((next = stream.next()) != null) {
+      if (!escaped && (next == "`" || next == "$" && stream.eat("{"))) {
+        state.tokenize = tokenBase;
+        break;
+      }
+      escaped = !escaped && next == "\\";
+    }
+    return ret("quasi", "string-2", stream.current());
+  }
+
+  var brackets = "([{}])";
+  // This is a crude lookahead trick to try and notice that we're
+  // parsing the argument patterns for a fat-arrow function before we
+  // actually hit the arrow token. It only works if the arrow is on
+  // the same line as the arguments and there's no strange noise
+  // (comments) in between. Fallback is to only notice when we hit the
+  // arrow, and not declare the arguments as locals for the arrow
+  // body.
+  function findFatArrow(stream, state) {
+    if (state.fatArrowAt) state.fatArrowAt = null;
+    var arrow = stream.string.indexOf("=>", stream.start);
+    if (arrow < 0) return;
+
+    if (isTS) { // Try to skip TypeScript return type declarations after the arguments
+      var m = /:\s*(?:\w+(?:<[^>]*>|\[\])?|\{[^}]*\})\s*$/.exec(stream.string.slice(stream.start, arrow))
+      if (m) arrow = m.index
+    }
+
+    var depth = 0, sawSomething = false;
+    for (var pos = arrow - 1; pos >= 0; --pos) {
+      var ch = stream.string.charAt(pos);
+      var bracket = brackets.indexOf(ch);
+      if (bracket >= 0 && bracket < 3) {
+        if (!depth) { ++pos; break; }
+        if (--depth == 0) { if (ch == "(") sawSomething = true; break; }
+      } else if (bracket >= 3 && bracket < 6) {
+        ++depth;
+      } else if (wordRE.test(ch)) {
+        sawSomething = true;
+      } else if (/["'\/]/.test(ch)) {
+        return;
+      } else if (sawSomething && !depth) {
+        ++pos;
+        break;
+      }
+    }
+    if (sawSomething && !depth) state.fatArrowAt = pos;
+  }
+
+  // Parser
+
+  var atomicTypes = {"atom": true, "number": true, "variable": true, "string": true, "regexp": true, "this": true, "jsonld-keyword": true};
+
+  function JSLexical(indented, column, type, align, prev, info) {
+    this.indented = indented;
+    this.column = column;
+    this.type = type;
+    this.prev = prev;
+    this.info = info;
+    if (align != null) this.align = align;
+  }
+
+  function inScope(state, varname) {
+    for (var v = state.localVars; v; v = v.next)
+      if (v.name == varname) return true;
+    for (var cx = state.context; cx; cx = cx.prev) {
+      for (var v = cx.vars; v; v = v.next)
+        if (v.name == varname) return true;
+    }
+  }
+
+  function parseJS(state, style, type, content, stream) {
+    var cc = state.cc;
+    // Communicate our context to the combinators.
+    // (Less wasteful than consing up a hundred closures on every call.)
+    cx.state = state; cx.stream = stream; cx.marked = null, cx.cc = cc; cx.style = style;
+
+    if (!state.lexical.hasOwnProperty("align"))
+      state.lexical.align = true;
+
+    while(true) {
+      var combinator = cc.length ? cc.pop() : jsonMode ? expression : statement;
+      if (combinator(type, content)) {
+        while(cc.length && cc[cc.length - 1].lex)
+          cc.pop()();
+        if (cx.marked) return cx.marked;
+        if (type == "variable" && inScope(state, content)) return "variable-2";
+        return style;
+      }
+    }
+  }
+
+  // Combinator utils
+
+  var cx = {state: null, column: null, marked: null, cc: null};
+  function pass() {
+    for (var i = arguments.length - 1; i >= 0; i--) cx.cc.push(arguments[i]);
+  }
+  function cont() {
+    pass.apply(null, arguments);
+    return true;
+  }
+  function inList(name, list) {
+    for (var v = list; v; v = v.next) if (v.name == name) return true
+    return false;
+  }
+  function register(varname) {
+    var state = cx.state;
+    cx.marked = "def";
+    if (state.context) {
+      if (state.lexical.info == "var" && state.context && state.context.block) {
+        // FIXME function decls are also not block scoped
+        var newContext = registerVarScoped(varname, state.context)
+        if (newContext != null) {
+          state.context = newContext
+          return
+        }
+      } else if (!inList(varname, state.localVars)) {
+        state.localVars = new Var(varname, state.localVars)
+        return
+      }
+    }
+    // Fall through means this is global
+    if (parserConfig.globalVars && !inList(varname, state.globalVars))
+      state.globalVars = new Var(varname, state.globalVars)
+  }
+  function registerVarScoped(varname, context) {
+    if (!context) {
+      return null
+    } else if (context.block) {
+      var inner = registerVarScoped(varname, context.prev)
+      if (!inner) return null
+      if (inner == context.prev) return context
+      return new Context(inner, context.vars, true)
+    } else if (inList(varname, context.vars)) {
+      return context
+    } else {
+      return new Context(context.prev, new Var(varname, context.vars), false)
+    }
+  }
+
+  function isModifier(name) {
+    return name == "public" || name == "private" || name == "protected" || name == "abstract" || name == "readonly"
+  }
+
+  // Combinators
+
+  function Context(prev, vars, block) { this.prev = prev; this.vars = vars; this.block = block }
+  function Var(name, next) { this.name = name; this.next = next }
+
+  var defaultVars = new Var("this", new Var("arguments", null))
+  function pushcontext() {
+    cx.state.context = new Context(cx.state.context, cx.state.localVars, false)
+    cx.state.localVars = defaultVars
+  }
+  function pushblockcontext() {
+    cx.state.context = new Context(cx.state.context, cx.state.localVars, true)
+    cx.state.localVars = null
+  }
+  function popcontext() {
+    cx.state.localVars = cx.state.context.vars
+    cx.state.context = cx.state.context.prev
+  }
+  popcontext.lex = true
+  function pushlex(type, info) {
+    var result = function() {
+      var state = cx.state, indent = state.indented;
+      if (state.lexical.type == "stat") indent = state.lexical.indented;
+      else for (var outer = state.lexical; outer && outer.type == ")" && outer.align; outer = outer.prev)
+        indent = outer.indented;
+      state.lexical = new JSLexical(indent, cx.stream.column(), type, null, state.lexical, info);
+    };
+    result.lex = true;
+    return result;
+  }
+  function poplex() {
+    var state = cx.state;
+    if (state.lexical.prev) {
+      if (state.lexical.type == ")")
+        state.indented = state.lexical.indented;
+      state.lexical = state.lexical.prev;
+    }
+  }
+  poplex.lex = true;
+
+  function expect(wanted) {
+    function exp(type) {
+      if (type == wanted) return cont();
+      else if (wanted == ";" || type == "}" || type == ")" || type == "]") return pass();
+      else return cont(exp);
+    };
+    return exp;
+  }
+
+  function statement(type, value) {
+    if (type == "var") return cont(pushlex("vardef", value), vardef, expect(";"), poplex);
+    if (type == "keyword a") return cont(pushlex("form"), parenExpr, statement, poplex);
+    if (type == "keyword b") return cont(pushlex("form"), statement, poplex);
+    if (type == "keyword d") return cx.stream.match(/^\s*$/, false) ? cont() : cont(pushlex("stat"), maybeexpression, expect(";"), poplex);
+    if (type == "debugger") return cont(expect(";"));
+    if (type == "{") return cont(pushlex("}"), pushblockcontext, block, poplex, popcontext);
+    if (type == ";") return cont();
+    if (type == "if") {
+      if (cx.state.lexical.info == "else" && cx.state.cc[cx.state.cc.length - 1] == poplex)
+        cx.state.cc.pop()();
+      return cont(pushlex("form"), parenExpr, statement, poplex, maybeelse);
+    }
+    if (type == "function") return cont(functiondef);
+    if (type == "for") return cont(pushlex("form"), forspec, statement, poplex);
+    if (type == "class" || (isTS && value == "interface")) {
+      cx.marked = "keyword"
+      return cont(pushlex("form", type == "class" ? type : value), className, poplex)
+    }
+    if (type == "variable") {
+      if (isTS && value == "declare") {
+        cx.marked = "keyword"
+        return cont(statement)
+      } else if (isTS && (value == "module" || value == "enum" || value == "type") && cx.stream.match(/^\s*\w/, false)) {
+        cx.marked = "keyword"
+        if (value == "enum") return cont(enumdef);
+        else if (value == "type") return cont(typename, expect("operator"), typeexpr, expect(";"));
+        else return cont(pushlex("form"), pattern, expect("{"), pushlex("}"), block, poplex, poplex)
+      } else if (isTS && value == "namespace") {
+        cx.marked = "keyword"
+        return cont(pushlex("form"), expression, statement, poplex)
+      } else if (isTS && value == "abstract") {
+        cx.marked = "keyword"
+        return cont(statement)
+      } else {
+        return cont(pushlex("stat"), maybelabel);
+      }
+    }
+    if (type == "switch") return cont(pushlex("form"), parenExpr, expect("{"), pushlex("}", "switch"), pushblockcontext,
+                                      block, poplex, poplex, popcontext);
+    if (type == "case") return cont(expression, expect(":"));
+    if (type == "default") return cont(expect(":"));
+    if (type == "catch") return cont(pushlex("form"), pushcontext, maybeCatchBinding, statement, poplex, popcontext);
+    if (type == "export") return cont(pushlex("stat"), afterExport, poplex);
+    if (type == "import") return cont(pushlex("stat"), afterImport, poplex);
+    if (type == "async") return cont(statement)
+    if (value == "@") return cont(expression, statement)
+    return pass(pushlex("stat"), expression, expect(";"), poplex);
+  }
+  function maybeCatchBinding(type) {
+    if (type == "(") return cont(funarg, expect(")"))
+  }
+  function expression(type, value) {
+    return expressionInner(type, value, false);
+  }
+  function expressionNoComma(type, value) {
+    return expressionInner(type, value, true);
+  }
+  function parenExpr(type) {
+    if (type != "(") return pass()
+    return cont(pushlex(")"), expression, expect(")"), poplex)
+  }
+  function expressionInner(type, value, noComma) {
+    if (cx.state.fatArrowAt == cx.stream.start) {
+      var body = noComma ? arrowBodyNoComma : arrowBody;
+      if (type == "(") return cont(pushcontext, pushlex(")"), commasep(funarg, ")"), poplex, expect("=>"), body, popcontext);
+      else if (type == "variable") return pass(pushcontext, pattern, expect("=>"), body, popcontext);
+    }
+
+    var maybeop = noComma ? maybeoperatorNoComma : maybeoperatorComma;
+    if (atomicTypes.hasOwnProperty(type)) return cont(maybeop);
+    if (type == "function") return cont(functiondef, maybeop);
+    if (type == "class" || (isTS && value == "interface")) { cx.marked = "keyword"; return cont(pushlex("form"), classExpression, poplex); }
+    if (type == "keyword c" || type == "async") return cont(noComma ? expressionNoComma : expression);
+    if (type == "(") return cont(pushlex(")"), maybeexpression, expect(")"), poplex, maybeop);
+    if (type == "operator" || type == "spread") return cont(noComma ? expressionNoComma : expression);
+    if (type == "[") return cont(pushlex("]"), arrayLiteral, poplex, maybeop);
+    if (type == "{") return contCommasep(objprop, "}", null, maybeop);
+    if (type == "quasi") return pass(quasi, maybeop);
+    if (type == "new") return cont(maybeTarget(noComma));
+    if (type == "import") return cont(expression);
+    return cont();
+  }
+  function maybeexpression(type) {
+    if (type.match(/[;\}\)\],]/)) return pass();
+    return pass(expression);
+  }
+
+  function maybeoperatorComma(type, value) {
+    if (type == ",") return cont(expression);
+    return maybeoperatorNoComma(type, value, false);
+  }
+  function maybeoperatorNoComma(type, value, noComma) {
+    var me = noComma == false ? maybeoperatorComma : maybeoperatorNoComma;
+    var expr = noComma == false ? expression : expressionNoComma;
+    if (type == "=>") return cont(pushcontext, noComma ? arrowBodyNoComma : arrowBody, popcontext);
+    if (type == "operator") {
+      if (/\+\+|--/.test(value) || isTS && value == "!") return cont(me);
+      if (isTS && value == "<" && cx.stream.match(/^([^>]|<.*?>)*>\s*\(/, false))
+        return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, me);
+      if (value == "?") return cont(expression, expect(":"), expr);
+      return cont(expr);
+    }
+    if (type == "quasi") { return pass(quasi, me); }
+    if (type == ";") return;
+    if (type == "(") return contCommasep(expressionNoComma, ")", "call", me);
+    if (type == ".") return cont(property, me);
+    if (type == "[") return cont(pushlex("]"), maybeexpression, expect("]"), poplex, me);
+    if (isTS && value == "as") { cx.marked = "keyword"; return cont(typeexpr, me) }
+    if (type == "regexp") {
+      cx.state.lastType = cx.marked = "operator"
+      cx.stream.backUp(cx.stream.pos - cx.stream.start - 1)
+      return cont(expr)
+    }
+  }
+  function quasi(type, value) {
+    if (type != "quasi") return pass();
+    if (value.slice(value.length - 2) != "${") return cont(quasi);
+    return cont(expression, continueQuasi);
+  }
+  function continueQuasi(type) {
+    if (type == "}") {
+      cx.marked = "string-2";
+      cx.state.tokenize = tokenQuasi;
+      return cont(quasi);
+    }
+  }
+  function arrowBody(type) {
+    findFatArrow(cx.stream, cx.state);
+    return pass(type == "{" ? statement : expression);
+  }
+  function arrowBodyNoComma(type) {
+    findFatArrow(cx.stream, cx.state);
+    return pass(type == "{" ? statement : expressionNoComma);
+  }
+  function maybeTarget(noComma) {
+    return function(type) {
+      if (type == ".") return cont(noComma ? targetNoComma : target);
+      else if (type == "variable" && isTS) return cont(maybeTypeArgs, noComma ? maybeoperatorNoComma : maybeoperatorComma)
+      else return pass(noComma ? expressionNoComma : expression);
+    };
+  }
+  function target(_, value) {
+    if (value == "target") { cx.marked = "keyword"; return cont(maybeoperatorComma); }
+  }
+  function targetNoComma(_, value) {
+    if (value == "target") { cx.marked = "keyword"; return cont(maybeoperatorNoComma); }
+  }
+  function maybelabel(type) {
+    if (type == ":") return cont(poplex, statement);
+    return pass(maybeoperatorComma, expect(";"), poplex);
+  }
+  function property(type) {
+    if (type == "variable") {cx.marked = "property"; return cont();}
+  }
+  function objprop(type, value) {
+    if (type == "async") {
+      cx.marked = "property";
+      return cont(objprop);
+    } else if (type == "variable" || cx.style == "keyword") {
+      cx.marked = "property";
+      if (value == "get" || value == "set") return cont(getterSetter);
+      var m // Work around fat-arrow-detection complication for detecting typescript typed arrow params
+      if (isTS && cx.state.fatArrowAt == cx.stream.start && (m = cx.stream.match(/^\s*:\s*/, false)))
+        cx.state.fatArrowAt = cx.stream.pos + m[0].length
+      return cont(afterprop);
+    } else if (type == "number" || type == "string") {
+      cx.marked = jsonldMode ? "property" : (cx.style + " property");
+      return cont(afterprop);
+    } else if (type == "jsonld-keyword") {
+      return cont(afterprop);
+    } else if (isTS && isModifier(value)) {
+      cx.marked = "keyword"
+      return cont(objprop)
+    } else if (type == "[") {
+      return cont(expression, maybetype, expect("]"), afterprop);
+    } else if (type == "spread") {
+      return cont(expressionNoComma, afterprop);
+    } else if (value == "*") {
+      cx.marked = "keyword";
+      return cont(objprop);
+    } else if (type == ":") {
+      return pass(afterprop)
+    }
+  }
+  function getterSetter(type) {
+    if (type != "variable") return pass(afterprop);
+    cx.marked = "property";
+    return cont(functiondef);
+  }
+  function afterprop(type) {
+    if (type == ":") return cont(expressionNoComma);
+    if (type == "(") return pass(functiondef);
+  }
+  function commasep(what, end, sep) {
+    function proceed(type, value) {
+      if (sep ? sep.indexOf(type) > -1 : type == ",") {
+        var lex = cx.state.lexical;
+        if (lex.info == "call") lex.pos = (lex.pos || 0) + 1;
+        return cont(function(type, value) {
+          if (type == end || value == end) return pass()
+          return pass(what)
+        }, proceed);
+      }
+      if (type == end || value == end) return cont();
+      if (sep && sep.indexOf(";") > -1) return pass(what)
+      return cont(expect(end));
+    }
+    return function(type, value) {
+      if (type == end || value == end) return cont();
+      return pass(what, proceed);
+    };
+  }
+  function contCommasep(what, end, info) {
+    for (var i = 3; i < arguments.length; i++)
+      cx.cc.push(arguments[i]);
+    return cont(pushlex(end, info), commasep(what, end), poplex);
+  }
+  function block(type) {
+    if (type == "}") return cont();
+    return pass(statement, block);
+  }
+  function maybetype(type, value) {
+    if (isTS) {
+      if (type == ":" || value == "in") return cont(typeexpr);
+      if (value == "?") return cont(maybetype);
+    }
+  }
+  function mayberettype(type) {
+    if (isTS && type == ":") {
+      if (cx.stream.match(/^\s*\w+\s+is\b/, false)) return cont(expression, isKW, typeexpr)
+      else return cont(typeexpr)
+    }
+  }
+  function isKW(_, value) {
+    if (value == "is") {
+      cx.marked = "keyword"
+      return cont()
+    }
+  }
+  function typeexpr(type, value) {
+    if (value == "keyof" || value == "typeof" || value == "infer") {
+      cx.marked = "keyword"
+      return cont(value == "typeof" ? expressionNoComma : typeexpr)
+    }
+    if (type == "variable" || value == "void") {
+      cx.marked = "type"
+      return cont(afterType)
+    }
+    if (value == "|" || value == "&") return cont(typeexpr)
+    if (type == "string" || type == "number" || type == "atom") return cont(afterType);
+    if (type == "[") return cont(pushlex("]"), commasep(typeexpr, "]", ","), poplex, afterType)
+    if (type == "{") return cont(pushlex("}"), commasep(typeprop, "}", ",;"), poplex, afterType)
+    if (type == "(") return cont(commasep(typearg, ")"), maybeReturnType, afterType)
+    if (type == "<") return cont(commasep(typeexpr, ">"), typeexpr)
+  }
+  function maybeReturnType(type) {
+    if (type == "=>") return cont(typeexpr)
+  }
+  function typeprop(type, value) {
+    if (type == "variable" || cx.style == "keyword") {
+      cx.marked = "property"
+      return cont(typeprop)
+    } else if (value == "?" || type == "number" || type == "string") {
+      return cont(typeprop)
+    } else if (type == ":") {
+      return cont(typeexpr)
+    } else if (type == "[") {
+      return cont(expect("variable"), maybetype, expect("]"), typeprop)
+    } else if (type == "(") {
+      return pass(functiondecl, typeprop)
+    }
+  }
+  function typearg(type, value) {
+    if (type == "variable" && cx.stream.match(/^\s*[?:]/, false) || value == "?") return cont(typearg)
+    if (type == ":") return cont(typeexpr)
+    if (type == "spread") return cont(typearg)
+    return pass(typeexpr)
+  }
+  function afterType(type, value) {
+    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, afterType)
+    if (value == "|" || type == "." || value == "&") return cont(typeexpr)
+    if (type == "[") return cont(typeexpr, expect("]"), afterType)
+    if (value == "extends" || value == "implements") { cx.marked = "keyword"; return cont(typeexpr) }
+    if (value == "?") return cont(typeexpr, expect(":"), typeexpr)
+  }
+  function maybeTypeArgs(_, value) {
+    if (value == "<") return cont(pushlex(">"), commasep(typeexpr, ">"), poplex, afterType)
+  }
+  function typeparam() {
+    return pass(typeexpr, maybeTypeDefault)
+  }
+  function maybeTypeDefault(_, value) {
+    if (value == "=") return cont(typeexpr)
+  }
+  function vardef(_, value) {
+    if (value == "enum") {cx.marked = "keyword"; return cont(enumdef)}
+    return pass(pattern, maybetype, maybeAssign, vardefCont);
+  }
+  function pattern(type, value) {
+    if (isTS && isModifier(value)) { cx.marked = "keyword"; return cont(pattern) }
+    if (type == "variable") { register(value); return cont(); }
+    if (type == "spread") return cont(pattern);
+    if (type == "[") return contCommasep(eltpattern, "]");
+    if (type == "{") return contCommasep(proppattern, "}");
+  }
+  function proppattern(type, value) {
+    if (type == "variable" && !cx.stream.match(/^\s*:/, false)) {
+      register(value);
+      return cont(maybeAssign);
+    }
+    if (type == "variable") cx.marked = "property";
+    if (type == "spread") return cont(pattern);
+    if (type == "}") return pass();
+    if (type == "[") return cont(expression, expect(']'), expect(':'), proppattern);
+    return cont(expect(":"), pattern, maybeAssign);
+  }
+  function eltpattern() {
+    return pass(pattern, maybeAssign)
+  }
+  function maybeAssign(_type, value) {
+    if (value == "=") return cont(expressionNoComma);
+  }
+  function vardefCont(type) {
+    if (type == ",") return cont(vardef);
+  }
+  function maybeelse(type, value) {
+    if (type == "keyword b" && value == "else") return cont(pushlex("form", "else"), statement, poplex);
+  }
+  function forspec(type, value) {
+    if (value == "await") return cont(forspec);
+    if (type == "(") return cont(pushlex(")"), forspec1, poplex);
+  }
+  function forspec1(type) {
+    if (type == "var") return cont(vardef, forspec2);
+    if (type == "variable") return cont(forspec2);
+    return pass(forspec2)
+  }
+  function forspec2(type, value) {
+    if (type == ")") return cont()
+    if (type == ";") return cont(forspec2)
+    if (value == "in" || value == "of") { cx.marked = "keyword"; return cont(expression, forspec2) }
+    return pass(expression, forspec2)
+  }
+  function functiondef(type, value) {
+    if (value == "*") {cx.marked = "keyword"; return cont(functiondef);}
+    if (type == "variable") {register(value); return cont(functiondef);}
+    if (type == "(") return cont(pushcontext, pushlex(")"), commasep(funarg, ")"), poplex, mayberettype, statement, popcontext);
+    if (isTS && value == "<") return cont(pushlex(">"), commasep(typeparam, ">"), poplex, functiondef)
+  }
+  function functiondecl(type, value) {
+    if (value == "*") {cx.marked = "keyword"; return cont(functiondecl);}
+    if (type == "variable") {register(value); return cont(functiondecl);}
+    if (type == "(") return cont(pushcontext, pushlex(")"), commasep(funarg, ")"), poplex, mayberettype, popcontext);
+    if (isTS && value == "<") return cont(pushlex(">"), commasep(typeparam, ">"), poplex, functiondecl)
+  }
+  function typename(type, value) {
+    if (type == "keyword" || type == "variable") {
+      cx.marked = "type"
+      return cont(typename)
+    } else if (value == "<") {
+      return cont(pushlex(">"), commasep(typeparam, ">"), poplex)
+    }
+  }
+  function funarg(type, value) {
+    if (value == "@") cont(expression, funarg)
+    if (type == "spread") return cont(funarg);
+    if (isTS && isModifier(value)) { cx.marked = "keyword"; return cont(funarg); }
+    if (isTS && type == "this") return cont(maybetype, maybeAssign)
+    return pass(pattern, maybetype, maybeAssign);
+  }
+  function classExpression(type, value) {
+    // Class expressions may have an optional name.
+    if (type == "variable") return className(type, value);
+    return classNameAfter(type, value);
+  }
+  function className(type, value) {
+    if (type == "variable") {register(value); return cont(classNameAfter);}
+  }
+  function classNameAfter(type, value) {
+    if (value == "<") return cont(pushlex(">"), commasep(typeparam, ">"), poplex, classNameAfter)
+    if (value == "extends" || value == "implements" || (isTS && type == ",")) {
+      if (value == "implements") cx.marked = "keyword";
+      return cont(isTS ? typeexpr : expression, classNameAfter);
+    }
+    if (type == "{") return cont(pushlex("}"), classBody, poplex);
+  }
+  function classBody(type, value) {
+    if (type == "async" ||
+        (type == "variable" &&
+         (value == "static" || value == "get" || value == "set" || (isTS && isModifier(value))) &&
+         cx.stream.match(/^\s+[\w$\xa1-\uffff]/, false))) {
+      cx.marked = "keyword";
+      return cont(classBody);
+    }
+    if (type == "variable" || cx.style == "keyword") {
+      cx.marked = "property";
+      return cont(isTS ? classfield : functiondef, classBody);
+    }
+    if (type == "number" || type == "string") return cont(isTS ? classfield : functiondef, classBody);
+    if (type == "[")
+      return cont(expression, maybetype, expect("]"), isTS ? classfield : functiondef, classBody)
+    if (value == "*") {
+      cx.marked = "keyword";
+      return cont(classBody);
+    }
+    if (isTS && type == "(") return pass(functiondecl, classBody)
+    if (type == ";" || type == ",") return cont(classBody);
+    if (type == "}") return cont();
+    if (value == "@") return cont(expression, classBody)
+  }
+  function classfield(type, value) {
+    if (value == "?") return cont(classfield)
+    if (type == ":") return cont(typeexpr, maybeAssign)
+    if (value == "=") return cont(expressionNoComma)
+    var context = cx.state.lexical.prev, isInterface = context && context.info == "interface"
+    return pass(isInterface ? functiondecl : functiondef)
+  }
+  function afterExport(type, value) {
+    if (value == "*") { cx.marked = "keyword"; return cont(maybeFrom, expect(";")); }
+    if (value == "default") { cx.marked = "keyword"; return cont(expression, expect(";")); }
+    if (type == "{") return cont(commasep(exportField, "}"), maybeFrom, expect(";"));
+    return pass(statement);
+  }
+  function exportField(type, value) {
+    if (value == "as") { cx.marked = "keyword"; return cont(expect("variable")); }
+    if (type == "variable") return pass(expressionNoComma, exportField);
+  }
+  function afterImport(type) {
+    if (type == "string") return cont();
+    if (type == "(") return pass(expression);
+    return pass(importSpec, maybeMoreImports, maybeFrom);
+  }
+  function importSpec(type, value) {
+    if (type == "{") return contCommasep(importSpec, "}");
+    if (type == "variable") register(value);
+    if (value == "*") cx.marked = "keyword";
+    return cont(maybeAs);
+  }
+  function maybeMoreImports(type) {
+    if (type == ",") return cont(importSpec, maybeMoreImports)
+  }
+  function maybeAs(_type, value) {
+    if (value == "as") { cx.marked = "keyword"; return cont(importSpec); }
+  }
+  function maybeFrom(_type, value) {
+    if (value == "from") { cx.marked = "keyword"; return cont(expression); }
+  }
+  function arrayLiteral(type) {
+    if (type == "]") return cont();
+    return pass(commasep(expressionNoComma, "]"));
+  }
+  function enumdef() {
+    return pass(pushlex("form"), pattern, expect("{"), pushlex("}"), commasep(enummember, "}"), poplex, poplex)
+  }
+  function enummember() {
+    return pass(pattern, maybeAssign);
+  }
+
+  function isContinuedStatement(state, textAfter) {
+    return state.lastType == "operator" || state.lastType == "," ||
+      isOperatorChar.test(textAfter.charAt(0)) ||
+      /[,.]/.test(textAfter.charAt(0));
+  }
+
+  function expressionAllowed(stream, state, backUp) {
+    return state.tokenize == tokenBase &&
+      /^(?:operator|sof|keyword [bcd]|case|new|export|default|spread|[\[{}\(,;:]|=>)$/.test(state.lastType) ||
+      (state.lastType == "quasi" && /\{\s*$/.test(stream.string.slice(0, stream.pos - (backUp || 0))))
+  }
+
+  // Interface
+
+  return {
+    startState: function(basecolumn) {
+      var state = {
+        tokenize: tokenBase,
+        lastType: "sof",
+        cc: [],
+        lexical: new JSLexical((basecolumn || 0) - indentUnit, 0, "block", false),
+        localVars: parserConfig.localVars,
+        context: parserConfig.localVars && new Context(null, null, false),
+        indented: basecolumn || 0
+      };
+      if (parserConfig.globalVars && typeof parserConfig.globalVars == "object")
+        state.globalVars = parserConfig.globalVars;
+      return state;
+    },
+
+    token: function(stream, state) {
+      if (stream.sol()) {
+        if (!state.lexical.hasOwnProperty("align"))
+          state.lexical.align = false;
+        state.indented = stream.indentation();
+        findFatArrow(stream, state);
+      }
+      if (state.tokenize != tokenComment && stream.eatSpace()) return null;
+      var style = state.tokenize(stream, state);
+      if (type == "comment") return style;
+      state.lastType = type == "operator" && (content == "++" || content == "--") ? "incdec" : type;
+      return parseJS(state, style, type, content, stream);
+    },
+
+    indent: function(state, textAfter) {
+      if (state.tokenize == tokenComment) return CodeMirror.Pass;
+      if (state.tokenize != tokenBase) return 0;
+      var firstChar = textAfter && textAfter.charAt(0), lexical = state.lexical, top
+      // Kludge to prevent 'maybelse' from blocking lexical scope pops
+      if (!/^\s*else\b/.test(textAfter)) for (var i = state.cc.length - 1; i >= 0; --i) {
+        var c = state.cc[i];
+        if (c == poplex) lexical = lexical.prev;
+        else if (c != maybeelse) break;
+      }
+      while ((lexical.type == "stat" || lexical.type == "form") &&
+             (firstChar == "}" || ((top = state.cc[state.cc.length - 1]) &&
+                                   (top == maybeoperatorComma || top == maybeoperatorNoComma) &&
+                                   !/^[,\.=+\-*:?[\(]/.test(textAfter))))
+        lexical = lexical.prev;
+      if (statementIndent && lexical.type == ")" && lexical.prev.type == "stat")
+        lexical = lexical.prev;
+      var type = lexical.type, closing = firstChar == type;
+
+      if (type == "vardef") return lexical.indented + (state.lastType == "operator" || state.lastType == "," ? lexical.info.length + 1 : 0);
+      else if (type == "form" && firstChar == "{") return lexical.indented;
+      else if (type == "form") return lexical.indented + indentUnit;
+      else if (type == "stat")
+        return lexical.indented + (isContinuedStatement(state, textAfter) ? statementIndent || indentUnit : 0);
+      else if (lexical.info == "switch" && !closing && parserConfig.doubleIndentSwitch != false)
+        return lexical.indented + (/^(?:case|default)\b/.test(textAfter) ? indentUnit : 2 * indentUnit);
+      else if (lexical.align) return lexical.column + (closing ? 0 : 1);
+      else return lexical.indented + (closing ? 0 : indentUnit);
+    },
+
+    electricInput: /^\s*(?:case .*?:|default:|\{|\})$/,
+    blockCommentStart: jsonMode ? null : "/*",
+    blockCommentEnd: jsonMode ? null : "*/",
+    blockCommentContinue: jsonMode ? null : " * ",
+    lineComment: jsonMode ? null : "//",
+    fold: "brace",
+    closeBrackets: "()[]{}''\"\"``",
+
+    helperType: jsonMode ? "json" : "javascript",
+    jsonldMode: jsonldMode,
+    jsonMode: jsonMode,
+
+    expressionAllowed: expressionAllowed,
+
+    skipExpression: function(state) {
+      var top = state.cc[state.cc.length - 1]
+      if (top == expression || top == expressionNoComma) state.cc.pop()
+    }
+  };
+});
+
+CodeMirror.registerHelper("wordChars", "javascript", /[\w$]/);
+
+CodeMirror.defineMIME("text/javascript", "javascript");
+CodeMirror.defineMIME("text/ecmascript", "javascript");
+CodeMirror.defineMIME("application/javascript", "javascript");
+CodeMirror.defineMIME("application/x-javascript", "javascript");
+CodeMirror.defineMIME("application/ecmascript", "javascript");
+CodeMirror.defineMIME("application/json", {name: "javascript", json: true});
+CodeMirror.defineMIME("application/x-json", {name: "javascript", json: true});
+CodeMirror.defineMIME("application/ld+json", {name: "javascript", jsonld: true});
+CodeMirror.defineMIME("text/typescript", { name: "javascript", typescript: true });
+CodeMirror.defineMIME("application/typescript", { name: "javascript", typescript: true });
+
+});
+
+// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: https://codemirror.net/LICENSE
+
+
+define('skylark-codemirror/mode/htmlmixed/htmlmixed',[
+  "../../CodeMirror",
+  "../xml/xml",
+  "../javascript/javascript",
+  "../css/css"
+], function(CodeMirror) {
+
+  "use strict";
+
+  var defaultTags = {
+    script: [
+      ["lang", /(javascript|babel)/i, "javascript"],
+      ["type", /^(?:text|application)\/(?:x-)?(?:java|ecma)script$|^module$|^$/i, "javascript"],
+      ["type", /./, "text/plain"],
+      [null, null, "javascript"]
+    ],
+    style:  [
+      ["lang", /^css$/i, "css"],
+      ["type", /^(text\/)?(x-)?(stylesheet|css)$/i, "css"],
+      ["type", /./, "text/plain"],
+      [null, null, "css"]
+    ]
+  };
+
+  function maybeBackup(stream, pat, style) {
+    var cur = stream.current(), close = cur.search(pat);
+    if (close > -1) {
+      stream.backUp(cur.length - close);
+    } else if (cur.match(/<\/?$/)) {
+      stream.backUp(cur.length);
+      if (!stream.match(pat, false)) stream.match(cur);
+    }
+    return style;
+  }
+
+  var attrRegexpCache = {};
+  function getAttrRegexp(attr) {
+    var regexp = attrRegexpCache[attr];
+    if (regexp) return regexp;
+    return attrRegexpCache[attr] = new RegExp("\\s+" + attr + "\\s*=\\s*('|\")?([^'\"]+)('|\")?\\s*");
+  }
+
+  function getAttrValue(text, attr) {
+    var match = text.match(getAttrRegexp(attr))
+    return match ? /^\s*(.*?)\s*$/.exec(match[2])[1] : ""
+  }
+
+  function getTagRegexp(tagName, anchored) {
+    return new RegExp((anchored ? "^" : "") + "<\/\s*" + tagName + "\s*>", "i");
+  }
+
+  function addTags(from, to) {
+    for (var tag in from) {
+      var dest = to[tag] || (to[tag] = []);
+      var source = from[tag];
+      for (var i = source.length - 1; i >= 0; i--)
+        dest.unshift(source[i])
+    }
+  }
+
+  function findMatchingMode(tagInfo, tagText) {
+    for (var i = 0; i < tagInfo.length; i++) {
+      var spec = tagInfo[i];
+      if (!spec[0] || spec[1].test(getAttrValue(tagText, spec[0]))) return spec[2];
+    }
+  }
+
+  CodeMirror.defineMode("htmlmixed", function (config, parserConfig) {
+    var htmlMode = CodeMirror.getMode(config, {
+      name: "xml",
+      htmlMode: true,
+      multilineTagIndentFactor: parserConfig.multilineTagIndentFactor,
+      multilineTagIndentPastTag: parserConfig.multilineTagIndentPastTag
+    });
+
+    var tags = {};
+    var configTags = parserConfig && parserConfig.tags, configScript = parserConfig && parserConfig.scriptTypes;
+    addTags(defaultTags, tags);
+    if (configTags) addTags(configTags, tags);
+    if (configScript) for (var i = configScript.length - 1; i >= 0; i--)
+      tags.script.unshift(["type", configScript[i].matches, configScript[i].mode])
+
+    function html(stream, state) {
+      var style = htmlMode.token(stream, state.htmlState), tag = /\btag\b/.test(style), tagName
+      if (tag && !/[<>\s\/]/.test(stream.current()) &&
+          (tagName = state.htmlState.tagName && state.htmlState.tagName.toLowerCase()) &&
+          tags.hasOwnProperty(tagName)) {
+        state.inTag = tagName + " "
+      } else if (state.inTag && tag && />$/.test(stream.current())) {
+        var inTag = /^([\S]+) (.*)/.exec(state.inTag)
+        state.inTag = null
+        var modeSpec = stream.current() == ">" && findMatchingMode(tags[inTag[1]], inTag[2])
+        var mode = CodeMirror.getMode(config, modeSpec)
+        var endTagA = getTagRegexp(inTag[1], true), endTag = getTagRegexp(inTag[1], false);
+        state.token = function (stream, state) {
+          if (stream.match(endTagA, false)) {
+            state.token = html;
+            state.localState = state.localMode = null;
+            return null;
+          }
+          return maybeBackup(stream, endTag, state.localMode.token(stream, state.localState));
+        };
+        state.localMode = mode;
+        state.localState = CodeMirror.startState(mode, htmlMode.indent(state.htmlState, "", ""));
+      } else if (state.inTag) {
+        state.inTag += stream.current()
+        if (stream.eol()) state.inTag += " "
+      }
+      return style;
+    };
+
+    return {
+      startState: function () {
+        var state = CodeMirror.startState(htmlMode);
+        return {token: html, inTag: null, localMode: null, localState: null, htmlState: state};
+      },
+
+      copyState: function (state) {
+        var local;
+        if (state.localState) {
+          local = CodeMirror.copyState(state.localMode, state.localState);
+        }
+        return {token: state.token, inTag: state.inTag,
+                localMode: state.localMode, localState: local,
+                htmlState: CodeMirror.copyState(htmlMode, state.htmlState)};
+      },
+
+      token: function (stream, state) {
+        return state.token(stream, state);
+      },
+
+      indent: function (state, textAfter, line) {
+        if (!state.localMode || /^\s*<\//.test(textAfter))
+          return htmlMode.indent(state.htmlState, textAfter, line);
+        else if (state.localMode.indent)
+          return state.localMode.indent(state.localState, textAfter, line);
+        else
+          return CodeMirror.Pass;
+      },
+
+      innerMode: function (state) {
+        return {state: state.localState || state.htmlState, mode: state.localMode || htmlMode};
+      }
+    };
+  }, "xml", "javascript", "css");
+
+  CodeMirror.defineMIME("text/html", "htmlmixed");
+});
+
+define('skylark-widgets-wordpad/addons/actions/HtmlAction',[
+  "skylark-domx-query",
+  "skylark-codemirror/CodeMirror",
+  "../../addons",
+  "../../Action",
+//  "skylark-codemirror/addon/fold/foldcode",
+//  "skylark-codemirror/addon/fold/foldgutter",
+//  "skylark-codemirror/addon/fold/brace-fold",
+//  "skylark-codemirror/addon/fold/xml-fold",
+//  "skylark-codemirror/addon/fold/indent-fold",
+//  "skylark-codemirror/addon/fold/markdown-fold",
+//  "skylark-codemirror/addon/fold/comment-fold",  
+  "skylark-parsers-html",
+  "skylark-codemirror/addon/beautify/beautify",  
+  "skylark-codemirror/mode/xml/xml",
+  "skylark-codemirror/mode/css/css",
+  "skylark-codemirror/mode/javascript/javascript",
+  "skylark-codemirror/mode/htmlmixed/htmlmixed"
+],function($,CodeMirror,addons,Action,html){ 
+   var  hasProp = {}.hasOwnProperty,
+        slice = [].slice;
+  
+
+   var HtmlAction = Action.inherit({
+    name : 'html',
+
+    icon : 'html',
+
+    needFocus : false,
+
+    _init : function() {
+      Action.prototype._init.call(this);
+      this.editor.textarea.on('focus', (function(_this) {
+        return function(e) {
+          return _this.editor.el.addClass('focus').removeClass('error');
+        };
+      })(this));
+      this.editor.textarea.on('blur', (function(_this) {
+        return function(e) {
+          _this.editor.el.removeClass('focus');
+          return _this.editor.setValue(_this.editor.textarea.val());
+        };
+      })(this));
+      return this.editor.textarea.on('input', (function(_this) {
+        return function(e) {
+          return _this._resizeTextarea();
+        };
+      })(this));
+    },
+
+    status : function() {},
+
+    _execute : function() {
+      var action, i, len, ref,
+          self = this;
+      this.editor.blur();
+      this.editor.el.toggleClass('wordpad-html');
+      this.editor.htmlMode = this.editor.el.hasClass('wordpad-html');
+      if (this.editor.htmlMode) {
+        this.editor.hidePopover();
+        //this.editor.textarea.val(this.beautifyHTML(this.editor.textarea.val()));
+        var  codemirrorOptions =  { 
+          mode: 'htmlmixed', 
+          lineWrapping: true, 
+          dragDrop: false, 
+          autoCloseTags: true, 
+          matchTags: true, 
+          autoCloseBrackets: true, 
+          matchBrackets: true, 
+          indentUnit: 4, 
+          indentWithTabs: false, 
+          tabSize: 4, 
+          hintOptions: {
+              completionSingle:
+              false
+          },
+          beautify : {
+            html : {
+              beautifyFunc: html.beautify
+            }
+          },
+          
+  //        extraKeys: {"Ctrl-Q": function(cm){ cm.foldCode(cm.getCursor()); }},
+  //        foldGutter: true,
+  //        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        lineNumbers: true
+  
+        };
+       this.editor.sync(); 
+       if (!this.CodeMirrorEditor) {
+         this.CodeMirrorEditor = CodeMirror.fromTextArea(this.editor.textarea[0], codemirrorOptions);
+         this.CodeMirrorEditor.on("blur",function(){
+           self.editor.setValue(self.CodeMirrorEditor.getValue());
+         })
+       } else {
+         this.CodeMirrorEditor.setValue(this.editor.textarea.val());
+         this.CodeMirrorEditor.beautify();
+       }
+       //this._resizeTextarea();
+
+      } else {
+        this.editor.setValue(this.CodeMirrorEditor.getValue());
+        //this.editor.setValue(this.editor.textarea.val());
+      }
+      ref = this.editor._actions;
+      for (i = 0, len = ref.length; i < len; i++) {
+        action = ref[i];
+        if (action.name === 'html') {
+          action.setActive(this.editor.htmlMode);
+        } else {
+          action.setDisabled(this.editor.htmlMode);
+        }
+      }
+      return null;
+    },
+
+    beautifyHTML : function() {
+      return arguments[0];
+      var args;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      if (beautify.html) {
+        return beautify.html.apply(beautify, args);
+      } else {
+        return beautify.apply(null, args);
+      }
+    },
+
+    _resizeTextarea : function() {
+      this._textareaPadding || (this._textareaPadding = this.editor.textarea.innerHeight() - this.editor.textarea.height());
+      return this.editor.textarea.height(this.editor.textarea[0].scrollHeight - this._textareaPadding);
+    }
+
+   });
+
+
+   addons.actions.html = HtmlAction; 
+
+   return HtmlAction;
+});
+define('skylark-storages-diskfs/read',[
+    "skylark-langx-async/Deferred",
+    "./diskfs"
+],function(Deferred, diskfs){
+
+    function readFile(file, params) {
+        params = params || {};
+        var d = new Deferred,
+            reader = new FileReader();
+
+        reader.onload = function(evt) {
+            d.resolve(evt.target.result);
+        };
+        reader.onerror = function(e) {
+            var code = e.target.error.code;
+            if (code === 2) {
+                alert('please don\'t open this page using protocol fill:///');
+            } else {
+                alert('error code: ' + code);
+            }
+        };
+
+        if (params.asArrayBuffer) {
+            reader.readAsArrayBuffer(file);
+        } else if (params.asDataUrl) {
+            reader.readAsDataURL(file);
+        } else if (params.asText) {
+            reader.readAsText(file);
+        } else {
+            reader.readAsArrayBuffer(file);
+        }
+
+        return d.promise;
+    }
+
+    return diskfs.read = diskfs.readFile = readFile;
+    
+});
+
+define('skylark-storages-diskfs/readImage',[
+    "skylark-langx/Deferred",
+    "./diskfs",
+    "./read"
+],function(Deferred, diskfs,read){
+
+	function readImage(fileObj) {
+        var d = new Deferred,
+	    	img = new Image();
+
+	    img.onload = function() {
+	      d.resolve(img);
+	    };
+	    img.onerror = function(e) {
+	      d.reject(e);
+	    };
+
+	    read(fileObj,{
+	    	asDataUrl : true
+	    }).then(function(dataUrl){
+	        img.src = dataUrl;
+	    }).catch(function(e){
+	    	d.reject(e);
+	    });
+
+	    return d.promise;
+	}
+
+	return diskfs.readImage = readImage;
+
+});
+define('skylark-widgets-wordpad/addons/actions/ImagePopover',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "../../addons",
+  "../../Popover"
+],function(langx, $,addons,Popover){ 
+   var ImagePopover = Popover.inherit({
+
+   });
+
+  ImagePopover.prototype.offset = {
+    top: 6,
+    left: -4
+  };
+
+  ImagePopover.prototype.render = function() {
+    var tpl;
+    tpl = "<div class=\"link-settings\">\n  <div class=\"settings-field\">\n    <label>" + (this._t('imageUrl')) + "</label>\n    <input class=\"image-src\" type=\"text\" tabindex=\"1\" />\n    <a class=\"btn-upload\" href=\"javascript:;\"\n      title=\"" + (this._t('uploadImage')) + "\" tabindex=\"-1\">\n      <span class=\"fa fa-upload\"></span>\n    </a>\n  </div>\n  <div class='settings-field'>\n    <label>" + (this._t('imageAlt')) + "</label>\n    <input class=\"image-alt\" id=\"image-alt\" type=\"text\" tabindex=\"1\" />\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('imageSize')) + "</label>\n    <input class=\"image-size\" id=\"image-width\" type=\"text\" tabindex=\"2\" />\n    <span class=\"times\">×</span>\n    <input class=\"image-size\" id=\"image-height\" type=\"text\" tabindex=\"3\" />\n    <a class=\"btn-restore\" href=\"javascript:;\"\n      title=\"" + (this._t('restoreImageSize')) + "\" tabindex=\"-1\">\n      <span class=\"fa fa-undo\"></span>\n    </a>\n  </div>\n</div>";
+    this.el.addClass('image-popover').append(tpl);
+    this.srcEl = this.el.find('.image-src');
+    this.widthEl = this.el.find('#image-width');
+    this.heightEl = this.el.find('#image-height');
+    this.altEl = this.el.find('#image-alt');
+    this.srcEl.on('keydown', (function(_this) {
+      return function(e) {
+        var range;
+        if (!(e.which === 13 && !_this.target.hasClass('uploading'))) {
+          return;
+        }
+        e.preventDefault();
+        range = document.createRange();
+        _this.action.editor.editable.selection.setRangeAfter(_this.target, range);
+        return _this.hide();
+      };
+    })(this));
+    this.srcEl.on('blur', (function(_this) {
+      return function(e) {
+        return _this._loadImage(_this.srcEl.val());
+      };
+    })(this));
+    this.el.find('.image-size').on('blur', (function(_this) {
+      return function(e) {
+        _this._resizeImg($(e.currentTarget));
+        return _this.el.data('popover').refresh();
+      };
+    })(this));
+    this.el.find('.image-size').on('keyup', (function(_this) {
+      return function(e) {
+        var inputEl;
+        inputEl = $(e.currentTarget);
+        if (!(e.which === 13 || e.which === 27 || e.which === 9)) {
+          return _this._resizeImg(inputEl, true);
+        }
+      };
+    })(this));
+    this.el.find('.image-size').on('keydown', (function(_this) {
+      return function(e) {
+        var $img, inputEl, range;
+        inputEl = $(e.currentTarget);
+        if (e.which === 13 || e.which === 27) {
+          e.preventDefault();
+          if (e.which === 13) {
+            _this._resizeImg(inputEl);
+          } else {
+            _this._restoreImg();
+          }
+          $img = _this.target;
+          _this.hide();
+          range = document.createRange();
+          return _this.action.editor.editable.selection.setRangeAfter($img, range);
+        } else if (e.which === 9) {
+          return _this.el.data('popover').refresh();
+        }
+      };
+    })(this));
+    this.altEl.on('keydown', (function(_this) {
+      return function(e) {
+        var range;
+        if (e.which === 13) {
+          e.preventDefault();
+          range = document.createRange();
+          _this.action.editor.editable.selection.setRangeAfter(_this.target, range);
+          return _this.hide();
+        }
+      };
+    })(this));
+    this.altEl.on('keyup', (function(_this) {
+      return function(e) {
+        if (e.which === 13 || e.which === 27 || e.which === 9) {
+          return;
+        }
+        _this.alt = _this.altEl.val();
+        return _this.target.attr('alt', _this.alt);
+      };
+    })(this));
+    this.el.find('.btn-restore').on('click', (function(_this) {
+      return function(e) {
+        _this._restoreImg();
+        return _this.el.data('popover').refresh();
+      };
+    })(this));
+    this.editor.on('valuechanged', (function(_this) {
+      return function(e) {
+        if (_this.active) {
+          return _this.refresh();
+        }
+      };
+    })(this));
+    return this._initUploader();
+  };
+
+  ImagePopover.prototype._initUploader = function() {
+    var $uploadBtn, createInput;
+    $uploadBtn = this.el.find('.btn-upload');
+    if (this.editor.uploader == null) {
+      $uploadBtn.remove();
+      return;
+    }
+
+    var _this = this;
+    $uploadBtn.picker({
+      title: _this._t('uploadImage'),
+      multiple: true,
+      accept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
+      picked : function(files){
+        _this.editor.uploader.upload(files, {
+          inline: true,
+          img: _this.target
+        });
+      }      
+
+    });
+  };
+
+  ImagePopover.prototype._resizeImg = function(inputEl, onlySetVal) {
+    var height, value, width;
+    if (onlySetVal == null) {
+      onlySetVal = false;
+    }
+    value = inputEl.val() * 1;
+    if (!(this.target && (langx.isNumber(value) || value < 0))) {
+      return;
+    }
+    if (inputEl.is(this.widthEl)) {
+      width = value;
+      height = this.height * value / this.width;
+      this.heightEl.val(height);
+    } else {
+      height = value;
+      width = this.width * value / this.height;
+      this.widthEl.val(width);
+    }
+    if (!onlySetVal) {
+      this.target.attr({
+        width: width,
+        height: height
+      });
+      return this.editor.trigger('valuechanged');
+    }
+  };
+
+  ImagePopover.prototype._restoreImg = function() {
+    var ref, size;
+    size = ((ref = this.target.data('image-size')) != null ? ref.split(",") : void 0) || [this.width, this.height];
+    this.target.attr({
+      width: size[0] * 1,
+      height: size[1] * 1
+    });
+    this.widthEl.val(size[0]);
+    this.heightEl.val(size[1]);
+    return this.editor.trigger('valuechanged');
+  };
+
+  ImagePopover.prototype._loadImage = function(src, callback) {
+    if (/^data:image/.test(src) && !this.editor.uploader) {
+      if (callback) {
+        callback(false);
+      }
+      return;
+    }
+    if (this.target.attr('src') === src) {
+      return;
+    }
+    return this.action.loadImage(this.target, src, (function(_this) {
+      return function(img) {
+        var blob;
+        if (!img) {
+          return;
+        }
+        if (_this.active) {
+          _this.width = img.width;
+          _this.height = img.height;
+          _this.widthEl.val(_this.width);
+          _this.heightEl.val(_this.height);
+        }
+        if (/^data:image/.test(src)) {
+          blob = _this.editor.editable.util.dataURLtoBlob(src);
+          blob.name = "Base64 Image.png";
+          _this.editor.uploader.upload(blob, {
+            inline: true,
+            img: _this.target
+          });
+        } else {
+          _this.editor.trigger('valuechanged');
+        }
+        if (callback) {
+          return callback(img);
+        }
+      };
+    })(this));
+  };
+
+  ImagePopover.prototype.show = function() {
+    var $img, args;
+    args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
+    Popover.prototype.show.apply(this, args);
+    $img = this.target;
+    this.width = $img.width();
+    this.height = $img.height();
+    this.alt = $img.attr('alt');
+    if ($img.hasClass('uploading')) {
+      return this.srcEl.val(this._t('uploading')).prop('disabled', true);
+    } else {
+      this.srcEl.val($img.attr('src')).prop('disabled', false);
+      this.widthEl.val(this.width);
+      this.heightEl.val(this.height);
+      return this.altEl.val(this.alt);
+    }
+  };
+
+  return ImagePopover;
+
+});
+define('skylark-widgets-wordpad/addons/actions/ImageAction',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "skylark-storages-diskfs/readImage",  
+  "../../addons",
+  "../../Action",
+  "./ImagePopover",
+  "../../i18n"
+],function(langx, $, readImage, addons,Action,ImagePopover,i18n){ 
+   var ImageAction = Action.inherit({
+      name : 'image',
+
+      icon : 'image',
+
+      htmlTag : 'img',
+
+      disableTag : 'pre, table',
+
+      placeholderImage : '',
+
+      needFocus : false,
+
+      _init : function() {
+        Action.prototype._init.call(this);
+
+        var item, k, len, ref;
+        if (this.editor.options.imageAction) {
+          if (Array.isArray(this.editor.options.imageAction)) {
+            this.menu = [];
+            ref = this.editor.options.imageAction;
+            for (k = 0, len = ref.length; k < len; k++) {
+              item = ref[k];
+              this.menu.push({
+                name: item + '-image',
+                text: this._t(item + 'Image')
+              });
+            }
+          } else {
+            this.menu = false;
+          }
+        } else {
+          if (this.editor.uploader != null) {
+            this.menu = [
+              {
+                name: 'upload-image',
+                text: i18n.translate('uploadImage')
+              }, {
+                name: 'external-image',
+                text: i18n.translate('externalImage')
+              }
+            ];
+          } else {
+            this.menu = false;
+          }
+        }
+        this.placeholderImage = this.editor.options.addons.actions.image.placeholderImage;
+        this.editor.body.on('click', 'img:not([data-non-image])', (function(_this) {
+          return function(e) {
+            var $img, range;
+            $img = $(e.currentTarget);
+            range = document.createRange();
+            range.selectNode($img[0]);
+            _this.editor.editable.selection.range(range);
+            if (!_this.editor.editable.util.support.onselectionchange) {
+              _this.editor.trigger('selectionchanged');
+            }
+            return false;
+          };
+        })(this));
+        this.editor.body.on('mouseup', 'img:not([data-non-image])', function(e) {
+          return false;
+        });
+        this.editor.on('selectionchanged.image', (function(_this) {
+          return function() {
+            var $contents, $img, range;
+            range = _this.editor.editable.selection.range();
+            if (range == null) {
+              return;
+            }
+            $contents = $(range.cloneContents()).contents();
+            if ($contents.length === 1 && $contents.is('img:not([data-non-image])')) {
+              $img = $(range.startContainer).contents().eq(range.startOffset);
+              if (!_this.popover) {
+                _this.popover = new ImagePopover({
+                  action: _this
+                });                
+              }
+
+              return _this.popover.show($img);
+            } else {
+              if (_this.popover) {
+                  return _this.popover.hide();
+              }
+            }
+          };
+        })(this));
+        this.editor.on('valuechanged.image', (function(_this) {
+          return function() {
+            var $masks;
+            $masks = _this.editor.wrapper.find('.wordpad-image-loading');
+            if (!($masks.length > 0)) {
+              return;
+            }
+            return $masks.each(function(i, mask) {
+              var $img, $mask, file;
+              $mask = $(mask);
+              $img = $mask.data('img');
+              if (!($img && $img.parent().length > 0)) {
+                $mask.remove();
+                if ($img) {
+                  file = $img.data('file');
+                  if (file) {
+                    _this.editor.uploader.cancel(file);
+                    if (_this.editor.body.find('img.uploading').length < 1) {
+                      return _this.editor.uploader.trigger('uploadready', [file]);
+                    }
+                  }
+                }
+              }
+            });
+          };
+        })(this));
+
+        this.popover = new ImagePopover({
+          action: this
+        });
+
+        if (this.editor.options.upload) {
+          return this._initUploader();
+        }
+
+
+      },
+
+      _initUploader : function($uploadItem) {
+
+        this.editor.uploader.on('beforeupload', (function(_this) {
+          return function(e, file) {
+            var $img;
+            if (!file.inline) {
+              return;
+            }
+            if (file.img) {
+              $img = $(file.img);
+            } else {
+              $img = _this.createImage(file.name);
+              file.img = $img;
+            }
+            $img.addClass('uploading');
+            $img.data('file', file);
+            return readImage(file.obj).then(function(img) {
+              var src;
+              if (!$img.hasClass('uploading')) {
+                return;
+              }
+              src = img ? img.src : _this.placeholderImage;
+              return _this.loadImage($img, src, function() {
+                if (_this.popover.active) {
+                  _this.popover.refresh();
+                  return _this.popover.srcEl.val(_this._t('uploading')).prop('disabled', true);
+                }
+              });
+            });
+          };
+        })(this));
+        uploadProgress = langx.proxy(this.editor.editable.util.throttle(function(e, file, loaded, total) {
+          var $img, $mask, percent;
+          if (!file.inline) {
+            return;
+          }
+          $mask = file.img.data('mask');
+          if (!$mask) {
+            return;
+          }
+          $img = $mask.data('img');
+          if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
+            $mask.remove();
+            return;
+          }
+          percent = loaded / total;
+          percent = (percent * 100).toFixed(0);
+          if (percent > 99) {
+            percent = 99;
+          }
+          return $mask.find('.progress').height((100 - percent) + "%");
+        }, 500), this);
+        this.editor.uploader.on('uploadprogress', uploadProgress);
+        this.editor.uploader.on('uploadsuccess', (function(_this) {
+          return function(e, file, result) {
+            var $img, img_path, msg;
+            if (!file.inline) {
+              return;
+            }
+            $img = file.img;
+            if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
+              return;
+            }
+            try {
+                if (typeof result !== 'object') {
+                   result = JSON.parse(result);
+                }
+                if (_this.editor.options.upload.uploadedImagePath) {
+                	img_path = _this.editor.options.upload.uploadedImagePath(result);
+                } else {
+	                img_path = result.files[0].url;
+                }
+            } catch (_error) {
+                e = _error;
+                result = {
+                  success: false
+                };
+            }
+
+            _this.loadImage($img, img_path, function() {
+              var $mask;
+              $img.removeData('file');
+              $img.removeClass('uploading').removeClass('loading');
+              $mask = $img.data('mask');
+              if ($mask) {
+                $mask.remove();
+              }
+              $img.removeData('mask');
+              _this.editor.trigger('valuechanged');
+              if (_this.editor.body.find('img.uploading').length < 1) {
+                return _this.editor.uploader.trigger('uploadready', [file, result]);
+              }
+            });
+            if (_this.popover.active) {
+              _this.popover.srcEl.prop('disabled', false);
+              return _this.popover.srcEl.val(result.file_path);
+            }
+          };
+        })(this));
+        return this.editor.uploader.on('uploaderror', (function(_this) {
+          return function(e, file, xhr) {
+            var $img, msg, result;
+            if (!file.inline) {
+              return;
+            }
+            if (xhr.statusText === 'abort') {
+              return;
+            }
+            if (xhr.responseText) {
+              try {
+                result = JSON.parse(xhr.responseText);
+                msg = result.msg;
+              } catch (_error) {
+                e = _error;
+                msg = _this._t('uploadError');
+              }
+            }
+            $img = file.img;
+            if (!($img.hasClass('uploading') && $img.parent().length > 0)) {
+              return;
+            }
+            _this.loadImage($img, _this.placeholderImage, function() {
+              var $mask;
+              $img.removeData('file');
+              $img.removeClass('uploading').removeClass('loading');
+              $mask = $img.data('mask');
+              if ($mask) {
+                $mask.remove();
+              }
+              return $img.removeData('mask');
+            });
+            if (_this.popover.active) {
+              _this.popover.srcEl.prop('disabled', false);
+              _this.popover.srcEl.val(_this.placeholderImage);
+            }
+            _this.editor.trigger('valuechanged');
+            if (_this.editor.body.find('img.uploading').length < 1) {
+              return _this.editor.uploader.trigger('uploadready', [file, result]);
+            }
+          };
+        })(this));
+      },
+
+      _status : function() {
+        return this._disableStatus();
+      },
+
+      loadImage : function($img, src, callback) {
+        var $mask, img, positionMask;
+        positionMask = (function(_this) {
+          return function() {
+            var imgOffset, wrapperOffset;
+            imgOffset = $img.offset();
+            wrapperOffset = _this.editor.wrapper.offset();
+            return $mask.css({
+              top: imgOffset.top - wrapperOffset.top,
+              left: imgOffset.left - wrapperOffset.left,
+              width: $img.width(),
+              height: $img.height()
+            }).show();
+          };
+        })(this);
+        $img.addClass('loading');
+        $mask = $img.data('mask');
+        if (!$mask) {
+          $mask = $('<div class="wordpad-image-loading">\n  <div class="progress"></div>\n</div>').hide().appendTo(this.editor.wrapper);
+          positionMask();
+          $img.data('mask', $mask);
+          $mask.data('img', $img);
+        }
+        img = new Image();
+        img.onload = (function(_this) {
+          return function() {
+            var height, width;
+            if (!$img.hasClass('loading') && !$img.hasClass('uploading')) {
+              return;
+            }
+            width = img.width;
+            height = img.height;
+            $img.attr({
+              src: src,
+              width: width,
+              height: height,
+              'data-image-size': width + ',' + height
+            }).removeClass('loading');
+            if ($img.hasClass('uploading')) {
+              _this.editor.editable.util.reflow(_this.editor.body);
+              positionMask();
+            } else {
+              $mask.remove();
+              $img.removeData('mask');
+            }
+            _this.editor.trigger('valuechanged');
+            if (langx.isFunction(callback)) {
+              return callback(img);
+            }
+          };
+        })(this);
+        img.onerror = function() {
+          if (langx.isFunction(callback)) {
+            callback(false);
+          }
+          $mask.remove();
+          return $img.removeData('mask').removeClass('loading');
+        };
+        return img.src = src;
+      },
+
+      createImage : function(name) {
+        var $img, range;
+        if (name == null) {
+          name = 'Image';
+        }
+        if (!this.editor.editable.inputManager.focused) {
+          this.editor.focus();
+        }
+        range = this.editor.editable.selection.range();
+        range.deleteContents();
+        this.editor.editable.selection.range(range);
+        $img = $('<img/>').attr('alt', name);
+        range.insertNode($img[0]);
+        this.editor.editable.selection.setRangeAfter($img, range);
+        this.editor.trigger('valuechanged');
+        return $img;
+      },
+
+      _execute : function(src) {
+        var $img;
+        $img = this.createImage();
+        return this.loadImage($img, src || this.placeholderImage, (function(_this) {
+          return function() {
+            _this.editor.trigger('valuechanged');
+            _this.editor.editable.util.reflow($img);
+            $img.click();
+            return _this.popover.one('popovershow', function() {
+              _this.popover.srcEl.focus();
+              return _this.popover.srcEl[0].select();
+            });
+          };
+        })(this));
+      }
+
+   });
+
+   addons.actions.image = ImageAction; 
+
+   return ImageAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/IndentAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function($,addons,Action){ 
+  
+   var IndentAction = Action.inherit({
+      name :'indent',
+
+      icon : 'indent',
+
+      _init : function() {
+        var hotkey;
+        hotkey = this.editor.options.tabIndent === false ? '' : ' (Tab)';
+        this.title = this._t(this.name) + hotkey;
+        return Action.prototype._init.call(this);
+      },
+
+      _execute : function() {
+        return this.editor.editable.indent()
+      }
+
+   });
+
+
+   addons.actions.indent = IndentAction; 
+
+   return IndentAction;
+});
+define('skylark-widgets-wordpad/addons/actions/ItalicAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function($,addons,Action){ 
+  
+
+  var ItalicAction = Action.inherit({
+      name : 'italic',
+
+      icon : 'italic',
+
+      htmlTag : 'i',
+
+      disableTag : 'pre',
+
+      shortcut : 'cmd+i',
+
+      _init : function() {
+        if (this.editor.editable.util.os.mac) {
+          this.title = this.title + " ( Cmd + i )";
+        } else {
+          this.title = this.title + " ( Ctrl + i )";
+          this.shortcut = 'ctrl+i';
+        }
+        return Action.prototype._init.call(this);
+      },
+
+      _activeStatus : function() {
+        var active;
+        active = this.editor.editable.isActive('italic');
+        this.setActive(active);
+        return this.active;
+      },
+
+      _execute : function() {
+        return this.editor.editable.italic();
+      }
+   });
+
+
+   addons.actions.italic = ItalicAction; 
+
+   return ItalicAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/LinkPopover',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Popover"
+],function($,addons,Popover){ 
+  var LinkPopover = Popover.inherit({
+    render : function() {
+      var tpl;
+      tpl = "<div class=\"link-settings\">\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkText')) + "</label>\n    <input class=\"link-text\" type=\"text\"/>\n    <a class=\"btn-unlink\" href=\"javascript:;\" title=\"" + (this._t('removeLink')) + "\"\n      tabindex=\"-1\">\n      <span class=\"fa fa-unlink\"></span>\n    </a>\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkUrl')) + "</label>\n    <input class=\"link-url\" type=\"text\"/>\n  </div>\n  <div class=\"settings-field\">\n    <label>" + (this._t('linkTarget')) + "</label>\n    <select class=\"link-target\">\n      <option value=\"_blank\">" + (this._t('openLinkInNewWindow')) + " (_blank)</option>\n      <option value=\"_self\">" + (this._t('openLinkInCurrentWindow')) + " (_self)</option>\n    </select>\n  </div>\n</div>";
+      this.el.addClass('link-popover').append(tpl);
+      this.textEl = this.el.find('.link-text');
+      this.urlEl = this.el.find('.link-url');
+      this.unlinkEl = this.el.find('.btn-unlink');
+      this.selectTarget = this.el.find('.link-target');
+      this.textEl.on('keyup', (function(_this) {
+        return function(e) {
+          if (e.which === 13) {
+            return;
+          }
+          _this.target.text(_this.textEl.val());
+          return _this.editor.editable.inputManager.throttledValueChanged();
+        };
+      })(this));
+      this.urlEl.on('keyup', (function(_this) {
+        return function(e) {
+          var val;
+          if (e.which === 13) {
+            return;
+          }
+          val = _this.urlEl.val();
+          if (!(/^(http|https|ftp|ftps|file)?:\/\/|^(mailto|tel)?:|^\//ig.test(val) || !val)) {
+            val = 'http://' + val;
+          }
+          _this.target.attr('href', val);
+          return _this.editor.editable.inputManager.throttledValueChanged();
+        };
+      })(this));
+      $([this.urlEl[0], this.textEl[0]]).on('keydown', (function(_this) {
+        return function(e) {
+          var range;
+          if (e.which === 13 || e.which === 27 || (!e.shiftKey && e.which === 9 && $(e.target).hasClass('link-url'))) {
+            e.preventDefault();
+            range = document.createRange();
+            _this.editor.editable.selection.setRangeAfter(_this.target, range);
+            _this.hide();
+            return _this.editor.editable.inputManager.throttledValueChanged();
+          }
+        };
+      })(this));
+      this.unlinkEl.on('click', (function(_this) {
+        return function(e) {
+          var range, txtNode;
+          txtNode = document.createTextNode(_this.target.text());
+          _this.target.replaceWith(txtNode);
+          _this.hide();
+          range = document.createRange();
+          _this.editor.editable.selection.setRangeAfter(txtNode, range);
+          return _this.editor.editable.inputManager.throttledValueChanged();
+        };
+      })(this));
+      return this.selectTarget.on('change', (function(_this) {
+        return function(e) {
+          _this.target.attr('target', _this.selectTarget.val());
+          return _this.editor.editable.inputManager.throttledValueChanged();
+        };
+      })(this));
+    },
+
+    show : function() {
+      var args;
+      args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
+      Popover.prototype.show.apply(this, args);
+      this.textEl.val(this.target.text());
+      return this.urlEl.val(this.target.attr('href'));
+    }
+  });
+
+  return LinkPopover;
+});
+define('skylark-widgets-wordpad/addons/actions/LinkAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action",
+  "../../i18n",
+  "./LinkPopover"
+],function($,addons,Action,i18n,LinkPopover){ 
+  
+
+  var LinkAction = Action.inherit({
+    name : 'link',
+
+    icon : 'link',
+
+    htmlTag : 'a',
+
+    disableTag : 'pre',
+
+    _status : function() {
+     Action.prototype._status.call(this);
+      if (this.active && !this.editor.editable.selection.rangeAtEndOf(this.node)) {
+        if (!this.popover) {
+          this.popover = new LinkPopover({
+            action: this
+          });
+        }
+        return this.popover.show(this.node);
+      } else {
+        if (this.popover) {
+          return this.popover.hide();
+        }
+      }
+    },
+
+    _execute : function() {
+      if (this.active) {
+        this.popover.one('popovershow', (function(_this) {
+          return function() {
+            if (linkText) {
+              _this.popover.urlEl.focus();
+              return _this.popover.urlEl[0].select();
+            } else {
+              _this.popover.textEl.focus();
+              return _this.popover.textEl[0].select();
+            }
+          };
+        })(this));
+
+      }
+
+      return this.editor.editable.link(this.active,i18n.translate('linkText'));
+
+    }
+
+   });
+
+
+
+  addons.actions.link = LinkAction; 
+
+  return LinkAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/ListAction',[
+  "skylark-domx-noder",
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function(noder,$,addons,Action){ 
+  var ListAction = Action.inherit({
+    type : '',
+
+    disableTag : 'pre, table',
+
+    _execute : function(param) {
+      return this.editor.editable.list(this.type,param,this.disableTag);
+    }
+
+   });
+
+
+
+    return ListAction;
+	
+});
+define('skylark-widgets-wordpad/addons/actions/MarkAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action",
+  "../../i18n"
+],function($,addons,Action,i18n){ 
+
+
+  var MarkAction = Action.inherit({
+    name : 'mark',
+
+    icon : 'mark',
+
+    htmlTag : 'mark',
+
+    disableTag : 'pre, table',
+
+    _execute : function() {
+      var $end, $start, range;
+      range = this.editor.editable.selection.range();
+      if (this.active) {
+        this.editor.editable.selection.save();
+        this.unmark(range);
+        this.editor.editable.selection.restore();
+        this.editor.trigger('valuechanged');
+        return;
+      }
+      if (range.collapsed) {
+        return;
+      }
+      this.editor.editable.selection.save();
+      $start = $(range.startContainer);
+      $end = $(range.endContainer);
+      if ($start.closest('mark').length) {
+        range.setStartBefore($start.closest('mark')[0]);
+      }
+      if ($end.closest('mark').length) {
+        range.setEndAfter($end.closest('mark')[0]);
+      }
+      this.mark(range);
+      this.editor.editable.selection.restore();
+      this.editor.trigger('valuechanged');
+      if (this.editor.editable.util.support.onselectionchange) {
+        return this.editor.trigger('selectionchanged');
+      }
+    },
+
+    mark : function(range) {
+      var $contents, $mark;
+      if (range == null) {
+        range = this.editor.editable.selection.range();
+      }
+      $contents = $(range.extractContents());
+      $contents.find('mark').each(function(index, ele) {
+        return $(ele).replaceWith($(ele).html());
+      });
+      $mark = $('<mark>').append($contents);
+      return range.insertNode($mark[0]);
+    },
+
+    unmark : function(range) {
+      var $mark;
+      if (range == null) {
+        range = this.editor.editable.selection.range();
+      }
+      if (range.collapsed) {
+        $mark = $(range.commonAncestorContainer);
+        if (!$mark.is('mark')) {
+          $mark = $mark.parent();
+        }
+      } else if ($(range.startContainer).closest('mark').length) {
+        $mark = $(range.startContainer).closest('mark');
+      } else if ($(range.endContainer).closest('mark').length) {
+        $mark = $(range.endContainer).closest('mark');
+      }
+      return $mark.replaceWith($mark.html());
+    }
+
+  });
+
+  
+  addons.actions.mark = MarkAction;
+
+  return MarkAction;
+
+ }); 
+define('skylark-widgets-wordpad/addons/actions/OrderListAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "./ListAction"
+],function($,addons,ListAction){ 
+  var OrderListAction = ListAction.inherit({
+    type : 'ol',
+
+    name : 'ol',
+
+    icon : 'listol',
+
+    htmlTag : 'ol',
+
+    shortcut : 'cmd+/',
+
+    _init : function() {
+      if (this.editor.editable.util.os.mac) {
+        this.title = this.title + ' ( Cmd + / )';
+      } else {
+        this.title = this.title + ' ( ctrl + / )';
+        this.shortcut = 'ctrl+/';
+      }
+      return ListAction.prototype._init.call(this);
+    }
+
+   });
+
+    return addons.actions.ol = OrderListAction;	
+});
+define('skylark-widgets-wordpad/addons/actions/OutdentAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function($,addons,Action){ 
+  var OutdentAction = Action.inherit({
+    name : 'outdent',
+
+    icon : 'outdent',
+
+    _init : function() {
+      var hotkey;
+      hotkey = this.editor.options.tabIndent === false ? '' : ' (Shift + Tab)';
+      this.title = this._t(this.name) + hotkey;
+      return Action.prototype._init.call(this);
+    },
+
+    _status : function() {},
+
+    _execute : function() {
+      return this.editor.editable.outdent();
+    }
+
+   });
+
+
+   addons.actions.outdent = OutdentAction; 
+ 
+   return OutdentAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/StrikethroughAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function($,addons,Action){ 
+  
+  var StrikethroughAction = Action.inherit({
+    name : 'strikethrough',
+
+    icon : 'strikethrough',
+
+    htmlTag : 'strike',
+
+    disableTag : 'pre',
+
+    _activeStatus : function() {
+      var active;
+      active = this.editor.editable.isActive('strikethrough');
+      this.setActive(active);
+      return this.active;
+    },
+
+    _execute : function() {
+      return this.editor.editable.strikethrough();
+    }
+
+  });
+
+
+  return addons.actions.strikethrough = StrikethroughAction;	
+});
+define('skylark-domx-tables/tables',[
+    "skylark-langx/skylark",
+    "skylark-langx/langx",
+    "skylark-domx-query",
+    "skylark-domx-styler",
+    "skylark-domx-eventer",
+    "skylark-domx-fx",
+    "skylark-domx-data",
+    "skylark-domx-finder",
+    "skylark-domx-geom"
+], function(skylark, langx,$) {
+  //TODO : don't use query
+
+  function tables() {
+      return tables;
+  }
+
+  function _changeCellTag($tr, tagName) {
+    return $tr.find('td, th').each(function(i, cell) {
+      var $cell;
+      $cell = $(cell);
+      return $cell.replaceWith("<" + tagName + ">" + ($cell.html()) + "</" + tagName + ">");
+    });
+  }
+
+  function _nextRow($tr) {
+    var $nextTr;
+    $nextTr = $tr.next('tr');
+    if ($nextTr.length < 1 && $tr.parent('thead').length > 0) {
+      $nextTr = $tr.parent('thead').next('tbody').find('tr:first');
+    }
+    return $nextTr;
+  };
+
+  function _prevRow($tr) {
+    var $prevTr;
+    $prevTr = $tr.prev('tr');
+    if ($prevTr.length < 1 && $tr.parent('tbody').length > 0) {
+      $prevTr = $tr.parent('tbody').prev('thead').find('tr');
+    }
+    return $prevTr;
+  }
+
+  function createTable(row, col, phBr) {
+    var $table, $tbody, $td, $thead, $tr, c, k, l, r, ref, ref1;
+    $table = $('<table/>');
+    $thead = $('<thead/>').appendTo($table);
+    $tbody = $('<tbody/>').appendTo($table);
+    for (r = k = 0, ref = row; 0 <= ref ? k < ref : k > ref; r = 0 <= ref ? ++k : --k) {
+        $tr = $('<tr/>');
+        $tr.appendTo(r === 0 ? $thead : $tbody);
+        for (c = l = 0, ref1 = col; 0 <= ref1 ? l < ref1 : l > ref1; c = 0 <= ref1 ? ++l : --l) {
+          $td = $(r === 0 ? '<th/>' : '<td/>').appendTo($tr);
+          if (phBr) {
+              $td.append(phBr);
+          }
+        }
+    }   
+    return $table[0];
+  }
+    
+
+  //cls = simditor-table
+  function decorate(table,cssClasses) {
+    var $table = $(table);
+
+    var $colgroup, $headRow, $resizeHandle, $tbody, $thead, $wrapper;
+    if ($table.parent('.' + cssClasses.tableDecorate).length > 0) {
+      undecorate(table);
+    }
+    $table.wrap('<div class="' + cssClasses.tableDecorate + '"></div>');
+    $wrapper = $table.parent('.' + cssClasses.tableDecorate );
+    $colgroup = $table.find('colgroup');
+    if ($table.find('thead').length < 1) {
+      $thead = $('<thead />');
+      $headRow = $table.find('tr').first();
+      $thead.append($headRow);
+      _changeCellTag($headRow, 'th');
+      $tbody = $table.find('tbody');
+      if ($tbody.length > 0) {
+        $tbody.before($thead);
+      } else {
+        $table.prepend($thead);
+      }
+    }
+    if ($colgroup.length < 1) {
+      $colgroup = $('<colgroup/>').prependTo($table);
+      $table.find('thead tr th').each(function(i, td) {
+        var $col;
+        return $col = $('<col/>').appendTo($colgroup);
+      });
+      refreshTableWidth($table);
+    }
+    $resizeHandle = $('<div />', {
+      "class": cssClasses.resizeHandle, // 'simditor-resize-handle',
+      contenteditable: 'false'
+    }).appendTo($wrapper);
+    return $table.parent();
+  }
+
+  function deleteTable(td,callback) {
+    var $td = $(td);
+
+    var $block, $table;
+    $table = $td.closest('.simditor-table');
+    $block = $table.next('p');
+    $table.remove();
+    if (callback) {
+      callback($block);
+    }
+  }
+
+  function deleteRow(td,callback) {
+    var $td = $(td);
+
+    var $newTr, $tr, index;
+    $tr = $td.parent('tr');
+    if ($tr.closest('table').find('tr').length < 1) {
+      return deleteTable(td);
+    } else {
+      $newTr = _nextRow($tr);
+      if (!($newTr.length > 0)) {
+        $newTr = _prevRow($tr);
+      }
+      index = $tr.find('td, th').index($td);
+      if ($tr.parent().is('thead')) {
+        $newTr.appendTo($tr.parent());
+        _changeCellTag($newTr, 'th');
+      }
+      $tr.remove();
+    
+      if (callback) {
+        callback($newTr[0],index);
+      }
+      //return this.editor.selection.setRangeAtEndOf($newTr.find('td, th').eq(index));
+    }
+  }
+
+  function insertRow(td, direction,phBr,callback) {
+    var $td = $(td);
+
+    var $newTr, $table, $tr, cellTag, colNum, i, index, k, ref;
+    if (direction == null) {
+      direction = 'after';
+    }
+    $tr = $td.parent('tr');
+    $table = $tr.closest('table');
+    colNum = 0;
+    $table.find('tr').each(function(i, tr) {
+      return colNum = Math.max(colNum, $(tr).find('td').length);
+    });
+    index = $tr.find('td, th').index($td);
+    $newTr = $('<tr/>');
+    cellTag = 'td';
+    if (direction === 'after' && $tr.parent().is('thead')) {
+      $tr.parent().next('tbody').prepend($newTr);
+    } else if (direction === 'before' && $tr.parent().is('thead')) {
+      $tr.before($newTr);
+      $tr.parent().next('tbody').prepend($tr);
+      _changeCellTag($tr, 'td');
+      cellTag = 'th';
+    } else {
+      $tr[direction]($newTr);
+    }
+    for (i = k = 1, ref = colNum; 1 <= ref ? k <= ref : k >= ref; i = 1 <= ref ? ++k : --k) {
+      $("<" + cellTag + "/>").append(phBr).appendTo($newTr);
+    }
+
+    if (callback) {
+      callback($newTr[0],index);
+    }
+  }
+
+  function deleteCol(td,callback) {
+    var $td = $(td);
+
+    var $newTd, $table, $tr, index, noOtherCol, noOtherRow;
+    $tr = $td.parent('tr');
+    noOtherRow = $tr.closest('table').find('tr').length < 2;
+    noOtherCol = $td.siblings('td, th').length < 1;
+    if (noOtherRow && noOtherCol) {
+      return deleteTable(td);
+    } else {
+      index = $tr.find('td, th').index($td);
+      $newTd = $td.next('td, th');
+      if (!($newTd.length > 0)) {
+        $newTd = $tr.prev('td, th');
+      }
+      $table = $tr.closest('table');
+      $table.find('col').eq(index).remove();
+      $table.find('tr').each(function(i, tr) {
+        return $(tr).find('td, th').eq(index).remove();
+      });
+      refreshTableWidth($table);
+      //return this.editor.selection.setRangeAtEndOf($newTd);
+      if (callback) {
+        callback($newTd[0]);
+      }
+    }
+  }
+
+  function insertCol(td, direction,phBr,callback) {
+    var $td = $(td);
+
+    var $col, $newCol, $newTd, $table, $tr, index, tableWidth, width;
+    if (direction == null) {
+      direction = 'after';
+    }
+    $tr = $td.parent('tr');
+    index = $tr.find('td, th').index($td);
+    $table = $td.closest('table');
+    $col = $table.find('col').eq(index);
+    $table.find('tr').each((function(_this) {
+      return function(i, tr) {
+        var $newTd, cellTag;
+        cellTag = $(tr).parent().is('thead') ? 'th' : 'td';
+        $newTd = $("<" + cellTag + "/>").append(phBr);
+        return $(tr).find('td, th').eq(index)[direction]($newTd);
+      };
+    })(this));
+    $newCol = $('<col/>');
+    $col[direction]($newCol);
+    tableWidth = $table.width();
+    width = Math.max(parseFloat($col.attr('width')) / 2, 50 / tableWidth * 100);
+    $col.attr('width', width + '%');
+    $newCol.attr('width', width + '%');
+    refreshTableWidth($table);
+    $newTd = direction === 'after' ? $td.next('td, th') : $td.prev('td, th');
+    //return this.editor.selection.setRangeAtStartOf($newTd);
+    if (callback) {
+      callback($newTd[0]);
+    }
+  }
+
+
+  function refreshTableWidth($table) {
+    return setTimeout((function(_this) {
+      return function() {
+        var cols, tableWidth;
+        tableWidth = $table.width();
+        cols = $table.find('col');
+        return $table.find('thead tr th').each(function(i, td) {
+          var $col;
+          $col = cols.eq(i);
+          return $col.attr('width', ($(td).outerWidth() / tableWidth * 100) + '%');
+        });
+      };
+    })(this), 0);
+  }
+
+
+  function resizable(container,options) {
+    var cssClasses = options.cssClasses,
+        clsResizeHandle = cssClasses.resizeHandle, // simditor-resize-handle
+        clsWrapper = cssClasses.wrapper, // .simditor-table
+        selectorWrapper = "." + clsWrapper,
+        selectorResizeHandle = "." + clsResizeHandle;
+
+    $(container).on('mousemove.table', selectorWrapper +' td, ' + selectorWrapper +' th', function(e) {
+      var $col, $colgroup, $resizeHandle, $td, $wrapper, index, ref, ref1, x;
+      $wrapper = $(this).parents(selectorWrapper);
+      $resizeHandle = $wrapper.find(selectorResizeHandle);
+      $colgroup = $wrapper.find('colgroup');
+      if ($wrapper.hasClass('resizing')) {
+        return;
+      }
+      $td = $(e.currentTarget);
+      x = e.pageX - $(e.currentTarget).offset().left;
+      if (x < 5 && $td.prev().length > 0) {
+        $td = $td.prev();
+      }
+      if ($td.next('td, th').length < 1) {
+        $resizeHandle.hide();
+        return;
+      }
+      if ((ref = $resizeHandle.data('td')) != null ? ref.is($td) : void 0) {
+        $resizeHandle.show();
+        return;
+      }
+      index = $td.parent().find('td, th').index($td);
+      $col = $colgroup.find('col').eq(index);
+      if ((ref1 = $resizeHandle.data('col')) != null ? ref1.is($col) : void 0) {
+        $resizeHandle.show();
+        return;
+      }
+      return $resizeHandle.css('left', $td.position().left + $td.outerWidth() - 5).data('td', $td).data('col', $col).show();
+    });
+
+    $(container).on('mouseleave'+ selectorWrapper, selectorWrapper, function(e) {
+      return $(this).find(selectorResizeHandle).hide();
+    });
+    return $(container).on('mousedown'+ selectorResizeHandle, selectorResizeHandle, function(e) {
+      var $handle, $leftCol, $leftTd, $rightCol, $rightTd, $wrapper, minWidth, startHandleLeft, startLeftWidth, startRightWidth, startX, tableWidth;
+      $wrapper = $(this).parent(selectorWrapper);
+      $handle = $(e.currentTarget);
+      $leftTd = $handle.data('td');
+      $leftCol = $handle.data('col');
+      $rightTd = $leftTd.next('td, th');
+      $rightCol = $leftCol.next('col');
+      startX = e.pageX;
+      startLeftWidth = $leftTd.outerWidth() * 1;
+      startRightWidth = $rightTd.outerWidth() * 1;
+      startHandleLeft = parseFloat($handle.css('left'));
+      tableWidth = $leftTd.closest(selectorWrapper).width();
+      minWidth = 50;
+      $(container).on('mousemove.resize-table', function(e) {
+        var deltaX, leftWidth, rightWidth;
+        deltaX = e.pageX - startX;
+        leftWidth = startLeftWidth + deltaX;
+        rightWidth = startRightWidth - deltaX;
+        if (leftWidth < minWidth) {
+          leftWidth = minWidth;
+          deltaX = minWidth - startLeftWidth;
+          rightWidth = startRightWidth - deltaX;
+        } else if (rightWidth < minWidth) {
+          rightWidth = minWidth;
+          deltaX = startRightWidth - minWidth;
+          leftWidth = startLeftWidth + deltaX;
+        }
+        $leftCol.attr('width', (leftWidth / tableWidth * 100) + '%');
+        $rightCol.attr('width', (rightWidth / tableWidth * 100) + '%');
+        return $handle.css('left', startHandleLeft + deltaX);
+      });
+      $(container).one('mouseup.resize-table', function(e) {
+        //$editor.sync();
+        $(container).off('.resize-table');
+        return $wrapper.removeClass('resizing');
+      });
+      $wrapper.addClass('resizing');
+      return false;
+    });
+  };
+
+  function undecorate(table) {
+    var $table = $(table);
+    if (!($table.parent('.simditor-table').length > 0)) {
+      return;
+    }
+    return $table.parent().replaceWith($table)[0];
+  };
+
+
+
+  langx.mixin(tables,{
+    "createTable" : createTable,
+    "decorate" : decorate,
+    "deleteCol" : deleteCol,
+    "deleteRow" : deleteRow,
+    "deleteTable" : deleteTable,
+    "insertCol" : insertCol,
+    "insertRow" : insertRow,
+    "refreshTableWidth" : refreshTableWidth,
+    "resizable" : resizable,
+    "undecorate" : undecorate
+  })
+
+
+  return skylark.attach("domx.tables", tables);
+});
+define('skylark-domx-tables/main',[
+	"./tables"
+],function(tables){
+	return tables;
+});
+define('skylark-domx-tables', ['skylark-domx-tables/main'], function (main) { return main; });
+
+define('skylark-widgets-wordpad/addons/actions/TableAction',[
+  "skylark-langx/langx",
+  "skylark-domx-tables",
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function(langx,tables,$,addons,Action){ 
+  var TableAction = Action.inherit({
+    name : 'table',
+
+    icon : 'table',
+
+    htmlTag : 'table',
+
+    disableTag : 'pre, li, blockquote',
+
+    menu : true,
+
+    _init : function() {
+      Action.prototype._init.call(this);
+      langx.merge(this.editor.editable.formatter._allowedTags, ['thead', 'th', 'tbody', 'tr', 'td', 'colgroup', 'col']);
+      langx.extend(this.editor.editable.formatter._allowedAttributes, {
+        td: ['rowspan', 'colspan'],
+        th: ['rowspan', 'colspan'],
+        col: ['width']
+      });
+      langx.extend(this.editor.editable.formatter._allowedStyles, {
+        td: ['text-align'],
+        th: ['text-align']
+      });
+      this._initShortcuts();
+      this._initResize();
+      this.editor.on('decorate', (function(_this) {
+        return function(e, $el) {
+          return $el.find('table').each(function(i, table) {
+            return _this.decorate($(table));
+          });
+        };
+      })(this));
+      this.editor.on('undecorate', (function(_this) {
+        return function(e, $el) {
+          return $el.find('table').each(function(i, table) {
+            return _this.undecorate($(table));
+          });
+        };
+      })(this));
+      this.editor.on('selectionchanged.table', (function(_this) {
+        return function(e) {
+          var $container, range;
+          _this.editor.body.find('.wordpad-table td, .wordpad-table th').removeClass('active');
+          range = _this.editor.editable.selection.range();
+          if (!range) {
+            return;
+          }
+          $container = _this.editor.editable.selection.containerNode();
+          if (range.collapsed && $container.is('.wordpad-table')) {
+            _this.editor.editable.selection.setRangeAtEndOf($container);
+          }
+          return $container.closest('td, th', _this.editor.body).addClass('active');
+        };
+      })(this));
+      this.editor.on('blur.table', (function(_this) {
+        return function(e) {
+          return _this.editor.body.find('.wordpad-table td, .wordpad-table th').removeClass('active');
+        };
+      })(this));
+      this.editor.editable.keystroke.add('up', 'td', (function(_this) {
+        return function(e, $node) {
+          _this._tdNav($node, 'up');
+          return true;
+        };
+      })(this));
+      this.editor.editable.keystroke.add('up', 'th', (function(_this) {
+        return function(e, $node) {
+          _this._tdNav($node, 'up');
+          return true;
+        };
+      })(this));
+      this.editor.editable.keystroke.add('down', 'td', (function(_this) {
+        return function(e, $node) {
+          _this._tdNav($node, 'down');
+          return true;
+        };
+      })(this));
+      return this.editor.editable.keystroke.add('down', 'th', (function(_this) {
+        return function(e, $node) {
+          _this._tdNav($node, 'down');
+          return true;
+        };
+      })(this));
+    },
+
+    _tdNav : function($td, direction) {
+      var $anotherTr, $tr, action, anotherTag, index, parentTag, ref;
+      if (direction == null) {
+        direction = 'up';
+      }
+      action = direction === 'up' ? 'prev' : 'next';
+      ref = direction === 'up' ? ['tbody', 'thead'] : ['thead', 'tbody'], parentTag = ref[0], anotherTag = ref[1];
+      $tr = $td.parent('tr');
+      $anotherTr = this["_" + action + "Row"]($tr);
+      if (!($anotherTr.length > 0)) {
+        return true;
+      }
+      index = $tr.find('td, th').index($td);
+      return this.editor.editable.selection.setRangeAtEndOf($anotherTr.find('td, th').eq(index));
+    },
+
+    _initResize : function() {
+
+      tables.resizable(document,{
+        cssClasses : {
+          resizeHandle : "wordpad-resize-handle",
+          wrapper : "wordpad-table"
+        }
+      });
+
+    },
+
+    _initShortcuts : function() {
+      this.editor.editable.hotkeys.add('ctrl+alt+up', (function(_this) {
+        return function(e) {
+          _this.editMenu.find('.menu-item[data-param=insertRowAbove]').click();
+          return false;
+        };
+      })(this));
+      this.editor.editable.hotkeys.add('ctrl+alt+down', (function(_this) {
+        return function(e) {
+          _this.editMenu.find('.menu-item[data-param=insertRowBelow]').click();
+          return false;
+        };
+      })(this));
+      this.editor.editable.hotkeys.add('ctrl+alt+left', (function(_this) {
+        return function(e) {
+          _this.editMenu.find('.menu-item[data-param=insertColLeft]').click();
+          return false;
+        };
+      })(this));
+      return this.editor.editable.hotkeys.add('ctrl+alt+right', (function(_this) {
+        return function(e) {
+          _this.editMenu.find('.menu-item[data-param=insertColRight]').click();
+          return false;
+        };
+      })(this));
+    },
+
+    renderMenu : function() {
+      var $table;
+      $("<div class=\"menu-create-table\">\n</div>\n<div class=\"menu-edit-table\">\n  <ul>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteRow\">\n        <span>" + (this._t('deleteRow')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowAbove\">\n        <span>" + (this._t('insertRowAbove')) + " ( Ctrl + Alt + ↑ )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowBelow\">\n        <span>" + (this._t('insertRowBelow')) + " ( Ctrl + Alt + ↓ )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteCol\">\n        <span>" + (this._t('deleteColumn')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColLeft\">\n        <span>" + (this._t('insertColumnLeft')) + " ( Ctrl + Alt + ← )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColRight\">\n        <span>" + (this._t('insertColumnRight')) + " ( Ctrl + Alt + → )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteTable\">\n        <span>" + (this._t('deleteTable')) + "</span>\n      </a>\n    </li>\n  </ul>\n</div>").appendTo(this.menuWrapper);
+      this.createMenu = this.menuWrapper.find('.menu-create-table');
+      this.editMenu = this.menuWrapper.find('.menu-edit-table');
+      $table = this.createTable(6, 6).appendTo(this.createMenu);
+      this.createMenu.on('mouseenter', 'td, th', (function(_this) {
+        return function(e) {
+          var $td, $tr, $trs, num;
+          _this.createMenu.find('td, th').removeClass('selected');
+          $td = $(e.currentTarget);
+          $tr = $td.parent();
+          num = $tr.find('td, th').index($td) + 1;
+          $trs = $tr.prevAll('tr').addBack();
+          if ($tr.parent().is('tbody')) {
+            $trs = $trs.add($table.find('thead tr'));
+          }
+          return $trs.find("td:lt(" + num + "), th:lt(" + num + ")").addClass('selected');
+        };
+      })(this));
+      this.createMenu.on('mouseleave', function(e) {
+        return $(e.currentTarget).find('td, th').removeClass('selected');
+      });
+      return this.createMenu.on('mousedown', 'td, th', (function(_this) {
+        return function(e) {
+          var $closestBlock, $td, $tr, colNum, rowNum;
+          _this.wrapper.removeClass('menu-on');
+          if (!_this.editor.editable.inputManager.focused) {
+            return;
+          }
+          $td = $(e.currentTarget);
+          $tr = $td.parent();
+          colNum = $tr.find('td').index($td) + 1;
+          rowNum = $tr.prevAll('tr').length + 1;
+          if ($tr.parent().is('tbody')) {
+            rowNum += 1;
+          }
+          $table = _this.createTable(rowNum, colNum, true);
+          $closestBlock = _this.editor.editable.selection.blockNodes().last();
+          if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
+            $closestBlock.replaceWith($table);
+          } else {
+            $closestBlock.after($table);
+          }
+          _this.decorate($table);
+          _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
+          _this.editor.trigger('valuechanged');
+          return false;
+        };
+      })(this));
+    },
+
+    decorate : function($table) {
+      return $(tables.decorate($table[0],{
+        tableDecorate : 'wordpad-table',
+        resizeHandle : 'wordpad-resize-handle'
+      }));
+
+    },
+
+    undecorate : function($table) {
+      return $(tables.undecorate($table[0],{
+        tableDecorate : 'wordpad-table',
+        resizeHandle : 'wordpad-resize-handle'
+      }));
+
+    },
+
+    createTable : function(row, col, phBr) {
+      return $(tables.createTable(row,col,phBr ? this.editor.editable.util.phBr : null));
+    },
+
+    refreshTableWidth : function($table) {
+      return table.refreshTableWidth($table[0]);
+    },
+
+    deleteRow : function($td) {
+      var self = this,
+          ret; 
+
+      tables.deleteRow($td[0],function(newTr,index){
+        if (newTr) {
+          ret = self.editor.editable.selection.setRangeAtEndOf($(newTr).find('td, th').eq(index));
+        }
+      })
+
+      return ret;
+    },
+
+    insertRow : function($td, direction) {
+      var self = this,
+          ret; 
+
+      tables.insertRow($td[0],direction,self.editor.editable.util.phBr,function(newTr,index){
+        ret =  self.editor.editable.selection.setRangeAtStartOf($(newTr).find('td, th').eq(index));
+      })
+
+      return ret;
+
+    },
+
+    deleteCol : function($td) {
+      var self = this,
+          ret; 
+
+      tables.deleteCol($td[0],function(newTd){
+        if (newTd) {
+          ret = self.editor.editable.selection.setRangeAtEndOf($(newTd));
+        }
+      })
+
+      return ret;
+    },
+
+    insertCol : function($td, direction) {
+      var self = this,
+          ret; 
+
+      tables.insertCol($td[0],direction,self.editor.editable.util.phBr,function(newTd){
+        ret = self.editor.editable.selection.setRangeAtStartOf($(newTd));
+      })
+
+      return ret;
+    },
+
+    deleteTable : function($td) {
+      var self = this;
+      tables.deleteTable($td[0],function($block){
+        if ($block.length > 0) {
+          return self.editor.editable.selection.setRangeAtStartOf($block);
+        }
+      });
+    },
+
+    _execute : function(param) {
+      var $td;
+      $td = this.editor.editable.selection.containerNode().closest('td, th');
+      if (!($td.length > 0)) {
+        return;
+      }
+      if (param === 'deleteRow') {
+        this.deleteRow($td);
+      } else if (param === 'insertRowAbove') {
+        this.insertRow($td, 'before');
+      } else if (param === 'insertRowBelow') {
+        this.insertRow($td);
+      } else if (param === 'deleteCol') {
+        this.deleteCol($td);
+      } else if (param === 'insertColLeft') {
+        this.insertCol($td, 'before');
+      } else if (param === 'insertColRight') {
+        this.insertCol($td);
+      } else if (param === 'deleteTable') {
+        this.deleteTable($td);
+      } else {
+        return;
+      }
+      return this.editor.trigger('valuechanged');
+    }
+
+   });
+
+
+  addons.actions.table = TableAction;
+
+  return TableAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/TitleAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action",
+  "../../i18n"
+],function($,addons,Action,i18n){ 
+  var TitleAction = Action.inherit({
+    name : 'title',
+
+    htmlTag : 'h1, h2, h3, h4, h5',
+
+    icon : "header",
+
+    disableTag : 'pre, table',
+
+    _init : function() {
+      this.menu = [
+        {
+          name: 'normal',
+          text: i18n.translate('normalText'),
+          param: 'p'
+        }, '|', {
+          name: 'h1',
+          text: i18n.translate('title') + ' 1',
+          param: 'h1'
+        }, {
+          name: 'h2',
+          text: i18n.translate('title') + ' 2',
+          param: 'h2'
+        }, {
+          name: 'h3',
+          text: i18n.translate('title') + ' 3',
+          param: 'h3'
+        }, {
+          name: 'h4',
+          text: i18n.translate('title') + ' 4',
+          param: 'h4'
+        }, {
+          name: 'h5',
+          text: i18n.translate('title') + ' 5',
+          param: 'h5'
+        }
+      ];
+      return Action.prototype._init.call(this);
+    },
+
+    setActive : function(active, param) {
+      if (active) {
+        active = this.node[0].tagName.toLowerCase();
+      }
+      Action.prototype.setActive.call(this, active);
+    },
+
+    _execute : function(param) {
+      return this.editor.editable.title(param,this.disableTag);
+    }
+
+  });
+
+  addons.actions.title = TitleAction;
+
+  return TitleAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/UnderlineAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action"
+],function($,addons,Action){
+  var UnderlineAction = Action.inherit({
+    name : 'underline',
+
+    icon : 'underline',
+
+    htmlTag : 'u',
+
+    disableTag : 'pre',
+
+    shortcut : 'cmd+u',
+
+    render : function() {
+      if (this.editor.editable.util.os.mac) {
+        this.title = this.title + ' ( Cmd + u )';
+      } else {
+        this.title = this.title + ' ( Ctrl + u )';
+        this.shortcut = 'ctrl+u';
+      }
+      return Action.prototype.render.call(this);
+    },
+
+    _activeStatus : function() {
+      var active;
+      active = this.editor.editable.isActive('underline');
+      this.setActive(active);
+      return this.active;
+    },
+
+    _execute : function() {
+      return this.editor.editable.underline();
+    }
+
+   });
+
+
+  addons.actions.underline = UnderlineAction;
+
+  return UnderlineAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/UnorderListAction',[
+  "skylark-domx-query",
+  "../../addons",
+  "./ListAction"
+],function($,addons,ListAction){ 
+   var UnorderListAction = ListAction.inherit({
+      type : 'ul',
+
+      name : 'ul',
+
+      icon : 'listul',
+
+      htmlTag : 'ul',
+
+      shortcut : 'cmd+.',
+
+      _init : function() {
+        if (this.editor.editable.util.os.mac) {
+          this.title = this.title + ' ( Cmd + . )';
+        } else {
+          this.title = this.title + ' ( Ctrl + . )';
+          this.shortcut = 'ctrl+.';
+        }
+        return ListAction.prototype._init.call(this);
+      }
+
+   });
+
+
+    addons.actions.ul = UnorderListAction;
+
+    return UnorderListAction;
+
+});
+define('skylark-widgets-wordpad/addons/actions/VideoPopover',[
+  "skylark-domx-query",
+  "../../addons",
+  "../../Popover"
+],function($,addons,Popover){ 
+  var VideoPopover = Popover.inherit({
+    offset : {
+      top: 6,
+      left: -4
+    },
+
+    _loadVideo : function(videoData, callback) {
+      if (videoData && this.target.attr('src') === videoData.src) {
+        return;
+      }
+      return $('.insertVideoBtn').data('videowrap') && this.action.loadVideo($('.insertVideoBtn').data('videowrap'), videoData, (function(_this) {
+        return function(img) {
+          if (!img) {
+
+          }
+        };
+      })(this));
+    },
+
+    render : function() {
+      var tpl;
+      tpl = "<div class=\"link-settings\">\n  <div class=\"settings-field video-embed-code\">\n    <label>" + (this._t('video')) + "</label>\n    <textarea placeholder=\"" + (this._t('videoPlaceholder')) + "\" type=\"text\" class=\"video-link\" ></textarea>\n  </div><br>\n  <div class=\"settings-field\">\n    <label>" + (this._t('videoSize')) + "</label>\n    <input class=\"image-size video-size\" id=\"video-width\" type=\"text\" tabindex=\"2\" />\n    <span class=\"times\">×</span>\n    <input class=\"image-size video-size\" id=\"video-height\" type=\"text\" tabindex=\"3\" />\n  </div>\n  <div class=\"video-upload\">\n    <button class=\"btn insertVideoBtn\">" + (this._t('uploadVideoBtn')) + "</div>\n  </div>\n</div>";
+      this.el.addClass('video-popover').append(tpl);
+      this.srcEl = this.el.find('.video-link');
+      this.widthEl = this.el.find('#video-width');
+      this.heightEl = this.el.find('#video-height');
+      this.el.find('.video-size').on('keydown', (function(_this) {
+        return function(e) {
+          if (e.which === 13 || e.which === 27) {
+            e.preventDefault();
+            return $('.insertVideoBtn').click();
+          }
+        };
+      })(this));
+
+      this.srcEl.on('keydown', (function(_this) {
+        return function(e) {
+          if (e.which === 13 || e.which === 27) {
+            e.preventDefault();
+            return $('.insertVideoBtn').click();
+          }
+        };
+      })(this));
+
+      return this.editor.on('valuechanged', (function(_this) {
+        return function(e) {
+          if (_this.active) {
+            return _this.refresh();
+          }
+        };
+      })(this));
+    },
+
+    show : function() {
+      var $video, $videoWrap, args, videoData;
+      args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
+      Popover.prototype.show.apply(this, args);
+      $video = arguments[0] || this.target;
+      this.width = $video.attr('data-width') || $video.width();
+      this.height = $video.attr('data-height') || $video.height();
+      if ($video.attr('data-link')) {
+        videoData = {
+          link: $video.attr('data-link'),
+          tag: $video.attr('data-tag'),
+          width: this.width,
+          height: this.height
+        };
+        this.src = videoData.link;
+      }
+      this.widthEl.val(this.width);
+      this.heightEl.val(this.height);
+      this.srcEl.val(this.src);
+      $('.insertVideoBtn').data('videowrap', $video);
+      return $videoWrap = this.target;
+    }
+  });
+
+  return VideoPopover;
+});
+define('skylark-widgets-wordpad/addons/actions/VideoAction',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "../../addons",
+  "../../Action",
+  "./VideoPopover"
+],function(langx,$,addons,Action,VideoPopover){ 
+   var reUrlYoutube = /https?:\/\/(?:[0-9A-Z-]+\.)?(?:youtu\.be\/|youtube\.com\S*[^\w\-\s])([\w\-]{11})(?=[^\w\-]|$)(?![?=&+%\w.-]*(?:['"][^<>]*>|<\/a>))[?=&+%\w.-]*/ig,
+      reUrlVimeo = /https?:\/\/(www\.)?vimeo.com\/(\d+)($|\/)/;
+
+   var VideoAction = Action.inherit({
+      name : 'video',
+
+      icon : 'video',
+
+      htmlTag : 'embed, iframe',
+
+      disableTag : 'pre, table, div',
+
+      videoPlaceholder : 'video',
+
+      videoContainerClass : 'video-container',
+
+      placeholderPoster : '',
+
+      needFocus : true,
+
+      _init : function() {
+        this.title = this._t(this.name);
+        langx.merge(this.editor.editable.formatter._allowedTags, ['embed', 'iframe', 'video']);
+        langx.extend(this.editor.editable.formatter._allowedAttributes, {
+          embed: ['class', 'width', 'height', 'style','type', 'pluginspage', 'src', 'wmode', 'play', 'loop', 'menu', 'allowscriptaccess', 'allowfullscreen'],
+          iframe: ['class', 'width', 'height','style', 'src', 'frameborder','data-link','data-width','data-height'],
+          video: ['class', 'width', 'height', 'style','poster', 'controls', 'allowfullscreen', 'src', 'data-link', 'data-tag']
+        });
+
+        this.placeholderPoster =  this.editor.options.addons.actions.video.placeholderPoster;
+
+
+        $(document).on('click', '.insertVideoBtn', (function(_this) {
+          return function(e) {
+            var videoData;
+            videoData = {
+              link: $('.video-link').val(),
+              width: $('#video-width').val() || 100,
+              height: $('#video-height').val() || 100
+            };
+            $('.video-link').val('');
+            $('#video-width').val('');
+            $('#video-height').val('');
+            return _this._insert($('.insertVideoBtn').data('videowrap'), videoData, function() {
+              return _this.editor.trigger('valuechanged');
+            });
+          };
+        })(this));
+
+        this.editor.body.on('click', '.wordpad-video-wrapper', (function(_this) {
+          return function(e) {
+            var $video = $(e.currentTarget).find('.wordpad-video');//siblings('video').show();
+            return _this.popover.show($video);
+          };
+        })(this));
+        this.editor.body.on('mousedown', (function(_this) {
+          return function() {
+            var $videoWrap;
+            $videoWrap = $('.insertVideoBtn').data('videowrap');
+            if ($videoWrap && $videoWrap.html() === _this.videoPlaceholder) {
+              $videoWrap.remove();
+              $('.insertVideoBtn').data('videowrap', null);
+            }
+            return _this.popover.hide();
+          };
+        })(this));
+        this.editor.on('decorate', (function(_this) {
+          return function(e, $el) {
+            return $el.find('.wordpad-video').each(function(i, video) {
+              return _this.decorate($(video));
+            });
+          };
+        })(this));
+        this.editor.on('undecorate', (function(_this) {
+          return function(e, $el) {
+            return $el.find('.wordpad-video').each(function(i, video) {
+              return _this.undecorate($(video));
+            });
+          };
+        })(this));
+
+        this.popover = new VideoPopover({
+          action: this
+        });
+        return Action.prototype._init.call(this);
+      },
+
+
+      decorate : function($video) {
+        if ($video.parent('.wordpad-video-wrapper').length > 0) {
+          return;
+        }
+        $video.wrap('<figure class="wordpad-video-wrapper"></figure>');
+        return $video.parent();
+      },
+
+      undecorate : function($video) {
+        if (!($video.parent('.wordpad-video-wrapper').length > 0)) {
+          return;
+        }
+        return $video.parent().replaceWith($video);
+      },
+
+      _execute : function() {
+        var $video = this._create();
+        return this.popover.show($video);
+      },
+
+      _status : function() {
+        return this._disableStatus();
+      },
+
+      _create : function() {
+        var $video, range;
+        if (!this.editor.editable.inputManager.focused) {
+          this.editor.focus();
+        }
+        range = this.editor.editable.selection.range();
+        if (range) {
+          range.deleteContents();
+          this.editor.editable.selection.range(range);
+        }
+        $video = $('<video/>').attr({
+          'poster': this.placeholderPoster,
+          'width': 225,
+          'height': 225,
+          'class' : 'wordpad-video'
+        });
+        range.insertNode($video[0]);
+        this.editor.editable.selection.setRangeAfter($video, range);
+        this.editor.trigger('valuechanged');
+        this.decorate($video);
+        return $video;
+      },
+
+      _insert : function($video, videoData, callback) {
+        var e, originNode, realVideo, videoLink, videoTag;
+        if (!videoData.link) {
+          this._remove($video);
+        } else {
+          var data = videoData.link;
+          if (!data.match(/<iframe|<video|<embed/gi)) {
+            // parse if it is link on youtube & vimeo
+            var iframeStart = '<iframe style="width: 500px; height: 281px;" src="',
+              iframeEnd = '" frameborder="0" allowfullscreen></iframe>';
+
+            if (data.match(reUrlYoutube))    {
+              data = data.replace(reUrlYoutube, iframeStart + 'https://www.youtube.com/embed/$1' + iframeEnd);
+            } else if (data.match(reUrlVimeo)) {
+              data = data.replace(reUrlVimeo, iframeStart + 'https://player.vimeo.com/video/$2' + iframeEnd);
+            }
+          }
+          var $video1 = $(data).style({
+            width : videoData.width + "px",
+            height : videoData.height + "px"
+          }).attr({
+            "width" : videoData.width + "px",
+            "height" : videoData.height + "px",
+            'class' : 'wordpad-video',
+            "data-link" : videoData.link,
+            "data-width" : videoData.width,
+            "data-height" : videoData.height
+          });
+          
+          $video.replaceWith($video1);
+          $video = $video1;
+        }
+        this.editor.trigger('valuechanged');
+        this.popover.hide();
+        return callback($video);
+      },
+
+      _remove : function($video) {
+        $video.parent().remove();
+      }
+
+   });
+
+
+   addons.actions.video = VideoAction; 
+
+   return VideoAction;
+
+});
+define('skylark-widgets-wordpad/addons/toolbar/items/AlignmentButton',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "../../../ToolButton",
+  "../../../i18n",
+  "../../../addons"
+],function(langx,$,ToolButton,i18n,addons){ 
+
+ var AlignmentButton = ToolButton.inherit({
+    _doActive : function(align) {
+
+      ToolButton.prototype._doActive.call(this, !!align);
+
+      this.el.removeClass('alignLeft alignCenter alignRight');
+      if (align) {
+        this.el.addClass('align' + langx.upperFirst(align));
+      }
+      this.setIcon('align' + langx.upperFirst(align));
+      return this.menuEl.find('.menu-item').show().end().find('.menu-item-' + align).hide();
+
+    }
+
+  });
+
+
+  addons.toolbar.items.alignment = AlignmentButton;
+
+  return AlignmentButton;
+
+});
+define('skylark-widgets-wordpad/addons/toolbar/items/ColorButton',[
+  "skylark-domx-query",
+  "../../../ToolButton",
+  "../../../i18n",
+  "../../../addons"
+],function($,ToolButton,i18n,addons){ 
+  
+
+   var ColorButton = ToolButton.inherit({
+    render : function() {
+      var args;
+      args = 1 <= arguments.length ? Array.prototype.slice.call(arguments, 0) : [];
+      return ToolButton.prototype.render.apply(this, args);
+    },
+
+    renderMenu : function() {
+      $('<ul class="color-list">\n  <li><a href="javascript:;" class="font-color font-color-1"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-2"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-3"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-4"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-5"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-6"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-7"></a></li>\n  <li><a href="javascript:;" class="font-color font-color-default"></a></li>\n</ul>').appendTo(this.menuWrapper);
+      this.menuWrapper.on('mousedown', '.color-list', function(e) {
+        return false;
+      });
+      return this.menuWrapper.on('click', '.font-color', (function(_this) {
+        return function(e) {
+          var $link, $p, hex, range, rgb, textNode;
+          _this.wrapper.removeClass('menu-on');
+          $link = $(e.currentTarget);
+          if ($link.hasClass('font-color-default')) {
+            $p = _this.editor.body.find('p, li');
+            if (!($p.length > 0)) {
+              return;
+            }
+            rgb = window.getComputedStyle($p[0], null).getPropertyValue('color');
+            hex = _this._convertRgbToHex(rgb);
+          } else {
+            rgb = window.getComputedStyle($link[0], null).getPropertyValue('background-color');
+            hex = _this._convertRgbToHex(rgb);
+          }
+          if (!hex) {
+            return;
+          }
+
+          return _this.editor.editable.fontColor(hex,$link.hasClass('font-color-default'),i18n.translate('coloredText'));
+        };
+      })(this));
+    },
+
+    _convertRgbToHex : function(rgb) {
+      var match, re, rgbToHex;
+      re = /rgb\((\d+),\s?(\d+),\s?(\d+)\)/g;
+      match = re.exec(rgb);
+      if (!match) {
+        return '';
+      }
+      rgbToHex = function(r, g, b) {
+        var componentToHex;
+        componentToHex = function(c) {
+          var hex;
+          hex = c.toString(16);
+          if (hex.length === 1) {
+            return '0' + hex;
+          } else {
+            return hex;
+          }
+        };
+        return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+      };
+      return rgbToHex(match[1] * 1, match[2] * 1, match[3] * 1);
+    }
+
+   });
+
+   
+   addons.toolbar.items.color = ColorButton; 
+
+
+   return ColorButton;
+	
+});
+define('skylark-widgets-wordpad/addons/toolbar/items/EmojiButton',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "../../../ToolButton",
+  "../../../i18n",
+  "../../../addons"
+],function(langx, $,ToolButton,i18n,addons){ 
+
+  var EmojiButton = ToolButton.inherit({
+
+    renderMenu : function() {
+      var $list, dir, html, name, opts, src, tpl, _i, _len, _ref;
+      tpl = '<ul class="emoji-list">\n</ul>'; 
+      opts = langx.extend({
+        imagePath: 'images/emoji/',
+        images: EmojiButton.images
+      }, this.editor.options.addons.toolbar.items.emoji || {});
+      html = "";
+      dir = opts.imagePath.replace(/\/$/, '') + '/';
+      _ref = opts.images;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        name = _ref[_i];
+        src = "" + dir + name;
+        name = name.split('.')[0];
+        html += "<li data-name='" + name + "'><img src='" + src + "' width='20' height='20' alt='" + name + "' /></li>";
+      }
+      $list = $(tpl);
+      $list.html(html).appendTo(this.menuWrapper);
+      return $list.on('mousedown', 'li', (function(_this) {
+        return function(e) {
+          var $img;
+          _this.wrapper.removeClass('menu-on');
+          if (!_this.editor.editable.inputManager.focused) {
+            return;
+          }
+          $img = $(e.currentTarget).find('img').clone().attr({
+            'data-emoji': true,
+            'data-non-image': true
+          });
+          _this.editor.editable.selection.insertNode($img);
+          _this.editor.trigger('valuechanged');
+          _this.editor.trigger('selectionchanged');
+          return false;
+        };
+      })(this));
+    }
+
+  });
+
+
+  EmojiButton.i18n = {
+    'zh-CN': {
+      emoji: '表情'
+    },
+    'en-US': {
+      emoji: 'emoji'
+    }
+  };
+
+  EmojiButton.images = ['smile.png', 'smiley.png', 'laughing.png', 'blush.png', 'heart_eyes.png', 'smirk.png', 'flushed.png', 'grin.png', 'wink.png', 'kissing_closed_eyes.png', 'stuck_out_tongue_winking_eye.png', 'stuck_out_tongue.png', 'sleeping.png', 'worried.png', 'expressionless.png', 'sweat_smile.png', 'cold_sweat.png', 'joy.png', 'sob.png', 'angry.png', 'mask.png', 'scream.png', 'sunglasses.png', 'heart.png', 'broken_heart.png', 'star.png', 'anger.png', 'exclamation.png', 'question.png', 'zzz.png', 'thumbsup.png', 'thumbsdown.png', 'ok_hand.png', 'punch.png', 'v.png', 'clap.png', 'muscle.png', 'pray.png', 'skull.png', 'trollface.png'];
+
+
+  addons.toolbar.items.emoji = EmojiButton; 
+
+  return EmojiButton;
+	
+});
+define('skylark-widgets-wordpad/addons/toolbar/items/TableButton',[
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "../../../ToolButton",
+  "../../../i18n",
+  "../../../addons"
+],function(langx, $,ToolButton,i18n,addons){ 
+
+  var TableButton = ToolButton.inherit({
+    _doActive : function(active) {
+
+      ToolButton.prototype._doActive.call(this, active);
+
+      if (active) {
+        this.createMenu.hide();
+        return this.editMenu.show();
+      } else {
+        this.createMenu.show();
+        return this.editMenu.hide();
+      }
+
+    }
+   });
+
+
+  TableButton.prototype.renderMenu = function() {
+    var $table;
+    $("<div class=\"menu-create-table\">\n</div>\n<div class=\"menu-edit-table\">\n  <ul>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteRow\">\n        <span>" + (i18n.translate('deleteRow')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowAbove\">\n        <span>" + (i18n.translate('insertRowAbove')) + " ( Ctrl + Alt + ↑ )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertRowBelow\">\n        <span>" + (i18n.translate('insertRowBelow')) + " ( Ctrl + Alt + ↓ )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteCol\">\n        <span>" + (i18n.translate('deleteColumn')) + "</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColLeft\">\n        <span>" + (i18n.translate('insertColumnLeft')) + " ( Ctrl + Alt + ← )</span>\n      </a>\n    </li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"insertColRight\">\n        <span>" + (i18n.translate('insertColumnRight')) + " ( Ctrl + Alt + → )</span>\n      </a>\n    </li>\n    <li><span class=\"separator\"></span></li>\n    <li>\n      <a tabindex=\"-1\" unselectable=\"on\" class=\"menu-item\"\n        href=\"javascript:;\" data-param=\"deleteTable\">\n        <span>" + (i18n.translate('deleteTable')) + "</span>\n      </a>\n    </li>\n  </ul>\n</div>").appendTo(this.menuWrapper);
+    this.createMenu = this.menuWrapper.find('.menu-create-table');
+    this.editMenu = this.menuWrapper.find('.menu-edit-table');
+    $table = this.action.createTable(6, 6).appendTo(this.createMenu);
+    this.createMenu.on('mouseenter', 'td, th', (function(_this) {
+      return function(e) {
+        var $td, $tr, $trs, num;
+        _this.createMenu.find('td, th').removeClass('selected');
+        $td = $(e.currentTarget);
+        $tr = $td.parent();
+        num = $tr.find('td, th').index($td) + 1;
+        $trs = $tr.prevAll('tr').addBack();
+        if ($tr.parent().is('tbody')) {
+          $trs = $trs.add($table.find('thead tr'));
+        }
+        return $trs.find("td:lt(" + num + "), th:lt(" + num + ")").addClass('selected');
+      };
+    })(this));
+    this.createMenu.on('mouseleave', function(e) {
+      return $(e.currentTarget).find('td, th').removeClass('selected');
+    });
+    return this.createMenu.on('mousedown', 'td, th', (function(_this) {
+      return function(e) {
+        var $closestBlock, $td, $tr, colNum, rowNum;
+        _this.wrapper.removeClass('menu-on');
+        if (!_this.editor.editable.inputManager.focused) {
+          return;
+        }
+        $td = $(e.currentTarget);
+        $tr = $td.parent();
+        colNum = $tr.find('td').index($td) + 1;
+        rowNum = $tr.prevAll('tr').length + 1;
+        if ($tr.parent().is('tbody')) {
+          rowNum += 1;
+        }
+        $table = _this.action.createTable(rowNum, colNum, true);
+        $closestBlock = _this.editor.editable.selection.blockNodes().last();
+        if (_this.editor.editable.util.isEmptyNode($closestBlock)) {
+          $closestBlock.replaceWith($table);
+        } else {
+          $closestBlock.after($table);
+        }
+        _this.action.decorate($table);
+        _this.editor.editable.selection.setRangeAtStartOf($table.find('th:first'));
+        _this.editor.trigger('valuechanged');
+        return false;
+      };
+    })(this));
+  };
+
+
+  addons.toolbar.items.table = TableButton;
+
+  return TableButton;
+
+
+});
+define('skylark-widgets-wordpad/addons/toolbar/items/TitleButton',[
+  "skylark-domx-query",
+  "../../../ToolButton",
+  "../../../addons"
+],function($,ToolButton,addons){ 
+  var TitleButton = ToolButton.inherit({
+      _doActive : function(value) {
+        var active = !!value,
+            param = value;
+        ToolButton.prototype._doActive.call(this, active);
+
+        if (active) {
+          param || (param = this.node[0].tagName.toLowerCase());
+        }
+        this.el.removeClass('active-p active-h1 active-h2 active-h3 active-h4 active-h5');
+        if (active) {
+          return this.el.addClass('active active-' + param);
+        }
+      }
+   });
+
+
+  addons.toolbar.items.title = TitleButton;
+
+  return TitleButton;
+
+});
+define('skylark-widgets-wordpad/main',[
+  "./Wordpad", 
+  "./Action",
+  "./Popover",
+  "./Toolbar",
+  "./ToolButton", 
+
+  "./addons/actions/AlignmentAction", 
+  "./addons/actions/BlockquoteAction", 
+  "./addons/actions/BoldAction", 
+  "./addons/actions/CodeAction", 
+  "./addons/actions/CodePopover", 
+  "./addons/actions/ColorAction", 
+  "./addons/actions/EmojiAction", 
+  "./addons/actions/FontScaleAction", 
+  "./addons/actions/FullScreenAction", 
+  "./addons/actions/HrAction", 
+  "./addons/actions/HtmlAction", 
+  "./addons/actions/ImageAction", 
+  "./addons/actions/ImagePopover", 
+  "./addons/actions/IndentAction", 
+  "./addons/actions/ItalicAction", 
+  "./addons/actions/LinkAction", 
+  "./addons/actions/LinkPopover", 
+  "./addons/actions/ListAction", 
+  "./addons/actions/MarkAction", 
+  "./addons/actions/OrderListAction", 
+  "./addons/actions/OutdentAction",
+  "./addons/actions/StrikethroughAction", 
+  "./addons/actions/TableAction", 
+  "./addons/actions/TitleAction", 
+  "./addons/actions/UnderlineAction", 
+  "./addons/actions/UnorderListAction",
+  "./addons/actions/VideoAction",
+
+  "./addons/toolbar/items/AlignmentButton",
+  "./addons/toolbar/items/ColorButton",
+  "./addons/toolbar/items/EmojiButton",
+  "./addons/toolbar/items/TableButton",
+  "./addons/toolbar/items/TitleButton"
+],function(Wordpad){
+	
+  return Wordpad;
+});
+define('skylark-widgets-wordpad', ['skylark-widgets-wordpad/main'], function (main) { return main; });
+
+define('skylark-slax-runtime/main',[
+	"./slax",
+	"./cache",
+	"skylark-langx",
+	"skylark-widgets-shells",
+	"skylark-jquery",
+	"skylark-ajaxfy-spa",
+	"skylark-data-entities",
+	"skylark-data-streams",
+	"skylark-data-zip",
+	"skylark-data-zip",
+	"skylark-domx-images",
+	"skylark-widgets-colorpicker",
+	"skylark-widgets-gradienter",
+	"skylark-widgets-hierarchy",
+	"skylark-widgets-iconpicker",
+	"skylark-widgets-repeater",
+	"skylark-widgets-uploads",
+	"skylark-widgets-wordpad"
+],function(slax){
+	return slax;
+});
+define('skylark-slax-runtime', ['skylark-slax-runtime/main'], function (main) { return main; });
+
+define('skylark-widgets-coder/util',[
+    "skylark-langx/langx",
+    "skylark-net-http/Xhr"
+],function (langx,Xhr) {
+    'use strict';
+
+    function fetch(url, callback) {
+        /*
+        var xhr = new window.XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.responseType = 'text';
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                callback(null, xhr.responseText);
+            } else {
+                callback(url, xhr);
+            }
+        };
+        xhr.onerror = function (err) {
+            callback(err);
+        };
+        xhr.send();
+        */
+        Xhr.get(url).then(
+            function(res) {
+                callback(null,res);
+            },
+            function(e){
+                callback(e);
+            }
+        )
+    }
+    function runCallback(index, params, arr, errors, callback) {
+        return function (err, res) {
+            if (err) {
+                errors.push(err);
+            }
+            index++;
+            if (index < arr.length) {
+                seqRunner(index, res, arr, errors, callback);
+            } else {
+                callback(errors, res);
+            }
+        };
+    }
+    function seqRunner(index, params, arr, errors, callback) {
+        arr[index](params, runCallback.apply(this, arguments));
+    }
+    function seq(arr, params, callback = function () {
+    }) {
+        var errors = [];
+        if (!arr.length) {
+            return callback(errors, params);
+        }
+        seqRunner(0, params, arr, errors, callback);
+    }
+    function log() {
+        console.log(arguments);
+    }
+
+
+    var defaultModemap = {
+        'html': 'html',
+        'css': 'css',
+        'js': 'javascript',
+        'less': 'less',
+        'styl': 'stylus',
+        'coffee': 'coffeescript'
+    };
+    function getMode(type = '', file = '', customModemap = {}) {
+        var modemap = langx.mixin({}, defaultModemap,customModemap);
+        for (let key in modemap) {
+            let keyLength = key.length;
+            if (file.slice(-keyLength++) === '.' + key) {
+                return modemap[key];
+            }
+        }
+        for (let key in modemap) {
+            if (type === key) {
+                return modemap[key];
+            }
+        }
+        return type;
+    }
+    return {
+        fetch,
+        seq,
+        log,
+        getMode
+    };
+});
+define('skylark-widgets-coder/template',[],function () {
+    'use strict';
+    function container() {
+        return `
+    <ul class="coder-nav">
+      <li class="coder-nav-item coder-nav-item-result">
+        <a href="#" data-coder-type="result">
+          Result
+        </a>
+      </li>
+      <li class="coder-nav-item coder-nav-item-html">
+        <a href="#" data-coder-type="html">
+          HTML
+        </a>
+      </li>
+      <li class="coder-nav-item coder-nav-item-css">
+        <a href="#" data-coder-type="css">
+          CSS
+        </a>
+      </li>
+      <li class="coder-nav-item coder-nav-item-js">
+        <a href="#" data-coder-type="js">
+          JavaScript
+        </a>
+      </li>
+    </ul>
+    <div class="coder-pane coder-pane-result"><iframe></iframe></div>
+    <div class="coder-pane coder-pane-html"></div>
+    <div class="coder-pane coder-pane-css"></div>
+    <div class="coder-pane coder-pane-js"></div>
+  `;
+    }
+    function paneActiveClass(type) {
+        return `coder-pane-active-${ type }`;
+    }
+    function containerClass() {
+        return 'coder';
+    }
+    function hasFileClass(type) {
+        return `coder-has-${ type }`;
+    }
+    function editorClass(type) {
+        return `coder-editor coder-editor-${ type }`;
+    }
+    function editorContent(type, fileUrl = '') {
+        return `
+    <textarea data-coder-type="${ type }" data-coder-file="${ fileUrl }"></textarea>
+    <div class="coder-status"></div>
+  `;
+    }
+    function statusMessage(err) {
+        return `
+    <p>${ err }</p>
+  `;
+    }
+    function statusClass(type) {
+        return `coder-status-${ type }`;
+    }
+    function statusActiveClass(type) {
+        return `coder-status-active-${ type }`;
+    }
+    function pluginClass(name) {
+        return `coder-plugin-${ name }`;
+    }
+    function statusLoading(url) {
+        return `Loading <strong>${ url }</strong>..`;
+    }
+    function statusFetchError(url) {
+        return `There was an error loading <strong>${ url }</strong>.`;
+    }
+    return {
+        container: container,
+        paneActiveClass: paneActiveClass,
+        containerClass: containerClass,
+        hasFileClass: hasFileClass,
+        editorClass: editorClass,
+        editorContent: editorContent,
+        statusMessage: statusMessage,
+        statusClass: statusClass,
+        statusActiveClass: statusActiveClass,
+        pluginClass: pluginClass,
+        statusLoading: statusLoading,
+        statusFetchError: statusFetchError
+    };
+});
+define('skylark-widgets-coder/addons',[],function(){
+	return {
+	    general : {
+
+	    },
+
+	    html : {
+      
+	    },
+
+	    css : {
+      
+	    },
+
+	    js : {
+      
+	    },
+
+	    edit : {
+      
+	    }	
+	};
+});
+define('skylark-widgets-coder/Coder',[
+    'skylark-langx/skylark',
+    'skylark-langx/langx',
+    'skylark-widgets-base/Widget',
+    "skylark-domx-styler",
+    "skylark-domx-data",
+    './util',
+    './template',
+    "./addons"
+], function (skylark,langx,Widget, styler,datax,util, template,addons) {
+    'use strict';
+    class Coder extends Widget{
+        get klassName() {
+          return "Coder";
+        } 
+
+        get pluginName(){
+          return "lark.coder";
+        } 
+
+        //default options
+        get options () {
+            return {
+                files: [],
+                showBlank: false,
+                runScripts: true,
+                pane: 'result',
+                debounce: 250,
+                addons: {
+                    "general" : ["render"]
+                }
+            }
+        }
+
+        _init ($coderContainer, opts) {
+            //if (!$coderContainer) {
+            //    throw new Error("Can't find Coder container.");
+            // }
+
+            var options = this.options;
+            if (options.runScripts === false) {
+                options.addons.gerneral.push('scriptless');
+            }
+
+            super._init();
+            //Widget.prototype._init.call(this);
+
+            var _private = {};
+            this._get = function (key) {
+                return _private[key];
+            };
+            this._set = function (key, value) {
+                _private[key] = value;
+                return _private[key];
+            };
+
+
+            this._set('cachedContent', {
+                html: null,
+                css: null,
+                js: null
+            });
+
+            var $container = this.$container = this._elm;
+
+            var paneActive = this._set('paneActive', options.pane);
+
+            var velm = this._velm;
+            velm.html(template.container())
+                .addClass(template.containerClass())
+                .addClass(template.paneActiveClass(paneActive))
+                .on('keyup', langx.debounce(this.change.bind(this), options.debounce))
+                .on('change', langx.debounce(this.change.bind(this), options.debounce))
+                .on('click', this.pane.bind(this));
+
+            this._set('$status', {});
+            for (let type of [
+                    'html',
+                    'css',
+                    'js'
+                ]) {
+                this.markup(type);
+            }
+        }
+
+        _startup() {
+            var options = this.options;
+            this.paneActive = this._get('paneActive');
+            for (let type of [
+                    'html',
+                    'css',
+                    'js'
+                ]) {
+                this.load(type);
+            }
+            if (options.showBlank) {
+                for (let type of [
+                        'html',
+                        'css',
+                        'js'
+                    ]) {
+                    this._velm.addClass(template.hasFileClass(type));
+                }
+            }
+
+        }
+
+        findFile(type) {
+            var file = {};
+            //var options = this._get('options');
+            var options = this.options;
+            for (let fileIndex in options.files) {
+                let file = options.files[fileIndex];
+                if (file.type === type) {
+                    return file;
+                }
+            }
+            return file;
+        }
+        markup(type) {
+            //var $container = this._get('$container');
+            var $container = this._elm;
+            var $parent = $container.querySelector(`.coder-pane-${ type }`);
+            var file = this.findFile(type);
+            var $editor = document.createElement('div');
+            $editor.innerHTML = template.editorContent(type, file.url);
+            $editor.className = template.editorClass(type);
+            $parent.appendChild($editor);
+            this._get('$status')[type] = $parent.querySelector('.coder-status');
+            if (typeof file.url !== 'undefined' || typeof file.content !== 'undefined') {
+                styler.addClass($container, template.hasFileClass(type));
+            }
+        }
+        load(type) {
+            var file = this.findFile(type);
+            //var $textarea = this._get('$container').querySelector(`.coder-pane-${ type } textarea`);
+            var $textarea = this._elm.querySelector(`.coder-pane-${ type } textarea`);
+            if (typeof file.content !== 'undefined') {
+                this.setValue($textarea, file.content);
+            } else if (typeof file.url !== 'undefined') {
+                this.status('loading', [template.statusLoading(file.url)], {
+                    type: type,
+                    file: file
+                });
+                util.fetch(file.url, (err, res) => {
+                    if (err) {
+                        this.status('error', [template.statusFetchError(err)], { type: type });
+                        return;
+                    }
+                    this.clearStatus('loading', { type: type });
+                    this.setValue($textarea, res);
+                });
+            } else {
+                this.setValue($textarea, '');
+            }
+        }
+        setValue($textarea, val) {
+            $textarea.value = val;
+            this.change({ target: $textarea });
+        }
+        change(e) {
+            var type = datax.data(e.target, 'coder-type');
+            if (!type) {
+                return;
+            }
+            var cachedContent = this._get('cachedContent');
+            if (cachedContent[type] === e.target.value) {
+                return;
+            }
+            cachedContent[type] = e.target.value;
+            this.emit('change', {
+                type: type,
+                file: datax.data(e.target, 'coder-file'),
+                content: cachedContent[type]
+            });
+        }
+        errors(errs, params) {
+            this.status('error', errs, params);
+        }
+        pane(e) {
+            if (!datax.data(e.target, 'coder-type')) {
+                return;
+            }
+            //var $container = this._get('$container');
+            var $container = this._elm;
+            var paneActive = this._get('paneActive');
+            styler.removeClass($container, template.paneActiveClass(paneActive));
+            paneActive = this._set('paneActive', datax.data(e.target, 'coder-type'));
+            styler.addClass($container, template.paneActiveClass(paneActive));
+            e.preventDefault();
+        }
+        status(statusType = 'error', messages = [], params = {}) {
+            if (!messages.length) {
+                return this.clearStatus(statusType, params);
+            }
+            var $status = this._get('$status');
+            styler.addClass($status[params.type], template.statusClass(statusType));
+            //styler.addClass(this._get('$container'), template.statusActiveClass(params.type));
+            styler.addClass(this._elm, template.statusActiveClass(params.type));
+            var markup = '';
+            messages.forEach(function (err) {
+                markup += template.statusMessage(err);
+            });
+            $status[params.type].innerHTML = markup;
+        }
+        clearStatus(statusType, params) {
+            var $status = this._get('$status');
+            styler.removeClass($status[params.type], template.statusClass(statusType));
+            //styler.removeClass(this._get('$container'), template.statusActiveClass(params.type));
+            styler.removeClass(this._elm, template.statusActiveClass(params.type));
+            $status[params.type].innerHTML = '';
+        }
+    }
+    Coder.addons = addons;
+
+    return skylark.attach("widgets.Coder",Coder);
+});
+define('skylark-widgets-base/Addon',[
+  "skylark-langx/langx",	
+  "skylark-langx/Evented",
+	"./base"
+],function(langx,Evented,base){
+
+	var Addon = Evented.inherit({
+
+		_construct : function(widget,options) {
+			this._widget = widget;
+            Object.defineProperty(this,"options",{
+              value :langx.mixin({},this.options,options,true)
+            });
+			if (this._init) {
+				this._init();
+			}
+		}
+
+	});
+
+	Addon.register = function(Widget) {
+		var categoryName = this.categoryName,
+			addonName = this.addonName;
+
+		if (categoryName && addonName) {
+			Widget.addons = Widget.addons || {};
+			Widget.addons[categoryName] = Widget.addons[categoryName] || {};
+			Widget.addons[categoryName][addonName] = this;
+		}
+	};
+
+	return base.Addon = Addon;
+
 });
 define('skylark-widgets-coder/Addon',[
 	"skylark-domx-styler",
@@ -104244,12 +110507,1614 @@ define( 'skylark-jqueryui/main',[
 });
 define('skylark-jqueryui', ['skylark-jqueryui/main'], function (main) { return main; });
 
+/* -----------------------------------------------
+/* Author : Vincent Garreau  - vincentgarreau.com
+/* MIT license: http://opensource.org/licenses/MIT
+/* Demo / Generator : vincentgarreau.com/particles.js
+/* GitHub : github.com/VincentGarreau/particles.js
+/* How to use? : Check the GitHub README
+/* v2.0.0
+/* ----------------------------------------------- */
+define('skylark-particles/particles',[
+    "skylark-langx-ns",
+    "skylark-utils-dom/query",
+], function(skylark,$) {
+    var shapeSize = { w: 100, h: 100 },
+        number = { v: 80, d: 800 },
+        size = { v: 3, s: 30 },
+        moveSpeed = 3;
+
+    var jsonData = {
+        "particles": {
+            "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+            "color": { "value": "#ffffff" },
+            "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 6 }, "image": { "src": "img/github.svg", "width": 100, "height": 100 } },
+            "opacity": { "value": 0.5, "random": false, "anim": { "enable": false, "speed": 0.5, "opacity_min": 0.1, "sync": false } },
+            "size": { "value": 3, "random": true, "anim": { "enable": false, "speed": 30, "size_min": 0.1, "sync": false } },
+            "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.4, "width": 1 },
+            "move": { "enable": true, "speed": 3, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": { "enable": false, "rotateX": 600, "rotateY": 1200 } }
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": { "enable": true, "mode": "repulse" },
+                "onclick": { "enable": false, "mode": "push" },
+                "resize": true
+            },
+            "modes": {
+                "grab": { "distance": 400, "line_linked": { "opacity": 1 } },
+                "bubble": { "distance": 400, "size": 40, "duration": 2, "opacity": 8, "speed": 3 },
+                "repulse": { "distance": 200, "duration": 0.4 },
+                "push": { "particles_nb": 4 },
+                "remove": { "particles_nb": 2 }
+            }
+        },
+        "retina_detect": true
+    };
+    if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+         jsonData = {
+        "particles": {
+            "number": { "value": 10, "density": { "enable": true, "value_area": 100 } },
+            "color": { "value": "#ffffff" },
+            "shape": { "type": "circle", "stroke": { "width": 0, "color": "#000000" }, "polygon": { "nb_sides": 6 }, "image": { "src": "img/github.svg", "width": 50, "height": 50 } },
+            "opacity": { "value": 0.5, "random": false, "anim": { "enable": false, "speed": 0.5, "opacity_min": 0.1, "sync": false } },
+            "size": { "value": 1, "random": true, "anim": { "enable": false, "speed": 10, "size_min": 0.1, "sync": false } },
+            "line_linked": { "enable": true, "distance": 80, "color": "#ffffff", "opacity": 0.6, "width": 1 },
+            "move": { "enable": true, "speed": 3, "direction": "none", "random": false, "straight": false, "out_mode": "out", "bounce": false, "attract": { "enable": false, "rotateX": 600, "rotateY": 1200 } }
+        },
+        "interactivity": {
+            "detect_on": "canvas",
+            "events": {
+                "onhover": { "enable": true, "mode": "repulse" },
+                "onclick": { "enable": false, "mode": "push" },
+                "resize": true
+            },
+            "modes": {
+                "grab": { "distance": 100, "line_linked": { "opacity": 1 } },
+                "bubble": { "distance": 100, "size": 10, "duration": 2, "opacity": 8, "speed": 1 },
+                "repulse": { "distance": 100, "duration": 0.4 },
+                "push": { "particles_nb": 8 },
+                "remove": { "particles_nb": 2 }
+            }
+        },
+        "retina_detect": true
+    };
+    }
+    var pJS = function(tag_id, params) {
+
+        var canvas_el = document.querySelector('#' + tag_id + ' > .particles-js-canvas-el');
+
+        /* particles.js variables with default values */
+        this.pJS = {
+            canvas: {
+                el: canvas_el,
+                w: canvas_el.offsetWidth,
+                h: canvas_el.offsetHeight
+            },
+            particles: {
+                number: {
+                    value: 400,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: '#fff'
+                },
+                shape: {
+                    type: 'circle',
+                    stroke: {
+                        width: 0,
+                        color: '#ff0000'
+                    },
+                    polygon: {
+                        nb_sides: 5
+                    },
+                    image: {
+                        src: '',
+                        width: 100,
+                        height: 100
+                    }
+                },
+                opacity: {
+                    value: 1,
+                    random: false,
+                    anim: {
+                        enable: false,
+                        speed: 2,
+                        opacity_min: 0,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 20,
+                    random: false,
+                    anim: {
+                        enable: false,
+                        speed: 20,
+                        size_min: 0,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 100,
+                    color: '#fff',
+                    opacity: 1,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: 'none',
+                    random: false,
+                    straight: false,
+                    out_mode: 'out',
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 3000,
+                        rotateY: 3000
+                    }
+                },
+                array: []
+            },
+            interactivity: {
+                detect_on: 'canvas',
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: 'grab'
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: 'push'
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: {
+                        distance: 100,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    },
+                    bubble: {
+                        distance: 200,
+                        size: 80,
+                        duration: 0.4
+                    },
+                    repulse: {
+                        distance: 200,
+                        duration: 0.4
+                    },
+                    push: {
+                        particles_nb: 4
+                    },
+                    remove: {
+                        particles_nb: 2
+                    }
+                },
+                mouse: {}
+            },
+            retina_detect: false,
+            fn: {
+                interact: {},
+                modes: {},
+                vendors: {}
+            },
+            tmp: {}
+        };
+
+        var pJS = this.pJS;
+
+        /* params settings */
+        if (params) {
+            Object.deepExtend(pJS, params);
+        }
+
+        pJS.tmp.obj = {
+            size_value: pJS.particles.size.value,
+            size_anim_speed: pJS.particles.size.anim.speed,
+            move_speed: pJS.particles.move.speed,
+            line_linked_distance: pJS.particles.line_linked.distance,
+            line_linked_width: pJS.particles.line_linked.width,
+            mode_grab_distance: pJS.interactivity.modes.grab.distance,
+            mode_bubble_distance: pJS.interactivity.modes.bubble.distance,
+            mode_bubble_size: pJS.interactivity.modes.bubble.size,
+            mode_repulse_distance: pJS.interactivity.modes.repulse.distance
+        };
+
+
+        pJS.fn.retinaInit = function() {
+
+            if (pJS.retina_detect && window.devicePixelRatio > 1) {
+                pJS.canvas.pxratio = window.devicePixelRatio;
+                pJS.tmp.retina = true;
+            } else {
+                pJS.canvas.pxratio = 1;
+                pJS.tmp.retina = false;
+            }
+
+            pJS.canvas.w = pJS.canvas.el.offsetWidth * pJS.canvas.pxratio;
+            pJS.canvas.h = pJS.canvas.el.offsetHeight * pJS.canvas.pxratio;
+
+            pJS.particles.size.value = pJS.tmp.obj.size_value * pJS.canvas.pxratio;
+            pJS.particles.size.anim.speed = pJS.tmp.obj.size_anim_speed * pJS.canvas.pxratio;
+            pJS.particles.move.speed = pJS.tmp.obj.move_speed * pJS.canvas.pxratio;
+            pJS.particles.line_linked.distance = pJS.tmp.obj.line_linked_distance * pJS.canvas.pxratio;
+            pJS.interactivity.modes.grab.distance = pJS.tmp.obj.mode_grab_distance * pJS.canvas.pxratio;
+            pJS.interactivity.modes.bubble.distance = pJS.tmp.obj.mode_bubble_distance * pJS.canvas.pxratio;
+            pJS.particles.line_linked.width = pJS.tmp.obj.line_linked_width * pJS.canvas.pxratio;
+            pJS.interactivity.modes.bubble.size = pJS.tmp.obj.mode_bubble_size * pJS.canvas.pxratio;
+            pJS.interactivity.modes.repulse.distance = pJS.tmp.obj.mode_repulse_distance * pJS.canvas.pxratio;
+
+        };
+
+
+
+        /* ---------- pJS functions - canvas ------------ */
+
+        pJS.fn.canvasInit = function() {
+            pJS.canvas.ctx = pJS.canvas.el.getContext('2d');
+        };
+
+        pJS.fn.canvasSize = function() {
+
+            pJS.canvas.el.width = pJS.canvas.w;
+            pJS.canvas.el.height = pJS.canvas.h;
+
+            if (pJS && pJS.interactivity.events.resize) {
+
+                window.addEventListener('resize', function() {
+
+                    pJS.canvas.w = pJS.canvas.el.offsetWidth;
+                    pJS.canvas.h = pJS.canvas.el.offsetHeight;
+
+                    /* resize canvas */
+                    if (pJS.tmp.retina) {
+                        pJS.canvas.w *= pJS.canvas.pxratio;
+                        pJS.canvas.h *= pJS.canvas.pxratio;
+                    }
+
+                    pJS.canvas.el.width = pJS.canvas.w;
+                    pJS.canvas.el.height = pJS.canvas.h;
+
+                    /* repaint canvas on anim disabled */
+                    if (!pJS.particles.move.enable) {
+                        pJS.fn.particlesEmpty();
+                        pJS.fn.particlesCreate();
+                        pJS.fn.particlesDraw();
+                        pJS.fn.vendors.densityAutoParticles();
+                    }
+
+                    /* density particles enabled */
+                    pJS.fn.vendors.densityAutoParticles();
+
+                });
+
+            }
+
+        };
+
+
+        pJS.fn.canvasPaint = function() {
+            pJS.canvas.ctx.fillRect(0, 0, pJS.canvas.w, pJS.canvas.h);
+        };
+
+        pJS.fn.canvasClear = function() {
+            pJS.canvas.ctx.clearRect(0, 0, pJS.canvas.w, pJS.canvas.h);
+        };
+
+
+        /* --------- pJS functions - particles ----------- */
+
+        pJS.fn.particle = function(color, opacity, position) {
+
+            /* size */
+            this.radius = (pJS.particles.size.random ? Math.random() : 1) * pJS.particles.size.value;
+            if (pJS.particles.size.anim.enable) {
+                this.size_status = false;
+                this.vs = pJS.particles.size.anim.speed / 100;
+                if (!pJS.particles.size.anim.sync) {
+                    this.vs = this.vs * Math.random();
+                }
+            }
+
+            /* position */
+            this.x = position ? position.x : Math.random() * pJS.canvas.w;
+            this.y = position ? position.y : Math.random() * pJS.canvas.h;
+
+            /* check position  - into the canvas */
+            if (this.x > pJS.canvas.w - this.radius * 2) this.x = this.x - this.radius;
+            else if (this.x < this.radius * 2) this.x = this.x + this.radius;
+            if (this.y > pJS.canvas.h - this.radius * 2) this.y = this.y - this.radius;
+            else if (this.y < this.radius * 2) this.y = this.y + this.radius;
+
+            /* check position - avoid overlap */
+            if (pJS.particles.move.bounce) {
+                pJS.fn.vendors.checkOverlap(this, position);
+            }
+
+            /* color */
+            this.color = {};
+            if (typeof(color.value) == 'object') {
+
+                if (color.value instanceof Array) {
+                    var color_selected = color.value[Math.floor(Math.random() * pJS.particles.color.value.length)];
+                    this.color.rgb = hexToRgb(color_selected);
+                } else {
+                    if (color.value.r != undefined && color.value.g != undefined && color.value.b != undefined) {
+                        this.color.rgb = {
+                            r: color.value.r,
+                            g: color.value.g,
+                            b: color.value.b
+                        }
+                    }
+                    if (color.value.h != undefined && color.value.s != undefined && color.value.l != undefined) {
+                        this.color.hsl = {
+                            h: color.value.h,
+                            s: color.value.s,
+                            l: color.value.l
+                        }
+                    }
+                }
+
+            } else if (color.value == 'random') {
+                this.color.rgb = {
+                    r: (Math.floor(Math.random() * (255 - 0 + 1)) + 0),
+                    g: (Math.floor(Math.random() * (255 - 0 + 1)) + 0),
+                    b: (Math.floor(Math.random() * (255 - 0 + 1)) + 0)
+                }
+            } else if (typeof(color.value) == 'string') {
+                this.color = color;
+                this.color.rgb = hexToRgb(this.color.value);
+            }
+
+            /* opacity */
+            this.opacity = (pJS.particles.opacity.random ? Math.random() : 1) * pJS.particles.opacity.value;
+            if (pJS.particles.opacity.anim.enable) {
+                this.opacity_status = false;
+                this.vo = pJS.particles.opacity.anim.speed / 100;
+                if (!pJS.particles.opacity.anim.sync) {
+                    this.vo = this.vo * Math.random();
+                }
+            }
+
+            /* animation - velocity for speed */
+            var velbase = {}
+            switch (pJS.particles.move.direction) {
+                case 'top':
+                    velbase = { x: 0, y: -1 };
+                    break;
+                case 'top-right':
+                    velbase = { x: 0.5, y: -0.5 };
+                    break;
+                case 'right':
+                    velbase = { x: 1, y: -0 };
+                    break;
+                case 'bottom-right':
+                    velbase = { x: 0.5, y: 0.5 };
+                    break;
+                case 'bottom':
+                    velbase = { x: 0, y: 1 };
+                    break;
+                case 'bottom-left':
+                    velbase = { x: -0.5, y: 1 };
+                    break;
+                case 'left':
+                    velbase = { x: -1, y: 0 };
+                    break;
+                case 'top-left':
+                    velbase = { x: -0.5, y: -0.5 };
+                    break;
+                default:
+                    velbase = { x: 0, y: 0 };
+                    break;
+            }
+
+            if (pJS.particles.move.straight) {
+                this.vx = velbase.x;
+                this.vy = velbase.y;
+                if (pJS.particles.move.random) {
+                    this.vx = this.vx * (Math.random());
+                    this.vy = this.vy * (Math.random());
+                }
+            } else {
+                this.vx = velbase.x + Math.random() - 0.5;
+                this.vy = velbase.y + Math.random() - 0.5;
+            }
+
+            // var theta = 2.0 * Math.PI * Math.random();
+            // this.vx = Math.cos(theta);
+            // this.vy = Math.sin(theta);
+
+            this.vx_i = this.vx;
+            this.vy_i = this.vy;
+
+
+
+            /* if shape is image */
+
+            var shape_type = pJS.particles.shape.type;
+            if (typeof(shape_type) == 'object') {
+                if (shape_type instanceof Array) {
+                    var shape_selected = shape_type[Math.floor(Math.random() * shape_type.length)];
+                    this.shape = shape_selected;
+                }
+            } else {
+                this.shape = shape_type;
+            }
+
+            if (this.shape == 'image') {
+                var sh = pJS.particles.shape;
+                this.img = {
+                    src: sh.image.src,
+                    ratio: sh.image.width / sh.image.height
+                }
+                if (!this.img.ratio) this.img.ratio = 1;
+                if (pJS.tmp.img_type == 'svg' && pJS.tmp.source_svg != undefined) {
+                    pJS.fn.vendors.createSvgImg(this);
+                    if (pJS.tmp.pushing) {
+                        this.img.loaded = false;
+                    }
+                }
+            }
+
+
+
+        };
+
+
+        pJS.fn.particle.prototype.draw = function() {
+
+            var p = this;
+
+            if (p.radius_bubble != undefined) {
+                var radius = p.radius_bubble;
+            } else {
+                var radius = p.radius;
+            }
+
+            if (p.opacity_bubble != undefined) {
+                var opacity = p.opacity_bubble;
+            } else {
+                var opacity = p.opacity;
+            }
+
+            if (p.color.rgb) {
+                var color_value = 'rgba(' + p.color.rgb.r + ',' + p.color.rgb.g + ',' + p.color.rgb.b + ',' + opacity + ')';
+            } else {
+                var color_value = 'hsla(' + p.color.hsl.h + ',' + p.color.hsl.s + '%,' + p.color.hsl.l + '%,' + opacity + ')';
+            }
+
+            pJS.canvas.ctx.fillStyle = color_value;
+            pJS.canvas.ctx.beginPath();
+
+            switch (p.shape) {
+
+                case 'circle':
+                    pJS.canvas.ctx.arc(p.x, p.y, radius, 0, Math.PI * 2, false);
+                    break;
+
+                case 'edge':
+                    pJS.canvas.ctx.rect(p.x - radius, p.y - radius, radius * 2, radius * 2);
+                    break;
+
+                case 'triangle':
+                    pJS.fn.vendors.drawShape(pJS.canvas.ctx, p.x - radius, p.y + radius / 1.66, radius * 2, 3, 2);
+                    break;
+
+                case 'polygon':
+                    pJS.fn.vendors.drawShape(
+                        pJS.canvas.ctx,
+                        p.x - radius / (pJS.particles.shape.polygon.nb_sides / 3.5), // startX
+                        p.y - radius / (2.66 / 3.5), // startY
+                        radius * 2.66 / (pJS.particles.shape.polygon.nb_sides / 3), // sideLength
+                        pJS.particles.shape.polygon.nb_sides, // sideCountNumerator
+                        1 // sideCountDenominator
+                    );
+                    break;
+
+                case 'star':
+                    pJS.fn.vendors.drawShape(
+                        pJS.canvas.ctx,
+                        p.x - radius * 2 / (pJS.particles.shape.polygon.nb_sides / 4), // startX
+                        p.y - radius / (2 * 2.66 / 3.5), // startY
+                        radius * 2 * 2.66 / (pJS.particles.shape.polygon.nb_sides / 3), // sideLength
+                        pJS.particles.shape.polygon.nb_sides, // sideCountNumerator
+                        2 // sideCountDenominator
+                    );
+                    break;
+
+                case 'image':
+
+                    function draw() {
+                        pJS.canvas.ctx.drawImage(
+                            img_obj,
+                            p.x - radius,
+                            p.y - radius,
+                            radius * 2,
+                            radius * 2 / p.img.ratio
+                        );
+                    }
+
+                    if (pJS.tmp.img_type == 'svg') {
+                        var img_obj = p.img.obj;
+                    } else {
+                        var img_obj = pJS.tmp.img_obj;
+                    }
+
+                    if (img_obj) {
+                        draw();
+                    }
+
+                    break;
+
+            }
+
+            pJS.canvas.ctx.closePath();
+
+            if (pJS.particles.shape.stroke.width > 0) {
+                pJS.canvas.ctx.strokeStyle = pJS.particles.shape.stroke.color;
+                pJS.canvas.ctx.lineWidth = pJS.particles.shape.stroke.width;
+                pJS.canvas.ctx.stroke();
+            }
+
+            pJS.canvas.ctx.fill();
+
+        };
+
+
+        pJS.fn.particlesCreate = function() {
+            for (var i = 0; i < pJS.particles.number.value; i++) {
+                pJS.particles.array.push(new pJS.fn.particle(pJS.particles.color, pJS.particles.opacity.value));
+            }
+        };
+
+        pJS.fn.particlesUpdate = function() {
+
+            for (var i = 0; i < pJS.particles.array.length; i++) {
+
+                /* the particle */
+                var p = pJS.particles.array[i];
+
+                // var d = ( dx = pJS.interactivity.mouse.click_pos_x - p.x ) * dx + ( dy = pJS.interactivity.mouse.click_pos_y - p.y ) * dy;
+                // var f = -BANG_SIZE / d;
+                // if ( d < BANG_SIZE ) {
+                //     var t = Math.atan2( dy, dx );
+                //     p.vx = f * Math.cos(t);
+                //     p.vy = f * Math.sin(t);
+                // }
+
+                /* move the particle */
+                if (pJS.particles.move.enable) {
+                    var ms = pJS.particles.move.speed / 2;
+                    p.x += p.vx * ms;
+                    p.y += p.vy * ms;
+                }
+
+                /* change opacity status */
+                if (pJS.particles.opacity.anim.enable) {
+                    if (p.opacity_status == true) {
+                        if (p.opacity >= pJS.particles.opacity.value) p.opacity_status = false;
+                        p.opacity += p.vo;
+                    } else {
+                        if (p.opacity <= pJS.particles.opacity.anim.opacity_min) p.opacity_status = true;
+                        p.opacity -= p.vo;
+                    }
+                    if (p.opacity < 0) p.opacity = 0;
+                }
+
+                /* change size */
+                if (pJS.particles.size.anim.enable) {
+                    if (p.size_status == true) {
+                        if (p.radius >= pJS.particles.size.value) p.size_status = false;
+                        p.radius += p.vs;
+                    } else {
+                        if (p.radius <= pJS.particles.size.anim.size_min) p.size_status = true;
+                        p.radius -= p.vs;
+                    }
+                    if (p.radius < 0) p.radius = 0;
+                }
+
+                /* change particle position if it is out of canvas */
+                if (pJS.particles.move.out_mode == 'bounce') {
+                    var new_pos = {
+                        x_left: p.radius,
+                        x_right: pJS.canvas.w,
+                        y_top: p.radius,
+                        y_bottom: pJS.canvas.h
+                    }
+                } else {
+                    var new_pos = {
+                        x_left: -p.radius,
+                        x_right: pJS.canvas.w + p.radius,
+                        y_top: -p.radius,
+                        y_bottom: pJS.canvas.h + p.radius
+                    }
+                }
+
+                if (p.x - p.radius > pJS.canvas.w) {
+                    p.x = new_pos.x_left;
+                    p.y = Math.random() * pJS.canvas.h;
+                } else if (p.x + p.radius < 0) {
+                    p.x = new_pos.x_right;
+                    p.y = Math.random() * pJS.canvas.h;
+                }
+                if (p.y - p.radius > pJS.canvas.h) {
+                    p.y = new_pos.y_top;
+                    p.x = Math.random() * pJS.canvas.w;
+                } else if (p.y + p.radius < 0) {
+                    p.y = new_pos.y_bottom;
+                    p.x = Math.random() * pJS.canvas.w;
+                }
+
+                /* out of canvas modes */
+                switch (pJS.particles.move.out_mode) {
+                    case 'bounce':
+                        if (p.x + p.radius > pJS.canvas.w) p.vx = -p.vx;
+                        else if (p.x - p.radius < 0) p.vx = -p.vx;
+                        if (p.y + p.radius > pJS.canvas.h) p.vy = -p.vy;
+                        else if (p.y - p.radius < 0) p.vy = -p.vy;
+                        break;
+                }
+
+                /* events */
+                if (isInArray('grab', pJS.interactivity.events.onhover.mode)) {
+                    pJS.fn.modes.grabParticle(p);
+                }
+
+                if (isInArray('bubble', pJS.interactivity.events.onhover.mode) || isInArray('bubble', pJS.interactivity.events.onclick.mode)) {
+                    pJS.fn.modes.bubbleParticle(p);
+                }
+
+                if (isInArray('repulse', pJS.interactivity.events.onhover.mode) || isInArray('repulse', pJS.interactivity.events.onclick.mode)) {
+                    pJS.fn.modes.repulseParticle(p);
+                }
+
+                /* interaction auto between particles */
+                if (pJS.particles.line_linked.enable || pJS.particles.move.attract.enable) {
+                    for (var j = i + 1; j < pJS.particles.array.length; j++) {
+                        var p2 = pJS.particles.array[j];
+
+                        /* link particles */
+                        if (pJS.particles.line_linked.enable) {
+                            pJS.fn.interact.linkParticles(p, p2);
+                        }
+
+                        /* attract particles */
+                        if (pJS.particles.move.attract.enable) {
+                            pJS.fn.interact.attractParticles(p, p2);
+                        }
+
+                        /* bounce particles */
+                        if (pJS.particles.move.bounce) {
+                            pJS.fn.interact.bounceParticles(p, p2);
+                        }
+
+                    }
+                }
+
+
+            }
+
+        };
+
+        pJS.fn.particlesDraw = function() {
+
+            /* clear canvas */
+            pJS.canvas.ctx.clearRect(0, 0, pJS.canvas.w, pJS.canvas.h);
+
+            /* update each particles param */
+            pJS.fn.particlesUpdate();
+
+            /* draw each particle */
+            for (var i = 0; i < pJS.particles.array.length; i++) {
+                var p = pJS.particles.array[i];
+                p.draw();
+            }
+
+        };
+
+        pJS.fn.particlesEmpty = function() {
+            pJS.particles.array = [];
+        };
+
+        pJS.fn.particlesRefresh = function() {
+
+            /* init all */
+            cancelRequestAnimFrame(pJS.fn.checkAnimFrame);
+            cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
+            pJS.tmp.source_svg = undefined;
+            pJS.tmp.img_obj = undefined;
+            pJS.tmp.count_svg = 0;
+            pJS.fn.particlesEmpty();
+            pJS.fn.canvasClear();
+
+            /* restart */
+            pJS.fn.vendors.start();
+
+        };
+
+
+        /* ---------- pJS functions - particles interaction ------------ */
+
+        pJS.fn.interact.linkParticles = function(p1, p2) {
+
+            var dx = p1.x - p2.x,
+                dy = p1.y - p2.y,
+                dist = Math.sqrt(dx * dx + dy * dy);
+
+            /* draw a line between p1 and p2 if the distance between them is under the config distance */
+            if (dist <= pJS.particles.line_linked.distance) {
+
+                var opacity_line = pJS.particles.line_linked.opacity - (dist / (1 / pJS.particles.line_linked.opacity)) / pJS.particles.line_linked.distance;
+
+                if (opacity_line > 0) {
+
+                    /* style */
+                    var color_line = pJS.particles.line_linked.color_rgb_line;
+                    pJS.canvas.ctx.strokeStyle = 'rgba(' + color_line.r + ',' + color_line.g + ',' + color_line.b + ',' + opacity_line + ')';
+                    pJS.canvas.ctx.lineWidth = pJS.particles.line_linked.width;
+                    //pJS.canvas.ctx.lineCap = 'round'; /* performance issue */
+
+                    /* path */
+                    pJS.canvas.ctx.beginPath();
+                    pJS.canvas.ctx.moveTo(p1.x, p1.y);
+                    pJS.canvas.ctx.lineTo(p2.x, p2.y);
+                    pJS.canvas.ctx.stroke();
+                    pJS.canvas.ctx.closePath();
+
+                }
+
+            }
+
+        };
+
+
+        pJS.fn.interact.attractParticles = function(p1, p2) {
+
+            /* condensed particles */
+            var dx = p1.x - p2.x,
+                dy = p1.y - p2.y,
+                dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist <= pJS.particles.line_linked.distance) {
+
+                var ax = dx / (pJS.particles.move.attract.rotateX * 1000),
+                    ay = dy / (pJS.particles.move.attract.rotateY * 1000);
+
+                p1.vx -= ax;
+                p1.vy -= ay;
+
+                p2.vx += ax;
+                p2.vy += ay;
+
+            }
+
+
+        }
+
+
+        pJS.fn.interact.bounceParticles = function(p1, p2) {
+
+            var dx = p1.x - p2.x,
+                dy = p1.y - p2.y,
+                dist = Math.sqrt(dx * dx + dy * dy),
+                dist_p = p1.radius + p2.radius;
+
+            if (dist <= dist_p) {
+                p1.vx = -p1.vx;
+                p1.vy = -p1.vy;
+
+                p2.vx = -p2.vx;
+                p2.vy = -p2.vy;
+            }
+
+        }
+
+
+        /* ---------- pJS functions - modes events ------------ */
+
+        pJS.fn.modes.pushParticles = function(nb, pos) {
+
+            pJS.tmp.pushing = true;
+
+            for (var i = 0; i < nb; i++) {
+                pJS.particles.array.push(
+                    new pJS.fn.particle(
+                        pJS.particles.color,
+                        pJS.particles.opacity.value, {
+                            'x': pos ? pos.pos_x : Math.random() * pJS.canvas.w,
+                            'y': pos ? pos.pos_y : Math.random() * pJS.canvas.h
+                        }
+                    )
+                )
+                if (i == nb - 1) {
+                    if (!pJS.particles.move.enable) {
+                        pJS.fn.particlesDraw();
+                    }
+                    pJS.tmp.pushing = false;
+                }
+            }
+
+        };
+
+
+        pJS.fn.modes.removeParticles = function(nb) {
+
+            pJS.particles.array.splice(0, nb);
+            if (!pJS.particles.move.enable) {
+                pJS.fn.particlesDraw();
+            }
+
+        };
+
+
+        pJS.fn.modes.bubbleParticle = function(p) {
+
+            /* on hover event */
+            if (pJS.interactivity.events.onhover.enable && isInArray('bubble', pJS.interactivity.events.onhover.mode)) {
+
+                var dx_mouse = p.x - pJS.interactivity.mouse.pos_x,
+                    dy_mouse = p.y - pJS.interactivity.mouse.pos_y,
+                    dist_mouse = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse),
+                    ratio = 1 - dist_mouse / pJS.interactivity.modes.bubble.distance;
+
+                function init() {
+                    p.opacity_bubble = p.opacity;
+                    p.radius_bubble = p.radius;
+                }
+
+                /* mousemove - check ratio */
+                if (dist_mouse <= pJS.interactivity.modes.bubble.distance) {
+
+                    if (ratio >= 0 && pJS.interactivity.status == 'mousemove') {
+
+                        /* size */
+                        if (pJS.interactivity.modes.bubble.size != pJS.particles.size.value) {
+
+                            if (pJS.interactivity.modes.bubble.size > pJS.particles.size.value) {
+                                var size = p.radius + (pJS.interactivity.modes.bubble.size * ratio);
+                                if (size >= 0) {
+                                    p.radius_bubble = size;
+                                }
+                            } else {
+                                var dif = p.radius - pJS.interactivity.modes.bubble.size,
+                                    size = p.radius - (dif * ratio);
+                                if (size > 0) {
+                                    p.radius_bubble = size;
+                                } else {
+                                    p.radius_bubble = 0;
+                                }
+                            }
+
+                        }
+
+                        /* opacity */
+                        if (pJS.interactivity.modes.bubble.opacity != pJS.particles.opacity.value) {
+
+                            if (pJS.interactivity.modes.bubble.opacity > pJS.particles.opacity.value) {
+                                var opacity = pJS.interactivity.modes.bubble.opacity * ratio;
+                                if (opacity > p.opacity && opacity <= pJS.interactivity.modes.bubble.opacity) {
+                                    p.opacity_bubble = opacity;
+                                }
+                            } else {
+                                var opacity = p.opacity - (pJS.particles.opacity.value - pJS.interactivity.modes.bubble.opacity) * ratio;
+                                if (opacity < p.opacity && opacity >= pJS.interactivity.modes.bubble.opacity) {
+                                    p.opacity_bubble = opacity;
+                                }
+                            }
+
+                        }
+
+                    }
+
+                } else {
+                    init();
+                }
+
+
+                /* mouseleave */
+                if (pJS.interactivity.status == 'mouseleave') {
+                    init();
+                }
+
+            }
+
+            /* on click event */
+            else if (pJS.interactivity.events.onclick.enable && isInArray('bubble', pJS.interactivity.events.onclick.mode)) {
+
+
+                if (pJS.tmp.bubble_clicking) {
+                    var dx_mouse = p.x - pJS.interactivity.mouse.click_pos_x,
+                        dy_mouse = p.y - pJS.interactivity.mouse.click_pos_y,
+                        dist_mouse = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse),
+                        time_spent = (new Date().getTime() - pJS.interactivity.mouse.click_time) / 1000;
+
+                    if (time_spent > pJS.interactivity.modes.bubble.duration) {
+                        pJS.tmp.bubble_duration_end = true;
+                    }
+
+                    if (time_spent > pJS.interactivity.modes.bubble.duration * 2) {
+                        pJS.tmp.bubble_clicking = false;
+                        pJS.tmp.bubble_duration_end = false;
+                    }
+                }
+
+
+                function process(bubble_param, particles_param, p_obj_bubble, p_obj, id) {
+
+                    if (bubble_param != particles_param) {
+
+                        if (!pJS.tmp.bubble_duration_end) {
+                            if (dist_mouse <= pJS.interactivity.modes.bubble.distance) {
+                                if (p_obj_bubble != undefined) var obj = p_obj_bubble;
+                                else var obj = p_obj;
+                                if (obj != bubble_param) {
+                                    var value = p_obj - (time_spent * (p_obj - bubble_param) / pJS.interactivity.modes.bubble.duration);
+                                    if (id == 'size') p.radius_bubble = value;
+                                    if (id == 'opacity') p.opacity_bubble = value;
+                                }
+                            } else {
+                                if (id == 'size') p.radius_bubble = undefined;
+                                if (id == 'opacity') p.opacity_bubble = undefined;
+                            }
+                        } else {
+                            if (p_obj_bubble != undefined) {
+                                var value_tmp = p_obj - (time_spent * (p_obj - bubble_param) / pJS.interactivity.modes.bubble.duration),
+                                    dif = bubble_param - value_tmp;
+                                value = bubble_param + dif;
+                                if (id == 'size') p.radius_bubble = value;
+                                if (id == 'opacity') p.opacity_bubble = value;
+                            }
+                        }
+
+                    }
+
+                }
+
+                if (pJS.tmp.bubble_clicking) {
+                    /* size */
+                    process(pJS.interactivity.modes.bubble.size, pJS.particles.size.value, p.radius_bubble, p.radius, 'size');
+                    /* opacity */
+                    process(pJS.interactivity.modes.bubble.opacity, pJS.particles.opacity.value, p.opacity_bubble, p.opacity, 'opacity');
+                }
+
+            }
+
+        };
+
+
+        pJS.fn.modes.repulseParticle = function(p) {
+
+            if (pJS.interactivity.events.onhover.enable && isInArray('repulse', pJS.interactivity.events.onhover.mode) && pJS.interactivity.status == 'mousemove') {
+
+                var dx_mouse = p.x - pJS.interactivity.mouse.pos_x,
+                    dy_mouse = p.y - pJS.interactivity.mouse.pos_y,
+                    dist_mouse = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse);
+
+                var normVec = { x: dx_mouse / dist_mouse, y: dy_mouse / dist_mouse },
+                    repulseRadius = pJS.interactivity.modes.repulse.distance,
+                    velocity = 100,
+                    repulseFactor = clamp((1 / repulseRadius) * (-1 * Math.pow(dist_mouse / repulseRadius, 2) + 1) * repulseRadius * velocity, 0, 50);
+
+                var pos = {
+                    x: p.x + normVec.x * repulseFactor,
+                    y: p.y + normVec.y * repulseFactor
+                }
+
+                if (pJS.particles.move.out_mode == 'bounce') {
+                    if (pos.x - p.radius > 0 && pos.x + p.radius < pJS.canvas.w) p.x = pos.x;
+                    if (pos.y - p.radius > 0 && pos.y + p.radius < pJS.canvas.h) p.y = pos.y;
+                } else {
+                    p.x = pos.x;
+                    p.y = pos.y;
+                }
+
+            } else if (pJS.interactivity.events.onclick.enable && isInArray('repulse', pJS.interactivity.events.onclick.mode)) {
+
+                if (!pJS.tmp.repulse_finish) {
+                    pJS.tmp.repulse_count++;
+                    if (pJS.tmp.repulse_count == pJS.particles.array.length) {
+                        pJS.tmp.repulse_finish = true;
+                    }
+                }
+
+                if (pJS.tmp.repulse_clicking) {
+
+                    var repulseRadius = Math.pow(pJS.interactivity.modes.repulse.distance / 6, 3);
+
+                    var dx = pJS.interactivity.mouse.click_pos_x - p.x,
+                        dy = pJS.interactivity.mouse.click_pos_y - p.y,
+                        d = dx * dx + dy * dy;
+
+                    var force = -repulseRadius / d * 1;
+
+                    function process() {
+
+                        var f = Math.atan2(dy, dx);
+                        p.vx = force * Math.cos(f);
+                        p.vy = force * Math.sin(f);
+
+                        if (pJS.particles.move.out_mode == 'bounce') {
+                            var pos = {
+                                x: p.x + p.vx,
+                                y: p.y + p.vy
+                            }
+                            if (pos.x + p.radius > pJS.canvas.w) p.vx = -p.vx;
+                            else if (pos.x - p.radius < 0) p.vx = -p.vx;
+                            if (pos.y + p.radius > pJS.canvas.h) p.vy = -p.vy;
+                            else if (pos.y - p.radius < 0) p.vy = -p.vy;
+                        }
+
+                    }
+
+                    // default
+                    if (d <= repulseRadius) {
+                        process();
+                    }
+
+                    // bang - slow motion mode
+                    // if(!pJS.tmp.repulse_finish){
+                    //   if(d <= repulseRadius){
+                    //     process();
+                    //   }
+                    // }else{
+                    //   process();
+                    // }
+
+
+                } else {
+
+                    if (pJS.tmp.repulse_clicking == false) {
+
+                        p.vx = p.vx_i;
+                        p.vy = p.vy_i;
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        pJS.fn.modes.grabParticle = function(p) {
+
+            if (pJS.interactivity.events.onhover.enable && pJS.interactivity.status == 'mousemove') {
+
+                var dx_mouse = p.x - pJS.interactivity.mouse.pos_x,
+                    dy_mouse = p.y - pJS.interactivity.mouse.pos_y,
+                    dist_mouse = Math.sqrt(dx_mouse * dx_mouse + dy_mouse * dy_mouse);
+
+                /* draw a line between the cursor and the particle if the distance between them is under the config distance */
+                if (dist_mouse <= pJS.interactivity.modes.grab.distance) {
+
+                    var opacity_line = pJS.interactivity.modes.grab.line_linked.opacity - (dist_mouse / (1 / pJS.interactivity.modes.grab.line_linked.opacity)) / pJS.interactivity.modes.grab.distance;
+
+                    if (opacity_line > 0) {
+
+                        /* style */
+                        var color_line = pJS.particles.line_linked.color_rgb_line;
+                        pJS.canvas.ctx.strokeStyle = 'rgba(' + color_line.r + ',' + color_line.g + ',' + color_line.b + ',' + opacity_line + ')';
+                        pJS.canvas.ctx.lineWidth = pJS.particles.line_linked.width;
+                        //pJS.canvas.ctx.lineCap = 'round'; /* performance issue */
+
+                        /* path */
+                        pJS.canvas.ctx.beginPath();
+                        pJS.canvas.ctx.moveTo(p.x, p.y);
+                        pJS.canvas.ctx.lineTo(pJS.interactivity.mouse.pos_x, pJS.interactivity.mouse.pos_y);
+                        pJS.canvas.ctx.stroke();
+                        pJS.canvas.ctx.closePath();
+
+                    }
+
+                }
+
+            }
+
+        };
+
+
+
+        /* ---------- pJS functions - vendors ------------ */
+
+        pJS.fn.vendors.eventsListeners = function() {
+
+            /* events target element */
+            if (pJS.interactivity.detect_on == 'window') {
+                pJS.interactivity.el = window;
+            } else {
+                pJS.interactivity.el = pJS.canvas.el;
+                if (pJS.interactivity.el.parentNode && pJS.interactivity.el.parentNode.parentNode) {
+                    pJS.interactivity.el = pJS.interactivity.el.parentNode.parentNode;
+                }
+            }
+
+
+            /* detect mouse pos - on hover / click event */
+            if (pJS.interactivity.events.onhover.enable || pJS.interactivity.events.onclick.enable) {
+
+                /* el on mousemove */
+                pJS.interactivity.el.addEventListener('mousemove', function(e) {
+
+                    if (pJS.interactivity.el == window) {
+                        var pos_x = e.clientX,
+                            pos_y = e.clientY;
+                    } else {
+                        var pos_x = e.offsetX || e.clientX,
+                            pos_y = e.offsetY || e.clientY;
+                    }
+
+                    pJS.interactivity.mouse.pos_x = pos_x;
+                    pJS.interactivity.mouse.pos_y = pos_y;
+
+                    if (pJS.tmp.retina) {
+                        pJS.interactivity.mouse.pos_x *= pJS.canvas.pxratio;
+                        pJS.interactivity.mouse.pos_y *= pJS.canvas.pxratio;
+                    }
+
+                    pJS.interactivity.status = 'mousemove';
+
+                });
+
+                /* el on onmouseleave */
+                pJS.interactivity.el.addEventListener('mouseleave', function(e) {
+
+                    pJS.interactivity.mouse.pos_x = null;
+                    pJS.interactivity.mouse.pos_y = null;
+                    pJS.interactivity.status = 'mouseleave';
+
+                });
+
+            }
+
+            /* on click event */
+            if (pJS.interactivity.events.onclick.enable) {
+
+                pJS.interactivity.el.addEventListener('click', function() {
+
+                    pJS.interactivity.mouse.click_pos_x = pJS.interactivity.mouse.pos_x;
+                    pJS.interactivity.mouse.click_pos_y = pJS.interactivity.mouse.pos_y;
+                    pJS.interactivity.mouse.click_time = new Date().getTime();
+
+                    if (pJS.interactivity.events.onclick.enable) {
+
+                        switch (pJS.interactivity.events.onclick.mode) {
+
+                            case 'push':
+                                if (pJS.particles.move.enable) {
+                                    pJS.fn.modes.pushParticles(pJS.interactivity.modes.push.particles_nb, pJS.interactivity.mouse);
+                                } else {
+                                    if (pJS.interactivity.modes.push.particles_nb == 1) {
+                                        pJS.fn.modes.pushParticles(pJS.interactivity.modes.push.particles_nb, pJS.interactivity.mouse);
+                                    } else if (pJS.interactivity.modes.push.particles_nb > 1) {
+                                        pJS.fn.modes.pushParticles(pJS.interactivity.modes.push.particles_nb);
+                                    }
+                                }
+                                break;
+
+                            case 'remove':
+                                pJS.fn.modes.removeParticles(pJS.interactivity.modes.remove.particles_nb);
+                                break;
+
+                            case 'bubble':
+                                pJS.tmp.bubble_clicking = true;
+                                break;
+
+                            case 'repulse':
+                                pJS.tmp.repulse_clicking = true;
+                                pJS.tmp.repulse_count = 0;
+                                pJS.tmp.repulse_finish = false;
+                                setTimeout(function() {
+                                    pJS.tmp.repulse_clicking = false;
+                                }, pJS.interactivity.modes.repulse.duration * 1000)
+                                break;
+
+                        }
+
+                    }
+
+                });
+
+            }
+
+
+        };
+
+        pJS.fn.vendors.densityAutoParticles = function() {
+
+            if (pJS.particles.number.density.enable) {
+
+                /* calc area */
+                var area = pJS.canvas.el.width * pJS.canvas.el.height / 1000;
+                if (pJS.tmp.retina) {
+                    area = area / (pJS.canvas.pxratio * 2);
+                }
+
+                /* calc number of particles based on density area */
+                var nb_particles = area * pJS.particles.number.value / pJS.particles.number.density.value_area;
+
+                /* add or remove X particles */
+                var missing_particles = pJS.particles.array.length - nb_particles;
+                if (missing_particles < 0) pJS.fn.modes.pushParticles(Math.abs(missing_particles));
+                else pJS.fn.modes.removeParticles(missing_particles);
+
+            }
+
+        };
+
+
+        pJS.fn.vendors.checkOverlap = function(p1, position) {
+            for (var i = 0; i < pJS.particles.array.length; i++) {
+                var p2 = pJS.particles.array[i];
+
+                var dx = p1.x - p2.x,
+                    dy = p1.y - p2.y,
+                    dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist <= p1.radius + p2.radius) {
+                    p1.x = position ? position.x : Math.random() * pJS.canvas.w;
+                    p1.y = position ? position.y : Math.random() * pJS.canvas.h;
+                    pJS.fn.vendors.checkOverlap(p1);
+                }
+            }
+        };
+
+
+        pJS.fn.vendors.createSvgImg = function(p) {
+
+            /* set color to svg element */
+            var svgXml = pJS.tmp.source_svg,
+                rgbHex = /#([0-9A-F]{3,6})/gi,
+                coloredSvgXml = svgXml.replace(rgbHex, function(m, r, g, b) {
+                    if (p.color.rgb) {
+                        var color_value = 'rgba(' + p.color.rgb.r + ',' + p.color.rgb.g + ',' + p.color.rgb.b + ',' + p.opacity + ')';
+                    } else {
+                        var color_value = 'hsla(' + p.color.hsl.h + ',' + p.color.hsl.s + '%,' + p.color.hsl.l + '%,' + p.opacity + ')';
+                    }
+                    return color_value;
+                });
+
+            /* prepare to create img with colored svg */
+            var svg = new Blob([coloredSvgXml], { type: 'image/svg+xml;charset=utf-8' }),
+                DOMURL = window.URL || window.webkitURL || window,
+                url = DOMURL.createObjectURL(svg);
+
+            /* create particle img obj */
+            var img = new Image();
+            img.addEventListener('load', function() {
+                p.img.obj = img;
+                p.img.loaded = true;
+                DOMURL.revokeObjectURL(url);
+                pJS.tmp.count_svg++;
+            });
+            img.src = url;
+
+        };
+
+
+        pJS.fn.vendors.destroypJS = function() {
+            cancelAnimationFrame(pJS.fn.drawAnimFrame);
+            canvas_el.remove();
+            pJSDom = null;
+        };
+
+
+        pJS.fn.vendors.drawShape = function(c, startX, startY, sideLength, sideCountNumerator, sideCountDenominator) {
+
+            // By Programming Thomas - https://programmingthomas.wordpress.com/2013/04/03/n-sided-shapes/
+            var sideCount = sideCountNumerator * sideCountDenominator;
+            var decimalSides = sideCountNumerator / sideCountDenominator;
+            var interiorAngleDegrees = (180 * (decimalSides - 2)) / decimalSides;
+            var interiorAngle = Math.PI - Math.PI * interiorAngleDegrees / 180; // convert to radians
+            c.save();
+            c.beginPath();
+            c.translate(startX, startY);
+            c.moveTo(0, 0);
+            for (var i = 0; i < sideCount; i++) {
+                c.lineTo(sideLength, 0);
+                c.translate(sideLength, 0);
+                c.rotate(interiorAngle);
+            }
+            //c.stroke();
+            c.fill();
+            c.restore();
+
+        };
+
+        pJS.fn.vendors.exportImg = function() {
+            window.open(pJS.canvas.el.toDataURL('image/png'), '_blank');
+        };
+
+
+        pJS.fn.vendors.loadImg = function(type) {
+
+            pJS.tmp.img_error = undefined;
+
+            if (pJS.particles.shape.image.src != '') {
+
+                if (type == 'svg') {
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', pJS.particles.shape.image.src);
+                    xhr.onreadystatechange = function(data) {
+                        if (xhr.readyState == 4) {
+                            if (xhr.status == 200) {
+                                pJS.tmp.source_svg = data.currentTarget.response;
+                                pJS.fn.vendors.checkBeforeDraw();
+                            } else {
+                                console.log('Error pJS - Image not found');
+                                pJS.tmp.img_error = true;
+                            }
+                        }
+                    }
+                    xhr.send();
+
+                } else {
+
+                    var img = new Image();
+                    img.addEventListener('load', function() {
+                        pJS.tmp.img_obj = img;
+                        pJS.fn.vendors.checkBeforeDraw();
+                    });
+                    img.src = pJS.particles.shape.image.src;
+
+                }
+
+            } else {
+                console.log('Error pJS - No image.src');
+                pJS.tmp.img_error = true;
+            }
+
+        };
+
+
+        pJS.fn.vendors.draw = function() {
+
+            if (pJS.particles.shape.type == 'image') {
+
+                if (pJS.tmp.img_type == 'svg') {
+
+                    if (pJS.tmp.count_svg >= pJS.particles.number.value) {
+                        pJS.fn.particlesDraw();
+                        if (!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
+                        else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+                    } else {
+                        //console.log('still loading...');
+                        if (!pJS.tmp.img_error) pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+                    }
+
+                } else {
+
+                    if (pJS.tmp.img_obj != undefined) {
+                        pJS.fn.particlesDraw();
+                        if (!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
+                        else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+                    } else {
+                        if (!pJS.tmp.img_error) pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+                    }
+
+                }
+
+            } else {
+                pJS.fn.particlesDraw();
+                if (!pJS.particles.move.enable) cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
+                else pJS.fn.drawAnimFrame = requestAnimFrame(pJS.fn.vendors.draw);
+            }
+
+        };
+
+
+        pJS.fn.vendors.checkBeforeDraw = function() {
+
+            // if shape is image
+            if (pJS.particles.shape.type == 'image') {
+
+                if (pJS.tmp.img_type == 'svg' && pJS.tmp.source_svg == undefined) {
+                    pJS.tmp.checkAnimFrame = requestAnimFrame(check);
+                } else {
+                    //console.log('images loaded! cancel check');
+                    cancelRequestAnimFrame(pJS.tmp.checkAnimFrame);
+                    if (!pJS.tmp.img_error) {
+                        pJS.fn.vendors.init();
+                        pJS.fn.vendors.draw();
+                    }
+
+                }
+
+            } else {
+                pJS.fn.vendors.init();
+                pJS.fn.vendors.draw();
+            }
+
+        };
+
+
+        pJS.fn.vendors.init = function() {
+
+            /* init canvas + particles */
+            pJS.fn.retinaInit();
+            pJS.fn.canvasInit();
+            pJS.fn.canvasSize();
+            pJS.fn.canvasPaint();
+            pJS.fn.particlesCreate();
+            pJS.fn.vendors.densityAutoParticles();
+
+            /* particles.line_linked - convert hex colors to rgb */
+            pJS.particles.line_linked.color_rgb_line = hexToRgb(pJS.particles.line_linked.color);
+
+        };
+
+
+        pJS.fn.vendors.start = function() {
+
+            if (isInArray('image', pJS.particles.shape.type)) {
+                pJS.tmp.img_type = pJS.particles.shape.image.src.substr(pJS.particles.shape.image.src.length - 3);
+                pJS.fn.vendors.loadImg(pJS.tmp.img_type);
+            } else {
+                pJS.fn.vendors.checkBeforeDraw();
+            }
+
+        };
+
+        pJS.fn.vendors.startAnimation = function() {
+            requestAnimFrame(pJS.fn.vendors.draw);
+        };
+
+        pJS.fn.vendors.stopAnimation = function() {
+            cancelRequestAnimFrame(pJS.fn.drawAnimFrame);
+            pJSDom = pJSDom || [];
+            for (var i = 0, len = pJSDom.length; i < len; i++) {
+                if (pJSDom[i].pJS.fn.vendors === this) {
+                    pJSDom.splice(i, 1);
+                }
+            }
+        };
+
+        /* ---------- pJS - start ------------ */
+
+
+        pJS.fn.vendors.eventsListeners();
+
+        pJS.fn.vendors.start();
+    };
+
+    /* ---------- global functions - vendors ------------ */
+
+    Object.deepExtend = function(destination, source) {
+        for (var property in source) {
+            if (source[property] && source[property].constructor &&
+                source[property].constructor === Object) {
+                destination[property] = destination[property] || {};
+                arguments.callee(destination[property], source[property]);
+            } else {
+                destination[property] = source[property];
+            }
+        }
+        return destination;
+    };
+
+    window.requestAnimFrame = (function() {
+        return window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function(callback) {
+                window.setTimeout(callback, 1000 / 60);
+            };
+    })();
+
+    window.cancelRequestAnimFrame = (function() {
+        return window.cancelAnimationFrame ||
+            window.webkitCancelRequestAnimationFrame ||
+            window.mozCancelRequestAnimationFrame ||
+            window.oCancelRequestAnimationFrame ||
+            window.msCancelRequestAnimationFrame ||
+            clearTimeout
+    })();
+
+    function hexToRgb(hex) {
+        // By Tim Down - http://stackoverflow.com/a/5624139/3493650
+        // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+        var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+        hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+            return r + r + g + g + b + b;
+        });
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+        } : null;
+    };
+
+    function clamp(number, min, max) {
+        return Math.min(Math.max(number, min), max);
+    };
+
+    function isInArray(value, array) {
+        return array.indexOf(value) > -1;
+    }
+
+
+    /* ---------- particles.js functions - start ------------ */
+
+    var pJSDom = [];
+
+    var particlesJS = function(tag_id, params) {
+
+        //console.log(params);
+
+        /* no string id? so it's object params, and set the id with default id */
+        if (typeof(tag_id) != 'string') {
+            params = tag_id;
+            tag_id = 'particles-js';
+        }
+
+        /* no id? set the id to default id */
+        if (!tag_id) {
+            tag_id = 'particles-js';
+        }
+
+        /* pJS elements */
+        var pJS_tag = document.getElementById(tag_id),
+            pJS_canvas_class = 'particles-js-canvas-el',
+            exist_canvas = pJS_tag.getElementsByClassName(pJS_canvas_class);
+
+        /* remove canvas if exists into the pJS target tag */
+        if (exist_canvas.length) {
+            while (exist_canvas.length > 0) {
+                pJS_tag.removeChild(exist_canvas[0]);
+            }
+        }
+
+        /* create canvas element */
+        var canvas_el = document.createElement('canvas');
+        canvas_el.className = pJS_canvas_class;
+
+        /* set size canvas */
+        canvas_el.style.width = "100%";
+        canvas_el.style.height = "100%";
+
+        /* append canvas */
+        var canvas = document.getElementById(tag_id).appendChild(canvas_el);
+
+        /* launch particle.js */
+        var pjs = new pJS(tag_id, params);
+        if (canvas != null) {
+            pJSDom.push(pjs);
+        }
+        return pjs.pJS;
+
+    };
+
+    function particles(tag_id, data, callback) {
+        var pjs = particlesJS(tag_id, data || jsonData);
+        if (callback) callback();
+        return pjs;
+    };
+
+    return skylark.attach("intg.particles",particles);
+});
+
+define('skylark-particles/main',["./particles"],function(particles){
+	return particles;
+});
+define('skylark-particles', ['skylark-particles/main'], function (main) { return main; });
+
 define('slax-skydoku/main',[
    "skylark-slax-runtime",
    "skylark-bootstrap3/loadedInit",
    "skylark-widgets-coder",
    "skylark-widgets-textpad",
-   "skylark-jqueryui"
+   "skylark-jqueryui",
+   "skylark-particles"
 ],function(slax,bsInit){
 	bsInit();
 	return slax;

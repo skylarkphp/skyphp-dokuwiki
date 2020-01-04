@@ -554,7 +554,8 @@ define('skylark-domx-query/query',[
                 return this.before(newContent).remove();
             },
 
-            wrap: function(structure) {
+            wrap: function(html) {
+                /*
                 var func = isFunction(structure)
                 if (this[0] && !func)
                     var dom = $(structure).get(0),
@@ -566,9 +567,16 @@ define('skylark-domx-query/query',[
                         clone ? dom.cloneNode(true) : dom
                     )
                 })
+                */
+                var htmlIsFunction = typeof html === "function";
+
+                return this.each( function( i ) {
+                    $( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
+                } );                
             },
 
-            wrapAll: function(wrappingElement) {
+            wrapAll: function(html) {
+                /*
                 if (this[0]) {
                     $(this[0]).before(wrappingElement = $(wrappingElement));
                     var children;
@@ -579,9 +587,38 @@ define('skylark-domx-query/query',[
                     $(wrappingElement).append(this);
                 }
                 return this
+                */
+                var wrap;
+
+                if ( this[ 0 ] ) {
+                    if ( typeof html === "function" ) {
+                        html = html.call( this[ 0 ] );
+                    }
+
+                    // The elements to wrap the target around
+                    wrap = $( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+                    if ( this[ 0 ].parentNode ) {
+                        wrap.insertBefore( this[ 0 ] );
+                    }
+
+                    wrap.map( function() {
+                        var elem = this;
+
+                        while ( elem.firstElementChild ) {
+                            elem = elem.firstElementChild;
+                        }
+
+                        return elem;
+                    } ).append( this );
+                }
+
+                return this;
+
             },
 
-            wrapInner: function(wrappingElement) {
+            wrapInner: function(html) {
+                /*
                 var func = isFunction(wrappingElement)
                 return this.each(function(index,node) {
                     var self = $(this),
@@ -589,9 +626,29 @@ define('skylark-domx-query/query',[
                         dom = func ? wrappingElement.call(this, index,node) : wrappingElement
                     contents.length ? contents.wrapAll(dom) : self.append(dom)
                 })
+                */
+                if ( typeof html === "function" ) {
+                    return this.each( function( i ) {
+                        $( this ).wrapInner( html.call( this, i ) );
+                    } );
+                }
+
+                return this.each( function() {
+                    var self = $( this ),
+                        contents = self.contents();
+
+                    if ( contents.length ) {
+                        contents.wrapAll( html );
+
+                    } else {
+                        self.append( html );
+                    }
+                } );
+
             },
 
             unwrap: function(selector) {
+                /*
                 if (this.parent().children().length === 0) {
                     // remove dom without text
                     this.parent(selector).not("body").each(function() {
@@ -603,6 +660,12 @@ define('skylark-domx-query/query',[
                     });
                 }
                 return this
+                */
+                this.parent(selector).not("body").each( function() {
+                    $(this).replaceWith(this.childNodes);
+                });
+                return this;
+
             },
 
             clone: function() {

@@ -1,0 +1,56 @@
+div#setctoc_out {
+   max-height:400px;
+    overflow:auto;
+    font-size: 9.5pt;
+}
+    
+#tocseltoggle{
+    float:left; 
+    padding-right:4px;
+}
+
+span.tocsel_title{
+    font-size: 10pt;
+    font-weight:bold;
+}
+
+.ihidden {
+  list-style-type: none;
+}
+
+.dokuwiki .tocsel_right {
+    width:16em;
+    float: right;
+    margin-left: 1em;
+}
+#selectoc_id {
+    width:10em;
+    font-size: 9.5pt;
+}
+#selectoc_btn {
+   font-size: 8.5pt; 
+}
+.clickerdir, .clicker {
+      cursor: pointer;
+      color:__link__;
+}
+.clickerfile {
+      cursor: pointer;
+      color:__existing__;
+}
+.hx1_5 {
+    line-height: 1.5%
+}
+.tocselb {
+    font-weight:bold;
+}
+span.ten__ptb {
+    font-weight:bold;
+    font-size:10pt;
+}
+
+li.tocsel_up {
+    list-style-type:none;
+   padding: 4px;
+    margin: 0;
+}

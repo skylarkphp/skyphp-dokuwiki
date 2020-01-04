@@ -1,0 +1,13 @@
+# deleted.files : PageTitle plugin for DokuWiki
+#
+# This file contains a list of files that were present in previous
+# plugin releases but were removed later. 
+# An up-to-date plugin should not have any of the files installed.
+
+# Since 2015-09-17
+syntax.php
+# Since 2017-07-11
+syntax/metaonly.php
+# action.php is used again since 2017-08-27
+# Since 2018-07-24
+helper/

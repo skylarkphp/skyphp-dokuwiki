@@ -1,1 +1,0 @@
-{"version":3,"sources":["tables.js"],"names":["define","dom","tables"],"mappings":";;;;;;;AAAAA,QACI,QACA,uBACD,SAASC,EAAKC,GAEf,OAAOD,EAAIC,OAASA","file":"../tables.js","sourcesContent":["define([\r\n    \"./dom\",\r\n    \"skylark-domx-tables\"\r\n], function(dom, tables) {\r\n\r\n  return dom.tables = tables;\r\n});"]}

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./wollok.snippets"),t.scope="wollok"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./wollok.snippets"),exports.scope="wollok"});
 //# sourceMappingURL=../sourcemaps/snippets/wollok.js.map

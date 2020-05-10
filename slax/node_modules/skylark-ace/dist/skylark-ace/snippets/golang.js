@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";t.snippetText=e("../requirejs/text!./golang.snippets"),t.scope="golang"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./golang.snippets"),exports.scope="golang"});
 //# sourceMappingURL=../sourcemaps/snippets/golang.js.map

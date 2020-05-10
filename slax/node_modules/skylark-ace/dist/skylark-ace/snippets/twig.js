@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText=e("../requirejs/text!./twig.snippets"),t.scope="twig"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./twig.snippets"),exports.scope="twig"});
 //# sourceMappingURL=../sourcemaps/snippets/twig.js.map

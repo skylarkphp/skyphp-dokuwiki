@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var l=i("../lib/oop"),a=i("./javascript").Mode,c=i("./scala_highlight_rules").ScalaHighlightRules,s=function(){a.call(this),this.HighlightRules=c};l.inherits(s,a),function(){this.createWorker=function(i){return null},this.$id="ace/mode/scala"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./javascript").Mode,e=require("./scala_highlight_rules").ScalaHighlightRules,l=function(){t.call(this),this.HighlightRules=e};i.inherits(l,t),function(){this.createWorker=function(i){return null},this.$id="ace/mode/scala"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/scala.js.map

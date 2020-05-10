@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,i){c.isDark=!1,c.cssClass="ace-katzenmilch",c.cssText=s("./katzenmilch.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-katzenmilch",exports.cssText=require("./katzenmilch.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/katzenmilch.js.map

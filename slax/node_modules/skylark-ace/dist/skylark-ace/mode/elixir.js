@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var l=i("../lib/oop"),o=i("./text").Mode,h=i("./elixir_highlight_rules").ElixirHighlightRules,n=i("./folding/coffee").FoldMode,s=function(){this.HighlightRules=h,this.foldingRules=new n,this.$behaviour=this.$defaultBehaviour};l.inherits(s,o),function(){this.lineCommentStart="#",this.$id="ace/mode/elixir"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./elixir_highlight_rules").ElixirHighlightRules,l=require("./folding/coffee").FoldMode,o=function(){this.HighlightRules=t,this.foldingRules=new l,this.$behaviour=this.$defaultBehaviour};i.inherits(o,e),function(){this.lineCommentStart="#",this.$id="ace/mode/elixir"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/elixir.js.map

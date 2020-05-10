@@ -1,13 +1,3 @@
-/*!
- * jQuery UI Support for jQuery core 1.7.x and newer @VERSION
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- *
- */
-
 //>>label: jQuery 1.7 Support
 //>>group: Core
 //>>description: Support version 1.7.x of jQuery core

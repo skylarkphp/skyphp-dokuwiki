@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText=e("../requirejs/text!./batchfile.snippets"),t.scope="batchfile"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./batchfile.snippets"),exports.scope="batchfile"});
 //# sourceMappingURL=../sourcemaps/snippets/batchfile.js.map

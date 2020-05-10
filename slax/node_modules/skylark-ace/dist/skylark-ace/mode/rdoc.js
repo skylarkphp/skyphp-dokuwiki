@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var n=t("../lib/oop"),h=t("./text").Mode,o=t("./rdoc_highlight_rules").RDocHighlightRules,u=t("./matching_brace_outdent").MatchingBraceOutdent,c=function(t){this.HighlightRules=o,this.$outdent=new u,this.$behaviour=this.$defaultBehaviour};n.inherits(c,h),function(){this.getNextLineIndent=function(t,e,i){return this.$getIndent(e)},this.$id="ace/mode/rdoc"}.call(c.prototype),e.Mode=c});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./rdoc_highlight_rules").RDocHighlightRules,n=require("./matching_brace_outdent").MatchingBraceOutdent,h=function(t){this.HighlightRules=i,this.$outdent=new n,this.$behaviour=this.$defaultBehaviour};t.inherits(h,e),function(){this.getNextLineIndent=function(t,e,i){return this.$getIndent(e)},this.$id="ace/mode/rdoc"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/rdoc.js.map

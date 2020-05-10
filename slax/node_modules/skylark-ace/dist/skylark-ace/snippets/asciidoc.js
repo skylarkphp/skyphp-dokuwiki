@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,s){"use strict";i.snippetText=e("../requirejs/text!./asciidoc.snippets"),i.scope="asciidoc"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./asciidoc.snippets"),exports.scope="asciidoc"});
 //# sourceMappingURL=../sourcemaps/snippets/asciidoc.js.map

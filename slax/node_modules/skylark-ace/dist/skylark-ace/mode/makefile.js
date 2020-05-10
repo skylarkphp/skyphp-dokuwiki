@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var h=i("../lib/oop"),l=i("./text").Mode,o=i("./makefile_highlight_rules").MakefileHighlightRules,n=i("./folding/coffee").FoldMode,s=function(){this.HighlightRules=o,this.foldingRules=new n,this.$behaviour=this.$defaultBehaviour};h.inherits(s,l),function(){this.lineCommentStart="#",this.$indentWithTabs=!0,this.$id="ace/mode/makefile"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./makefile_highlight_rules").MakefileHighlightRules,h=require("./folding/coffee").FoldMode,l=function(){this.HighlightRules=t,this.foldingRules=new h,this.$behaviour=this.$defaultBehaviour};i.inherits(l,e),function(){this.lineCommentStart="#",this.$indentWithTabs=!0,this.$id="ace/mode/makefile"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/makefile.js.map

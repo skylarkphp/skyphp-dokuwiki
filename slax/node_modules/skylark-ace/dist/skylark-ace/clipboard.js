@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,n){"use strict";n.exports={lineMode:!1}});
+define(function(require,exports,module){"use strict";module.exports={lineMode:!1}});
 //# sourceMappingURL=sourcemaps/clipboard.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!0,i.cssClass="ace-clouds-midnight",i.cssText=s("./clouds_midnight.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-clouds-midnight",exports.cssText=require("./clouds_midnight.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/clouds_midnight.js.map

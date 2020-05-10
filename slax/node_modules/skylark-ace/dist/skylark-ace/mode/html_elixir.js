@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var l=i("../lib/oop"),s=i("./html_elixir_highlight_rules").HtmlElixirHighlightRules,h=i("./html").Mode,o=i("./javascript").Mode,r=i("./css").Mode,c=i("./elixir").Mode,d=function(){h.call(this),this.HighlightRules=s,this.createModeDelegates({"js-":o,"css-":r,"elixir-":c})};l.inherits(d,h),function(){this.$id="ace/mode/html_elixir"}.call(d.prototype),e.Mode=d});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./html_elixir_highlight_rules").HtmlElixirHighlightRules,t=require("./html").Mode,l=require("./javascript").Mode,s=require("./css").Mode,h=require("./elixir").Mode,o=function(){t.call(this),this.HighlightRules=e,this.createModeDelegates({"js-":l,"css-":s,"elixir-":h})};i.inherits(o,t),function(){this.$id="ace/mode/html_elixir"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/html_elixir.js.map

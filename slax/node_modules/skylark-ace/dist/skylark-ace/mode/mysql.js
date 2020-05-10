@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){var h=t("../lib/oop"),o=t("../mode/text").Mode,l=t("./mysql_highlight_rules").MysqlHighlightRules,s=function(){this.HighlightRules=l,this.$behaviour=this.$defaultBehaviour};h.inherits(s,o),function(){this.lineCommentStart=["--","#"],this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/mysql"}.call(s.prototype),i.Mode=s});
+define(function(require,exports,module){var t=require("../lib/oop"),i=require("../mode/text").Mode,e=require("./mysql_highlight_rules").MysqlHighlightRules,h=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};t.inherits(h,i),function(){this.lineCommentStart=["--","#"],this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/mysql"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/mysql.js.map

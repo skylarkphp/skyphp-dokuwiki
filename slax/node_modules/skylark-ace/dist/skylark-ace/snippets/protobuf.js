@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText="",t.scope="protobuf"});
+define(function(require,exports,module){"use strict";exports.snippetText="",exports.scope="protobuf"});
 //# sourceMappingURL=../sourcemaps/snippets/protobuf.js.map

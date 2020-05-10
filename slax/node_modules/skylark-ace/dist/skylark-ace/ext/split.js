@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";i.exports=t("../split")});
+define(function(require,exports,module){"use strict";module.exports=require("../split")});
 //# sourceMappingURL=../sourcemaps/ext/split.js.map

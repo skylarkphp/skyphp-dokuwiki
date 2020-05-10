@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";t.snippetText=e("../requirejs/text!./lucene.snippets"),t.scope="lucene"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./lucene.snippets"),exports.scope="lucene"});
 //# sourceMappingURL=../sourcemaps/snippets/lucene.js.map

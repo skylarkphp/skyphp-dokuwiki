@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var s=i("../lib/oop"),o=i("./text").Mode,h=i("./sass_highlight_rules").SassHighlightRules,l=i("./folding/coffee").FoldMode,n=function(){this.HighlightRules=h,this.foldingRules=new l,this.$behaviour=this.$defaultBehaviour};s.inherits(n,o),function(){this.lineCommentStart="//",this.$id="ace/mode/sass"}.call(n.prototype),e.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./sass_highlight_rules").SassHighlightRules,s=require("./folding/coffee").FoldMode,o=function(){this.HighlightRules=t,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};i.inherits(o,e),function(){this.lineCommentStart="//",this.$id="ace/mode/sass"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/sass.js.map

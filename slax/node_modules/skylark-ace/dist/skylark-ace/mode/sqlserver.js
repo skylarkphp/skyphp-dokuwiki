@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var o=t("../lib/oop"),l=t("./text").Mode,s=t("./sqlserver_highlight_rules").SqlHighlightRules,h=t("./folding/sqlserver").FoldMode,n=function(){this.HighlightRules=s,this.foldingRules=new h,this.$behaviour=this.$defaultBehaviour};o.inherits(n,l),function(){this.lineCommentStart="--",this.blockComment={start:"/*",end:"*/"},this.getCompletions=function(t,e,i,o){return e.$mode.$highlightRules.completions},this.$id="ace/mode/sql"}.call(n.prototype),e.Mode=n});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./sqlserver_highlight_rules").SqlHighlightRules,o=require("./folding/sqlserver").FoldMode,l=function(){this.HighlightRules=i,this.foldingRules=new o,this.$behaviour=this.$defaultBehaviour};t.inherits(l,e),function(){this.lineCommentStart="--",this.blockComment={start:"/*",end:"*/"},this.getCompletions=function(t,e,i,o){return e.$mode.$highlightRules.completions},this.$id="ace/mode/sql"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/sqlserver.js.map

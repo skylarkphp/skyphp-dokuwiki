@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./c9search.snippets"),s.scope="c9search"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./c9search.snippets"),exports.scope="c9search"});
 //# sourceMappingURL=../sourcemaps/snippets/c9search.js.map

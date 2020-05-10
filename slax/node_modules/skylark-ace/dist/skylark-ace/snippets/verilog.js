@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./verilog.snippets"),i.scope="verilog"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./verilog.snippets"),exports.scope="verilog"});
 //# sourceMappingURL=../sourcemaps/snippets/verilog.js.map

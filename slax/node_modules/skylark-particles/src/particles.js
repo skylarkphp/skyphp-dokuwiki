@@ -7,9 +7,8 @@
 /* v2.0.0
 /* ----------------------------------------------- */
 define([
-    "skylark-langx-ns",
-    "skylark-utils-dom/query",
-], function(skylark,$) {
+    "skylark-langx-ns"
+], function(skylark) {
     var shapeSize = { w: 100, h: 100 },
         number = { v: 80, d: 800 },
         size = { v: 3, s: 30 },

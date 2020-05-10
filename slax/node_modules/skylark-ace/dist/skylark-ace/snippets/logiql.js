@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./logiql.snippets"),i.scope="logiql"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./logiql.snippets"),exports.scope="logiql"});
 //# sourceMappingURL=../sourcemaps/snippets/logiql.js.map

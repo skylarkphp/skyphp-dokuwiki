@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,p){"use strict";t.snippetText=e("../requirejs/text!./luapage.snippets"),t.scope="luapage"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./luapage.snippets"),exports.scope="luapage"});
 //# sourceMappingURL=../sourcemaps/snippets/luapage.js.map

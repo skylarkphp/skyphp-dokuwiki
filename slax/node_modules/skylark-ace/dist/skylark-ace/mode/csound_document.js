@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var n=i("../lib/oop"),o=i("./text").Mode,u=i("./csound_document_highlight_rules").CsoundDocumentHighlightRules,h=function(){this.HighlightRules=u};n.inherits(h,o),t.Mode=h});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./csound_document_highlight_rules").CsoundDocumentHighlightRules,n=function(){this.HighlightRules=e};i.inherits(n,t),exports.Mode=n});
 //# sourceMappingURL=../sourcemaps/mode/csound_document.js.map

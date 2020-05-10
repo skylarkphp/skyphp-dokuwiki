@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./assembly_x86.snippets"),s.scope="assembly_x86"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./assembly_x86.snippets"),exports.scope="assembly_x86"});
 //# sourceMappingURL=../sourcemaps/snippets/assembly_x86.js.map

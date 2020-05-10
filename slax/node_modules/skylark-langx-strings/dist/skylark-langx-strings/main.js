@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["./strings"],function(n){return n});
+define(["./strings","./base64"],function(n){return n});
 //# sourceMappingURL=sourcemaps/main.js.map

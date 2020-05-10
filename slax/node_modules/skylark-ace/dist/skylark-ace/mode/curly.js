@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){"use strict";var l=t("../lib/oop"),h=t("./html").Mode,n=t("./matching_brace_outdent").MatchingBraceOutdent,o=t("./folding/html").FoldMode,u=t("./curly_highlight_rules").CurlyHighlightRules,c=function(){h.call(this),this.HighlightRules=u,this.$outdent=new n,this.foldingRules=new o};l.inherits(c,h),function(){this.$id="ace/mode/curly"}.call(c.prototype),i.Mode=c});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./html").Mode,e=require("./matching_brace_outdent").MatchingBraceOutdent,l=require("./folding/html").FoldMode,h=require("./curly_highlight_rules").CurlyHighlightRules,n=function(){i.call(this),this.HighlightRules=h,this.$outdent=new e,this.foldingRules=new l};t.inherits(n,i),function(){this.$id="ace/mode/curly"}.call(n.prototype),exports.Mode=n});
 //# sourceMappingURL=../sourcemaps/mode/curly.js.map

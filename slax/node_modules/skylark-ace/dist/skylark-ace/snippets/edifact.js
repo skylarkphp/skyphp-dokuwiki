@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText=e("../requirejs/text!./edifact.snippets"),t.scope="edifact"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./edifact.snippets"),exports.scope="edifact"});
 //# sourceMappingURL=../sourcemaps/snippets/edifact.js.map

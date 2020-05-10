@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./liquid.snippets"),i.scope="liquid"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./liquid.snippets"),exports.scope="liquid"});
 //# sourceMappingURL=../sourcemaps/snippets/liquid.js.map

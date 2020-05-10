@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var h=e("../lib/oop"),l=e("./text").Mode,o=e("./graphqlschema_highlight_rules").GraphQLSchemaHighlightRules,s=e("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=o,this.foldingRules=new s};h.inherits(n,l),function(){this.lineCommentStart="#",this.$id="ace/mode/graphqlschema"}.call(n.prototype),i.Mode=n});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./text").Mode,t=require("./graphqlschema_highlight_rules").GraphQLSchemaHighlightRules,h=require("./folding/cstyle").FoldMode,l=function(){this.HighlightRules=t,this.foldingRules=new h};e.inherits(l,i),function(){this.lineCommentStart="#",this.$id="ace/mode/graphqlschema"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/graphqlschema.js.map

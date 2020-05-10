@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./pgsql.snippets"),s.scope="pgsql"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./pgsql.snippets"),exports.scope="pgsql"});
 //# sourceMappingURL=../sourcemaps/snippets/pgsql.js.map

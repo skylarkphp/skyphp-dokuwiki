@@ -4,7 +4,7 @@
     "skylark-domx-styler",
     "skylark-domx-eventer",
     "./files",
-    "skylark-storages-diskfs/webentry"
+    "skylark-io-diskfs/webentry"
 ],function(arrays,Deferred, styler, eventer, files, webentry){  /*
      * Make the specified element to could accept HTML5 file drag and drop.
      * @param {HTMLElement} elm

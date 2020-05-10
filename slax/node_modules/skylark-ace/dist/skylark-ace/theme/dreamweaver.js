@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,e,a){e.isDark=!1,e.cssClass="ace-dreamweaver",e.cssText=s("./dreamweaver.css"),s("../lib/dom").importCssString(e.cssText,e.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-dreamweaver",exports.cssText=require("./dreamweaver.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/dreamweaver.js.map

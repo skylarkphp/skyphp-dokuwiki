@@ -1,1 +1,0 @@
-{"version":3,"sources":["fx.js"],"names":["define","dom","fx"],"mappings":";;;;;;;AAAAA,QACI,QACA,mBACD,SAASC,EAAKC,GACb,OAAOD,EAAIC,GAAKA","file":"../fx.js","sourcesContent":["define([\r\n    \"./dom\",\r\n    \"skylark-domx-fx\"\r\n], function(dom, fx) {\r\n    return dom.fx = fx;\r\n});"]}

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,n){i.isDark=!0,i.cssClass="ace-vibrant-ink",i.cssText=s("./vibrant_ink.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-vibrant-ink",exports.cssText=require("./vibrant_ink.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/vibrant_ink.js.map

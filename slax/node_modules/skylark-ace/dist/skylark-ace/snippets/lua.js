@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./lua.snippets"),t.scope="lua"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./lua.snippets"),exports.scope="lua"});
 //# sourceMappingURL=../sourcemaps/snippets/lua.js.map

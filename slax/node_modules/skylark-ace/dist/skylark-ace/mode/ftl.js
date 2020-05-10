@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var h=i("../lib/oop"),l=i("./text").Mode,o=i("./ftl_highlight_rules").FtlHighlightRules,s=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};h.inherits(s,l),function(){this.$id="ace/mode/ftl"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./ftl_highlight_rules").FtlHighlightRules,h=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};i.inherits(h,t),function(){this.$id="ace/mode/ftl"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/ftl.js.map

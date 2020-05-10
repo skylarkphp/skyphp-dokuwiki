@@ -275,7 +275,7 @@ define([
 
         slugify : slugify,
 
-        template : template,
+        //template : template,
 
         trim: trim,
 

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./clojure.snippets"),t.scope="clojure"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./clojure.snippets"),exports.scope="clojure"});
 //# sourceMappingURL=../sourcemaps/snippets/clojure.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){"use strict";var l=t("../lib/oop"),s=t("./html_highlight_rules").HtmlHighlightRules,r=function(){s.call(this),this.$rules.start.unshift({token:"variable",regex:"{{",push:"curly-start"}),this.$rules["curly-start"]=[{token:"variable",regex:"}}",next:"pop"}],this.normalizeRules()};l.inherits(r,s),i.CurlyHighlightRules=r});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./html_highlight_rules").HtmlHighlightRules,e=function(){i.call(this),this.$rules.start.unshift({token:"variable",regex:"{{",push:"curly-start"}),this.$rules["curly-start"]=[{token:"variable",regex:"}}",next:"pop"}],this.normalizeRules()};t.inherits(e,i),exports.CurlyHighlightRules=e});
 //# sourceMappingURL=../sourcemaps/mode/curly_highlight_rules.js.map

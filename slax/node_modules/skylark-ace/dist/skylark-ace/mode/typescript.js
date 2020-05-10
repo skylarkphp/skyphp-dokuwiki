@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var n=t("../lib/oop"),o=t("./javascript").Mode,h=t("./typescript_highlight_rules").TypeScriptHighlightRules,r=t("./behaviour/cstyle").CstyleBehaviour,s=t("./folding/cstyle").FoldMode,c=t("./matching_brace_outdent").MatchingBraceOutdent,l=function(){this.HighlightRules=h,this.$outdent=new c,this.$behaviour=new r,this.foldingRules=new s};n.inherits(l,o),function(){this.createWorker=function(t){return null},this.$id="ace/mode/typescript"}.call(l.prototype),e.Mode=l});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./javascript").Mode,i=require("./typescript_highlight_rules").TypeScriptHighlightRules,n=require("./behaviour/cstyle").CstyleBehaviour,o=require("./folding/cstyle").FoldMode,h=require("./matching_brace_outdent").MatchingBraceOutdent,r=function(){this.HighlightRules=i,this.$outdent=new h,this.$behaviour=new n,this.foldingRules=new o};t.inherits(r,e),function(){this.createWorker=function(t){return null},this.$id="ace/mode/typescript"}.call(r.prototype),exports.Mode=r});
 //# sourceMappingURL=../sourcemaps/mode/typescript.js.map

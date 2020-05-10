@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){var n=t("../lib/oop"),h=t("../mode/text").Mode,o=t("./pgsql_highlight_rules").PgsqlHighlightRules,s=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};n.inherits(s,h),function(){this.lineCommentStart="--",this.blockComment={start:"/*",end:"*/"},this.getNextLineIndent=function(t,e,i){return"start"==t||"keyword.statementEnd"==t?"":this.$getIndent(e)},this.$id="ace/mode/pgsql"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){var t=require("../lib/oop"),e=require("../mode/text").Mode,i=require("./pgsql_highlight_rules").PgsqlHighlightRules,n=function(){this.HighlightRules=i,this.$behaviour=this.$defaultBehaviour};t.inherits(n,e),function(){this.lineCommentStart="--",this.blockComment={start:"/*",end:"*/"},this.getNextLineIndent=function(t,e,i){return"start"==t||"keyword.statementEnd"==t?"":this.$getIndent(e)},this.$id="ace/mode/pgsql"}.call(n.prototype),exports.Mode=n});
 //# sourceMappingURL=../sourcemaps/mode/pgsql.js.map

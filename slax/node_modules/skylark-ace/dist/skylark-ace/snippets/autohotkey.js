@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./autohotkey.snippets"),t.scope="autohotkey"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./autohotkey.snippets"),exports.scope="autohotkey"});
 //# sourceMappingURL=../sourcemaps/snippets/autohotkey.js.map

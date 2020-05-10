@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var o=i("../lib/oop"),l=i("./text").Mode,h=i("./kotlin_highlight_rules").KotlinHighlightRules,n=i("./behaviour/cstyle").CstyleBehaviour,s=i("./folding/cstyle").FoldMode,u=function(){this.HighlightRules=h,this.foldingRules=new s,this.$behaviour=new n};o.inherits(u,l),function(){this.$id="ace/mode/kotlin"}.call(u.prototype),e.Mode=u});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./kotlin_highlight_rules").KotlinHighlightRules,o=require("./behaviour/cstyle").CstyleBehaviour,l=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=t,this.foldingRules=new l,this.$behaviour=new o};i.inherits(h,e),function(){this.$id="ace/mode/kotlin"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/kotlin.js.map

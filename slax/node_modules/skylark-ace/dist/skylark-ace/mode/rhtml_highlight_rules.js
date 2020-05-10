@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var s=t("../lib/oop"),h=t("./r_highlight_rules").RHighlightRules,l=t("./html_highlight_rules").HtmlHighlightRules,r=t("./text_highlight_rules").TextHighlightRules,n=function(){l.call(this),this.$rules.start.unshift({token:"support.function.codebegin",regex:"^\x3c!--\\s*begin.rcode\\s*(?:.*)",next:"r-start"}),this.embedRules(h,"r-",[{token:"support.function.codeend",regex:"^\\s*end.rcode\\s*--\x3e",next:"start"}],["start"]),this.normalizeRules()};s.inherits(n,r),e.RHtmlHighlightRules=n});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./r_highlight_rules").RHighlightRules,i=require("./html_highlight_rules").HtmlHighlightRules,s=require("./text_highlight_rules").TextHighlightRules,h=function(){i.call(this),this.$rules.start.unshift({token:"support.function.codebegin",regex:"^\x3c!--\\s*begin.rcode\\s*(?:.*)",next:"r-start"}),this.embedRules(e,"r-",[{token:"support.function.codeend",regex:"^\\s*end.rcode\\s*--\x3e",next:"start"}],["start"]),this.normalizeRules()};t.inherits(h,s),exports.RHtmlHighlightRules=h});
 //# sourceMappingURL=../sourcemaps/mode/rhtml_highlight_rules.js.map

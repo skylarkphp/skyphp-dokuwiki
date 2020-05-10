@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var o=e("../lib/oop"),h=e("./text").Mode,g=e("./gcode_highlight_rules").GcodeHighlightRules,l=(e("../range").Range,function(){this.HighlightRules=g,this.$behaviour=this.$defaultBehaviour});o.inherits(l,h),function(){this.$id="ace/mode/gcode"}.call(l.prototype),i.Mode=l});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./text").Mode,t=require("./gcode_highlight_rules").GcodeHighlightRules,o=(require("../range").Range,function(){this.HighlightRules=t,this.$behaviour=this.$defaultBehaviour});e.inherits(o,i),function(){this.$id="ace/mode/gcode"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/gcode.js.map

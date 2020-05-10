@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["./data","skylark-domx-velm","skylark-domx-query"],function(a,r,e){return r.delegate(["attr","data","prop","removeAttr","removeData","text","val"],a),e.fn.text=e.wraps.wrapper_value(a.text,a,a.text),e.fn.attr=e.wraps.wrapper_name_value(a.attr,a,a.attr),e.fn.removeAttr=e.wraps.wrapper_every_act(a.removeAttr,a),e.fn.prop=e.wraps.wrapper_name_value(a.prop,a,a.prop),e.fn.removeProp=e.wraps.wrapper_every_act(a.removeProp,a),e.fn.data=e.wraps.wrapper_name_value(a.data,a,a.data),e.fn.removeData=e.wraps.wrapper_every_act(a.removeData,a),e.fn.val=e.wraps.wrapper_value(a.val,a,a.val),a});
+define(["./data","skylark-domx-velm","skylark-domx-query"],function(r,a,e){return a.delegate(["attr","data","prop","removeAttr","removeData","text","val"],r),e.fn.text=e.wraps.wrapper_value(r.text,r,r.text),e.fn.attr=e.wraps.wrapper_name_value(r.attr,r,r.attr),e.fn.removeAttr=e.wraps.wrapper_every_act(r.removeAttr,r),e.fn.prop=e.wraps.wrapper_name_value(r.prop,r,r.prop),e.fn.removeProp=e.wraps.wrapper_every_act(r.removeProp,r),e.fn.data=e.wraps.wrapper_name_value(r.data,r),e.fn.removeData=e.wraps.wrapper_every_act(r.removeData),e.fn.val=e.wraps.wrapper_value(r.val,r,r.val),r});
 //# sourceMappingURL=sourcemaps/main.js.map

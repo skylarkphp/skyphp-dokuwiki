@@ -4,7 +4,8 @@ define([
 	"skylark-domx-query",
 	"./dropzone",
 	"./pastezone",
-	"./picker"
+	"./picker",
+	"./MultiUploader"
 ],function(files,velm,$){
 	velm.delegate([
 		"dropzone",

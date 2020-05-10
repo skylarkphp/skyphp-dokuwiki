@@ -3,8 +3,9 @@ define([
   "skylark-langx-types",
   "skylark-langx-objects",
   "skylark-langx-arrays",
-  "skylark-langx-klass"
-],function(skylark,types,objects,arrays,klass){
+  "skylark-langx-klass",
+  "./Event"
+],function(skylark,types,objects,arrays,klass,Event){
     var slice = Array.prototype.slice,
         compact = arrays.compact,
         isDefined = types.isDefined,
@@ -83,7 +84,7 @@ define([
             var self = this;
 
             if (isString(e)) {
-                e = new CustomEvent(e);
+                e = new Event(e); //new CustomEvent(e);
             }
 
             Object.defineProperty(e,"target",{
@@ -110,6 +111,9 @@ define([
                     reCompact = false;
 
                 for (var i = 0; i < len; i++) {
+                    if (e.isImmediatePropagationStopped && e.isImmediatePropagationStopped()) {
+                        return this;
+                    }
                     var listener = listeners[i];
                     if (ns && (!listener.ns ||  !listener.ns.startsWith(ns))) {
                         continue;
@@ -284,9 +288,12 @@ define([
     });
 
     Emitter.createEvent = function (type,props) {
-        var e = new CustomEvent(type,props);
-        return safeMixin(e, props);
+        //var e = new CustomEvent(type,props);
+        //return safeMixin(e, props);
+        return new Event(type,props);
     };
+
+    Emitter.Event = Event;
 
     return skylark.attach("langx.Emitter",Emitter);
 

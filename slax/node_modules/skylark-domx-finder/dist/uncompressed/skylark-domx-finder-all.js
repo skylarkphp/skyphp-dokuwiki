@@ -5191,14 +5191,17 @@ define('skylark-domx-finder/finder',[
                     break;
                 }
             }
-            ret.push(node); // TODO
+            if (!selector || matches(node, selector)) {
+              ret.push(node); 
+            }
         }
 
-        if (selector) {
-            ret = local.filter(ret, selector);
-        }
+        //if (selector) {
+        //    ret = local.filter(ret, selector);
+        //}
         return ret;
     }
+
 
     /*
      * Returns a element by its ID.

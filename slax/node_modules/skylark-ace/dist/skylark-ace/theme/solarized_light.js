@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!1,i.cssClass="ace-solarized-light",i.cssText=s("./solarized_light.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-solarized-light",exports.cssText=require("./solarized_light.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/solarized_light.js.map

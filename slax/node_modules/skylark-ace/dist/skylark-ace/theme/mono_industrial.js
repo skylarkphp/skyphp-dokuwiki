@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,n){i.isDark=!0,i.cssClass="ace-mono-industrial",i.cssText=s("./mono_industrial.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-mono-industrial",exports.cssText=require("./mono_industrial.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/mono_industrial.js.map

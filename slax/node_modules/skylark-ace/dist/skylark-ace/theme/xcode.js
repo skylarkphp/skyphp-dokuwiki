@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,e){c.isDark=!1,c.cssClass="ace-xcode",c.cssText=s("./xcode.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-xcode",exports.cssText=require("./xcode.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/xcode.js.map

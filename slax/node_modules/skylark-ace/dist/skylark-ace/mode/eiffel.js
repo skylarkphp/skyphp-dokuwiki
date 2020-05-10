@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var h=i("../lib/oop"),l=i("./text").Mode,o=i("./eiffel_highlight_rules").EiffelHighlightRules,f=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};h.inherits(f,l),function(){this.lineCommentStart="--",this.$id="ace/mode/eiffel"}.call(f.prototype),e.Mode=f});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./eiffel_highlight_rules").EiffelHighlightRules,h=function(){this.HighlightRules=t,this.$behaviour=this.$defaultBehaviour};i.inherits(h,e),function(){this.lineCommentStart="--",this.$id="ace/mode/eiffel"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/eiffel.js.map

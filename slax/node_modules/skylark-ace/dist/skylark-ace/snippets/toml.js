@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./toml.snippets"),t.scope="toml"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./toml.snippets"),exports.scope="toml"});
 //# sourceMappingURL=../sourcemaps/snippets/toml.js.map

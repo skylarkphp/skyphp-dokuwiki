@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./smarty.snippets"),t.scope="smarty"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./smarty.snippets"),exports.scope="smarty"});
 //# sourceMappingURL=../sourcemaps/snippets/smarty.js.map

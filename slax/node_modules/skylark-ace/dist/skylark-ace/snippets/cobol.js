@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./cobol.snippets"),t.scope="cobol"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./cobol.snippets"),exports.scope="cobol"});
 //# sourceMappingURL=../sourcemaps/snippets/cobol.js.map

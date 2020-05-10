@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var h=t("../lib/oop"),o=t("./text").Mode,l=t("./puppet_highlight_rules").PuppetHighlightRules,n=t("./behaviour/cstyle").CstyleBehaviour,u=t("./folding/cstyle").FoldMode,s=t("./matching_brace_outdent").MatchingBraceOutdent,c=function(){o.call(this),this.HighlightRules=l,this.$outdent=new s,this.$behaviour=new n,this.foldingRules=new u};h.inherits(c,o),function(){this.$id="ace/mode/puppet"}.call(c.prototype),e.Mode=c});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./puppet_highlight_rules").PuppetHighlightRules,h=require("./behaviour/cstyle").CstyleBehaviour,o=require("./folding/cstyle").FoldMode,l=require("./matching_brace_outdent").MatchingBraceOutdent,n=function(){e.call(this),this.HighlightRules=i,this.$outdent=new l,this.$behaviour=new h,this.foldingRules=new o};t.inherits(n,e),function(){this.$id="ace/mode/puppet"}.call(n.prototype),exports.Mode=n});
 //# sourceMappingURL=../sourcemaps/mode/puppet.js.map

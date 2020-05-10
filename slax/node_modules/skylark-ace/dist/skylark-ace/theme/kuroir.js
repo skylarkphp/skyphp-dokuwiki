@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!1,i.cssClass="ace-kuroir",i.cssText=s("./kuroir.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-kuroir",exports.cssText=require("./kuroir.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/kuroir.js.map

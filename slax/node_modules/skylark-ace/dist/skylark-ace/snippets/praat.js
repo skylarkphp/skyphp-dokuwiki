@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,p){"use strict";t.snippetText=e("../requirejs/text!./praat.snippets"),t.scope="praat"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./praat.snippets"),exports.scope="praat"});
 //# sourceMappingURL=../sourcemaps/snippets/praat.js.map

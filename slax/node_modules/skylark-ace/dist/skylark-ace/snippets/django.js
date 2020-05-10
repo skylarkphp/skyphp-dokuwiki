@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";t.snippetText=e("../requirejs/text!./django.snippets"),t.scope="django"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./django.snippets"),exports.scope="django"});
 //# sourceMappingURL=../sourcemaps/snippets/django.js.map

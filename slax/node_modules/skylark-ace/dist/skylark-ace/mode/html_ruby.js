@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var s=t("../lib/oop"),l=t("./html_ruby_highlight_rules").HtmlRubyHighlightRules,h=t("./html").Mode,o=t("./javascript").Mode,u=t("./css").Mode,c=t("./ruby").Mode,r=function(){h.call(this),this.HighlightRules=l,this.createModeDelegates({"js-":o,"css-":u,"ruby-":c})};s.inherits(r,h),function(){this.$id="ace/mode/html_ruby"}.call(r.prototype),e.Mode=r});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./html_ruby_highlight_rules").HtmlRubyHighlightRules,i=require("./html").Mode,s=require("./javascript").Mode,l=require("./css").Mode,h=require("./ruby").Mode,o=function(){i.call(this),this.HighlightRules=e,this.createModeDelegates({"js-":s,"css-":l,"ruby-":h})};t.inherits(o,i),function(){this.$id="ace/mode/html_ruby"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/html_ruby.js.map

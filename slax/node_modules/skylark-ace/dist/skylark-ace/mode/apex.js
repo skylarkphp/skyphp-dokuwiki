@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";var o=e("../lib/oop"),l=e("../mode/text").Mode,h=e("./apex_highlight_rules").ApexHighlightRules,s=e("../mode/folding/cstyle").FoldMode,n=e("../mode/behaviour/cstyle").CstyleBehaviour;function d(){l.call(this),this.HighlightRules=h,this.foldingRules=new s,this.$behaviour=new n}o.inherits(d,l),d.prototype.lineCommentStart="//",d.prototype.blockComment={start:"/*",end:"*/"},t.Mode=d});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),t=require("../mode/text").Mode,i=require("./apex_highlight_rules").ApexHighlightRules,o=require("../mode/folding/cstyle").FoldMode,l=require("../mode/behaviour/cstyle").CstyleBehaviour;function h(){t.call(this),this.HighlightRules=i,this.foldingRules=new o,this.$behaviour=new l}e.inherits(h,t),h.prototype.lineCommentStart="//",h.prototype.blockComment={start:"/*",end:"*/"},exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/apex.js.map

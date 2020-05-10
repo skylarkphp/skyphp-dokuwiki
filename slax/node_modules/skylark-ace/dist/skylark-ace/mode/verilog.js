@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var o=i("../lib/oop"),h=i("./text").Mode,l=i("./verilog_highlight_rules").VerilogHighlightRules,s=(i("../range").Range,function(){this.HighlightRules=l,this.$behaviour=this.$defaultBehaviour});o.inherits(s,h),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/"},this.$quotes={'"':'"'},this.$id="ace/mode/verilog"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./verilog_highlight_rules").VerilogHighlightRules,o=(require("../range").Range,function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour});i.inherits(o,t),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/"},this.$quotes={'"':'"'},this.$id="ace/mode/verilog"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/verilog.js.map

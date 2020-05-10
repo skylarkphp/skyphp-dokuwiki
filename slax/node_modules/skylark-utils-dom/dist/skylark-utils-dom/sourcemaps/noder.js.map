@@ -1,1 +1,0 @@
-{"version":3,"sources":["noder.js"],"names":["define","dom","noder"],"mappings":";;;;;;;AAAAA,QACI,QACA,sBACD,SAASC,EAAKC,GAEb,OAAOD,EAAIC,MAAQA","file":"../noder.js","sourcesContent":["define([\r\n    \"./dom\",\r\n    \"skylark-domx-noder\"\r\n], function(dom, noder) {\r\n\r\n    return dom.noder = noder;\r\n});"]}

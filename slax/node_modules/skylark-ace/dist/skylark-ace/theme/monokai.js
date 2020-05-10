@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!0,i.cssClass="ace-monokai",i.cssText=s("./monokai.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-monokai",exports.cssText=require("./monokai.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/monokai.js.map

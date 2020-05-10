@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var l=e("../lib/oop"),a=e("./html").Mode,h=e("./lua").Mode,o=e("./luapage_highlight_rules").LuaPageHighlightRules,u=function(){a.call(this),this.HighlightRules=o,this.createModeDelegates({"lua-":h})};l.inherits(u,a),function(){this.$id="ace/mode/luapage"}.call(u.prototype),i.Mode=u});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./html").Mode,t=require("./lua").Mode,l=require("./luapage_highlight_rules").LuaPageHighlightRules,a=function(){i.call(this),this.HighlightRules=l,this.createModeDelegates({"lua-":t})};e.inherits(a,i),function(){this.$id="ace/mode/luapage"}.call(a.prototype),exports.Mode=a});
 //# sourceMappingURL=../sourcemaps/mode/luapage.js.map

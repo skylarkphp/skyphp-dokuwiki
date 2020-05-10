@@ -24,9 +24,9 @@ define([
 
     $.fn.removeProp = $.wraps.wrapper_every_act(data.removeProp, data);
 
-    $.fn.data = $.wraps.wrapper_name_value(data.data, data, data.data);
+    $.fn.data = $.wraps.wrapper_name_value(data.data, data);
 
-    $.fn.removeData = $.wraps.wrapper_every_act(data.removeData, data);
+    $.fn.removeData = $.wraps.wrapper_every_act(data.removeData);
 
     $.fn.val = $.wraps.wrapper_value(data.val, data, data.val);
 

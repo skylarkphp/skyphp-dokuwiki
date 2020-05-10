@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./redshift.snippets"),t.scope="redshift"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./redshift.snippets"),exports.scope="redshift"});
 //# sourceMappingURL=../sourcemaps/snippets/redshift.js.map

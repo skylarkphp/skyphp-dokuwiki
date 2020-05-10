@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,o){"use strict";var t=i("../../lib/oop"),l=i("../behaviour/xml").XmlBehaviour,n=function(){l.call(this)};t.inherits(n,l),e.HtmlBehaviour=n});
+define(function(require,exports,module){"use strict";var i=require("../../lib/oop"),e=require("../behaviour/xml").XmlBehaviour,o=function(){e.call(this)};i.inherits(o,e),exports.HtmlBehaviour=o});
 //# sourceMappingURL=../../sourcemaps/mode/behaviour/html.js.map

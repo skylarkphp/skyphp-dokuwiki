@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,o){"use strict";var e=i("../lib/oop"),r=i("./javascript").Mode,l=i("./groovy_highlight_rules").GroovyHighlightRules,h=function(){r.call(this),this.HighlightRules=l};e.inherits(h,r),function(){this.createWorker=function(i){return null},this.$id="ace/mode/groovy"}.call(h.prototype),t.Mode=h});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./javascript").Mode,o=require("./groovy_highlight_rules").GroovyHighlightRules,e=function(){t.call(this),this.HighlightRules=o};i.inherits(e,t),function(){this.createWorker=function(i){return null},this.$id="ace/mode/groovy"}.call(e.prototype),exports.Mode=e});
 //# sourceMappingURL=../sourcemaps/mode/groovy.js.map

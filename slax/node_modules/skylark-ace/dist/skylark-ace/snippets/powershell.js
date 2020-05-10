@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./powershell.snippets"),s.scope="powershell"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./powershell.snippets"),exports.scope="powershell"});
 //# sourceMappingURL=../sourcemaps/snippets/powershell.js.map

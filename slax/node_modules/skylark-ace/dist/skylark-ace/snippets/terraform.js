@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,r){"use strict";t.snippetText=e("../requirejs/text!./terraform.snippets"),t.scope="terraform"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./terraform.snippets"),exports.scope="terraform"});
 //# sourceMappingURL=../sourcemaps/snippets/terraform.js.map

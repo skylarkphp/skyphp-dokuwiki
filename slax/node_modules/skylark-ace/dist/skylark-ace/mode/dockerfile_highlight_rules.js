@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var l=e("../lib/oop"),s=e("./sh_highlight_rules").ShHighlightRules,n=function(){s.call(this);for(var e=this.$rules.start,i=0;i<e.length;i++)if("variable.language"==e[i].token){e.splice(i,0,{token:"constant.language",regex:"(?:^(?:FROM|MAINTAINER|RUN|CMD|EXPOSE|ENV|ADD|ENTRYPOINT|VOLUME|USER|WORKDIR|ONBUILD|COPY|LABEL)\\b)",caseInsensitive:!0});break}};l.inherits(n,s),i.DockerfileHighlightRules=n});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./sh_highlight_rules").ShHighlightRules,t=function(){i.call(this);for(var e=this.$rules.start,t=0;t<e.length;t++)if("variable.language"==e[t].token){e.splice(t,0,{token:"constant.language",regex:"(?:^(?:FROM|MAINTAINER|RUN|CMD|EXPOSE|ENV|ADD|ENTRYPOINT|VOLUME|USER|WORKDIR|ONBUILD|COPY|LABEL)\\b)",caseInsensitive:!0});break}};e.inherits(t,i),exports.DockerfileHighlightRules=t});
 //# sourceMappingURL=../sourcemaps/mode/dockerfile_highlight_rules.js.map

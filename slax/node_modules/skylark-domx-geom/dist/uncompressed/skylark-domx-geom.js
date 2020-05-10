@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -283,6 +283,27 @@ define('skylark-domx-geom/geom',[
             width: cs.width - pex.left - pex.right,
             height: cs.height - pex.top - pex.bottom
         };
+    }
+
+
+    function fullCover(elem, hor, vert) {
+        let vertical = vert;
+        let horizontal = hor;
+        if (langx.isUndefined(horizontal)) {
+            horizontal = true;
+        }
+        if (langx.isUndefined(vertical)) {
+            vertical = true;
+        }
+        elem.style.position = 'absolute';
+        if (horizontal) {
+            elem.style.left = 0;
+            elem.style.right = 0;
+        }
+        if (vertical) {
+            elem.style.top = 0;
+            elem.style.bottom = 0;
+        }
     }
 
     /*
@@ -666,6 +687,8 @@ define('skylark-domx-geom/geom',[
         clientWidth: clientWidth,
 
         contentRect: contentRect,
+
+        fullCover,
 
         getDocumentSize: getDocumentSize,
 

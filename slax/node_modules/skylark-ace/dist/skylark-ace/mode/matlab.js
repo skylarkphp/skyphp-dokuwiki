@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){"use strict";var h=t("../lib/oop"),l=t("./text").Mode,o=t("./matlab_highlight_rules").MatlabHighlightRules,a=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};h.inherits(a,l),function(){this.lineCommentStart="%",this.blockComment={start:"%{",end:"%}"},this.$id="ace/mode/matlab"}.call(a.prototype),i.Mode=a});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./text").Mode,e=require("./matlab_highlight_rules").MatlabHighlightRules,h=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};t.inherits(h,i),function(){this.lineCommentStart="%",this.blockComment={start:"%{",end:"%}"},this.$id="ace/mode/matlab"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/matlab.js.map

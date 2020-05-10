@@ -1,12 +1,20 @@
 define([
-   "skylark-slax-runtime",
-   "skylark-bootstrap3/loadedInit",
-   "skylark-widgets-coder",
-   "skylark-widgets-textpad",
-   "skylark-jqueryui",
-   "skylark-particles"
-],function(slax,bsInit){
-	bsInit();
+	"./slax",
+	"./cache",
+	"skylark-langx",
+	"skylark-widgets-shells",
+	"skylark-jquery",
+	"skylark-ajaxfy-spa",
+	"skylark-data-entities",
+	"skylark-data-streams",
+	"skylark-jszip",
+	"skylark-domx-images",
+	"skylark-domx-colorpicker",
+	"skylark-domx-gradienter",
+	"skylark-widgets-hierarchy",
+	"skylark-faiconpicker2",
+	"skylark-widgets-repeater",
+	"skylark-widgets-wordpad"
+],function(slax){
 	return slax;
 })
-

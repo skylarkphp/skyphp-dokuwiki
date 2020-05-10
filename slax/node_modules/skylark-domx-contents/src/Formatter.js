@@ -26,13 +26,13 @@ define([
         code: ['class']
       }, this.opts.allowedAttributes);
       this._allowedStyles = langx.extend({
-        span: ['color', 'font-size'],
-        b: ['color', 'font-size'],
-        i: ['color', 'font-size'],
-        strong: ['color', 'font-size'],
-        strike: ['color', 'font-size'],
-        u: ['color', 'font-size'],
-        p: ['margin-left', 'text-align'],
+        span: ['color', 'font-size','background-color','background'],
+        b: ['color', 'font-size','background-color','background'],
+        i: ['color', 'font-size','background-color','background'],
+        strong: ['color', 'font-size','background-color','background'],
+        strike: ['color', 'font-size','background-color','background'],
+        u: ['color', 'font-size','background-color','background'],
+        p: ['margin-left', 'text-align','background-color','background'],
         h1: ['margin-left', 'text-align'],
         h2: ['margin-left', 'text-align'],
         h3: ['margin-left', 'text-align'],

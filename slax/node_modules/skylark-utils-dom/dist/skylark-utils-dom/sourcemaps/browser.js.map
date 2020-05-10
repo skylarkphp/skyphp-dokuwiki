@@ -1,1 +1,0 @@
-{"version":3,"sources":["browser.js"],"names":["define","dom","browser"],"mappings":";;;;;;;AAAAA,QACI,QACA,wBACD,SAASC,EAAIC,GACZ,aAEA,OAAOD,EAAIC,QAAUA","file":"../browser.js","sourcesContent":["define([\r\n    \"./dom\",\r\n    \"skylark-domx-browser\"\r\n], function(dom,browser) {\r\n    \"use strict\";\r\n\r\n    return dom.browser = browser;\r\n});\r\n"]}

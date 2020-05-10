@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./haml.snippets"),t.scope="haml"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./haml.snippets"),exports.scope="haml"});
 //# sourceMappingURL=../sourcemaps/snippets/haml.js.map

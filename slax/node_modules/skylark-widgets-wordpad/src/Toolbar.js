@@ -7,7 +7,7 @@ define([
 ],function(langx,$,_Toolbar, ToolButton,addons){ 
 
   var Toolbar = _Toolbar.inherit({
-    pluginName : "lark.Wordpad.toolbar",
+    pluginName : "lark.wordpad.toolbar",
 
     _construct : function(editor,opts) {
       this.editor =editor;

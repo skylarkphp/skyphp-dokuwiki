@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,n){"use strict";var i=t("../lib/oop"),h=t("./text").Mode,c=t("./c9search_highlight_rules").C9SearchHighlightRules,u=t("./matching_brace_outdent").MatchingBraceOutdent,o=t("./folding/c9search").FoldMode,d=function(){this.HighlightRules=c,this.$outdent=new u,this.foldingRules=new o};i.inherits(d,h),function(){this.getNextLineIndent=function(t,e,n){return this.$getIndent(e)},this.checkOutdent=function(t,e,n){return this.$outdent.checkOutdent(e,n)},this.autoOutdent=function(t,e,n){this.$outdent.autoOutdent(e,n)},this.$id="ace/mode/c9search"}.call(d.prototype),e.Mode=d});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,n=require("./c9search_highlight_rules").C9SearchHighlightRules,i=require("./matching_brace_outdent").MatchingBraceOutdent,h=require("./folding/c9search").FoldMode,c=function(){this.HighlightRules=n,this.$outdent=new i,this.foldingRules=new h};t.inherits(c,e),function(){this.getNextLineIndent=function(t,e,n){return this.$getIndent(e)},this.checkOutdent=function(t,e,n){return this.$outdent.checkOutdent(e,n)},this.autoOutdent=function(t,e,n){this.$outdent.autoOutdent(e,n)},this.$id="ace/mode/c9search"}.call(c.prototype),exports.Mode=c});
 //# sourceMappingURL=../sourcemaps/mode/c9search.js.map

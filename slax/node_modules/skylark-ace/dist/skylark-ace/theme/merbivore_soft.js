@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,e,i){e.isDark=!0,e.cssClass="ace-merbivore-soft",e.cssText=s("./merbivore_soft.css"),s("../lib/dom").importCssString(e.cssText,e.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-merbivore-soft",exports.cssText=require("./merbivore_soft.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/merbivore_soft.js.map

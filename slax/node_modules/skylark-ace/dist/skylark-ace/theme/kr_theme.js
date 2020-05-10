@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,e,c){e.isDark=!0,e.cssClass="ace-kr-theme",e.cssText=s("./kr_theme.css"),s("../lib/dom").importCssString(e.cssText,e.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-kr-theme",exports.cssText=require("./kr_theme.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/kr_theme.js.map

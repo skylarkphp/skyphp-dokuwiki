@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,l){"use strict";var o=i("../lib/oop"),h=i("./html").Mode,t=i("./visualforce_highlight_rules").VisualforceHighlightRules,s=i("./behaviour/xml").XmlBehaviour,u=i("./folding/html").FoldMode;function n(){h.call(this),this.HighlightRules=t,this.foldingRules=new u,this.$behaviour=new s}o.inherits(n,h),n.prototype.emmetConfig={profile:"xhtml"},e.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./html").Mode,l=require("./visualforce_highlight_rules").VisualforceHighlightRules,o=require("./behaviour/xml").XmlBehaviour,h=require("./folding/html").FoldMode;function t(){e.call(this),this.HighlightRules=l,this.foldingRules=new h,this.$behaviour=new o}i.inherits(t,e),t.prototype.emmetConfig={profile:"xhtml"},exports.Mode=t});
 //# sourceMappingURL=../sourcemaps/mode/visualforce.js.map

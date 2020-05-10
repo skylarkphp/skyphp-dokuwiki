@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./mixal.snippets"),i.scope="mixal"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./mixal.snippets"),exports.scope="mixal"});
 //# sourceMappingURL=../sourcemaps/snippets/mixal.js.map

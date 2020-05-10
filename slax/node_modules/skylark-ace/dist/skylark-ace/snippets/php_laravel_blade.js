@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,p,t){"use strict";p.snippetText=e("../requirejs/text!./php_laravel_blade.snippets"),p.scope="php"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./php_laravel_blade.snippets"),exports.scope="php"});
 //# sourceMappingURL=../sourcemaps/snippets/php_laravel_blade.js.map

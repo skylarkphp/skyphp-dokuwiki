@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,o){"use strict";var t=i("../lib/oop"),l=i("./text").Mode,h=i("./bro_highlight_rules").BroHighlightRules,n=i("./folding/cstyle").FoldMode,s=function(){this.HighlightRules=h,this.foldingRules=new n};t.inherits(s,l),function(){this.$id="ace/mode/bro"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,o=require("./bro_highlight_rules").BroHighlightRules,t=require("./folding/cstyle").FoldMode,l=function(){this.HighlightRules=o,this.foldingRules=new t};i.inherits(l,e),function(){this.$id="ace/mode/bro"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/bro.js.map

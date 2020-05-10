@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,s){s.exports=t("./async"),s.exports.test=t("./test"),t("./utils")});
+define(function(require,exports,module){module.exports=require("./async"),module.exports.test=require("./test"),require("./utils")});
 //# sourceMappingURL=../../sourcemaps/test/asyncjs/index.js.map

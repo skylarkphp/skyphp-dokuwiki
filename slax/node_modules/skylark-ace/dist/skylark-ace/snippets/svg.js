@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./svg.snippets"),s.scope="svg"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./svg.snippets"),exports.scope="svg"});
 //# sourceMappingURL=../sourcemaps/snippets/svg.js.map

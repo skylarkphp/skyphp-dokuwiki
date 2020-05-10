@@ -125,7 +125,8 @@ define('skylark-langx-ns', ['skylark-langx-ns/main'], function (main) { return m
 define('skylark-langx-types/types',[
     "skylark-langx-ns"
 ],function(skylark){
-    var toString = {}.toString;
+    var nativeIsArray = Array.isArray, 
+        toString = {}.toString;
     
     var type = (function() {
         var class2type = {};
@@ -141,9 +142,10 @@ define('skylark-langx-types/types',[
         };
     })();
 
-    function isArray(object) {
+ 
+    var  isArray = nativeIsArray || function(obj) {
         return object && object.constructor === Array;
-    }
+    };
 
 
     /**
@@ -186,7 +188,8 @@ define('skylark-langx-types/types',[
      * // => false
      */
     function isBoolean(obj) {
-        return typeof(obj) === "boolean";
+       return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+       //return typeof(obj) === "boolean";
     }
 
     function isDefined(obj) {
@@ -196,6 +199,11 @@ define('skylark-langx-types/types',[
     function isDocument(obj) {
         return obj != null && obj.nodeType == obj.DOCUMENT_NODE;
     }
+
+   // Is a given value a DOM element?
+    function isElement(obj) {
+        return !!(obj && obj.nodeType === 1);
+    }   
 
     function isEmptyObject(obj) {
         var name;
@@ -225,6 +233,8 @@ define('skylark-langx-types/types',[
         return type(value) == "function";
     }
 
+
+
     function isHtmlNode(obj) {
         return obj && obj.nodeType; // obj instanceof Node; //Consider the elements in IFRAME
     }
@@ -248,8 +258,9 @@ define('skylark-langx-types/types',[
         }
     }
 
-    function isNull(value) {
-      return type(value) === "null";
+
+    function isNull(obj) {
+        return obj === null;
     }
 
     function isNumber(obj) {
@@ -257,7 +268,9 @@ define('skylark-langx-types/types',[
     }
 
     function isObject(obj) {
-        return type(obj) == "object";
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;        
+        //return type(obj) == "object";
     }
 
     function isPlainObject(obj) {
@@ -300,8 +313,9 @@ define('skylark-langx-types/types',[
         (isObjectLike(value) && objectToString.call(value) == symbolTag);
     }
 
-    function isUndefined(value) {
-      return value === undefined
+    // Is a given variable undefined?
+    function isUndefined(obj) {
+        return obj === void 0;
     }
 
     return skylark.attach("langx.types",{
@@ -315,6 +329,8 @@ define('skylark-langx-types/types',[
         isDefined: isDefined,
 
         isDocument: isDocument,
+
+        isElement,
 
         isEmpty : isEmptyObject,
 

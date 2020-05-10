@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!1,i.cssClass="ace-iplastic",i.cssText=s("./iplastic.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-iplastic",exports.cssText=require("./iplastic.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/iplastic.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,p){"use strict";t.snippetText=e("../requirejs/text!./apex.snippets"),t.scope="apex"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./apex.snippets"),exports.scope="apex"});
 //# sourceMappingURL=../sourcemaps/snippets/apex.js.map

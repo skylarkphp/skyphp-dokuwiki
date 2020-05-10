@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,i){c.isDark=!0,c.cssClass="ace-gob",c.cssText=s("./gob.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-gob",exports.cssText=require("./gob.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/gob.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var o=i("../lib/oop"),h=i("./text").Mode,l=i("./io_highlight_rules").IoHighlightRules,s=i("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=l,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};o.inherits(n,h),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/io"}.call(n.prototype),t.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./io_highlight_rules").IoHighlightRules,o=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=e,this.foldingRules=new o,this.$behaviour=this.$defaultBehaviour};i.inherits(h,t),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/io"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/io.js.map

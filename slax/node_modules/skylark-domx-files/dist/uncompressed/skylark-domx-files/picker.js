@@ -2,7 +2,7 @@ define([
     "skylark-langx/objects",
     "skylark-domx-eventer",
     "./files",
-    "skylark-storages-diskfs/select"
+    "skylark-io-diskfs/select"
 ],function(objects, eventer, files, select){
     /*
      * Make the specified element to pop-up the file selection dialog box when clicked , and read the contents the files selected from client file system by user.

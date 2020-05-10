@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var l=i("../lib/oop"),o=i("./text").Mode,n=i("./erlang_highlight_rules").ErlangHighlightRules,h=i("./folding/cstyle").FoldMode,s=function(){this.HighlightRules=n,this.foldingRules=new h,this.$behaviour=this.$defaultBehaviour};l.inherits(s,o),function(){this.lineCommentStart="%",this.blockComment=null,this.$id="ace/mode/erlang"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./erlang_highlight_rules").ErlangHighlightRules,l=require("./folding/cstyle").FoldMode,o=function(){this.HighlightRules=e,this.foldingRules=new l,this.$behaviour=this.$defaultBehaviour};i.inherits(o,t),function(){this.lineCommentStart="%",this.blockComment=null,this.$id="ace/mode/erlang"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/erlang.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./scad.snippets"),s.scope="scad"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./scad.snippets"),exports.scope="scad"});
 //# sourceMappingURL=../sourcemaps/snippets/scad.js.map

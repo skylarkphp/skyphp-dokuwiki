@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,o){"use strict";var e=i("../lib/oop"),h=i("./text").Mode,l=i("./cobol_highlight_rules").CobolHighlightRules,s=function(){this.HighlightRules=l,this.$behaviour=this.$defaultBehaviour};e.inherits(s,h),function(){this.lineCommentStart="*",this.$id="ace/mode/cobol"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,o=require("./cobol_highlight_rules").CobolHighlightRules,e=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};i.inherits(e,t),function(){this.lineCommentStart="*",this.$id="ace/mode/cobol"}.call(e.prototype),exports.Mode=e});
 //# sourceMappingURL=../sourcemaps/mode/cobol.js.map

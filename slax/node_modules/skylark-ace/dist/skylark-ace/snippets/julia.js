@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./julia.snippets"),i.scope="julia"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./julia.snippets"),exports.scope="julia"});
 //# sourceMappingURL=../sourcemaps/snippets/julia.js.map

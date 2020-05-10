@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";var o=e("../lib/oop"),h=e("./text").Mode,r=e("./terraform_highlight_rules").TerraformHighlightRules,l=e("./behaviour/cstyle").CstyleBehaviour,n=e("./folding/cstyle").FoldMode,s=e("./matching_brace_outdent").MatchingBraceOutdent,a=function(){h.call(this),this.HighlightRules=r,this.$outdent=new s,this.$behaviour=new l,this.foldingRules=new n};o.inherits(a,h),function(){this.$id="ace/mode/terraform"}.call(a.prototype),t.Mode=a});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),t=require("./text").Mode,i=require("./terraform_highlight_rules").TerraformHighlightRules,o=require("./behaviour/cstyle").CstyleBehaviour,h=require("./folding/cstyle").FoldMode,r=require("./matching_brace_outdent").MatchingBraceOutdent,l=function(){t.call(this),this.HighlightRules=i,this.$outdent=new r,this.$behaviour=new o,this.foldingRules=new h};e.inherits(l,t),function(){this.$id="ace/mode/terraform"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/terraform.js.map

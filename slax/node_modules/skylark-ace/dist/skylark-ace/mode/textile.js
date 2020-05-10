@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var n=t("../lib/oop"),u=t("./text").Mode,h=t("./textile_highlight_rules").TextileHighlightRules,o=t("./matching_brace_outdent").MatchingBraceOutdent,c=function(){this.HighlightRules=h,this.$outdent=new o,this.$behaviour=this.$defaultBehaviour};n.inherits(c,u),function(){this.type="text",this.getNextLineIndent=function(t,e,i){return"intag"==t?i:""},this.checkOutdent=function(t,e,i){return this.$outdent.checkOutdent(e,i)},this.autoOutdent=function(t,e,i){this.$outdent.autoOutdent(e,i)},this.$id="ace/mode/textile"}.call(c.prototype),e.Mode=c});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./textile_highlight_rules").TextileHighlightRules,n=require("./matching_brace_outdent").MatchingBraceOutdent,u=function(){this.HighlightRules=i,this.$outdent=new n,this.$behaviour=this.$defaultBehaviour};t.inherits(u,e),function(){this.type="text",this.getNextLineIndent=function(t,e,i){return"intag"==t?i:""},this.checkOutdent=function(t,e,i){return this.$outdent.checkOutdent(e,i)},this.autoOutdent=function(t,e,i){this.$outdent.autoOutdent(e,i)},this.$id="ace/mode/textile"}.call(u.prototype),exports.Mode=u});
 //# sourceMappingURL=../sourcemaps/mode/textile.js.map

@@ -1,17 +1,3 @@
-/*!
- * jQuery UI Labels @VERSION
- * http://jqueryui.com
- *
- * Copyright jQuery Foundation and other contributors
- * Released under the MIT license.
- * http://jquery.org/license
- */
-
-//>>label: labels
-//>>group: Core
-//>>description: Find all the labels associated with a given input
-//>>docs: http://api.jqueryui.com/labels/
-
 define( [ "skylark-jquery", "./version", "./escape-selector" ], function( $ ) {
 
 	return $.fn.labels = function() {

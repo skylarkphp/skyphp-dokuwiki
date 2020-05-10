@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,e){c.isDark=!1,c.cssClass="ace-chrome",c.cssText=s("./chrome.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-chrome",exports.cssText=require("./chrome.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/chrome.js.map

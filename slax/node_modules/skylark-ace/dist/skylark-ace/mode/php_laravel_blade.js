@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,l,i){"use strict";var t=e("../lib/oop"),a=e("./php_laravel_blade_highlight_rules").PHPLaravelBladeHighlightRules,h=e("./php").Mode,s=e("./javascript").Mode,o=e("./css").Mode,d=e("./html").Mode,c=function(){h.call(this),this.HighlightRules=a,this.createModeDelegates({"js-":s,"css-":o,"html-":d})};t.inherits(c,h),function(){this.$id="ace/mode/php_laravel_blade"}.call(c.prototype),l.Mode=c});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),l=require("./php_laravel_blade_highlight_rules").PHPLaravelBladeHighlightRules,i=require("./php").Mode,t=require("./javascript").Mode,a=require("./css").Mode,h=require("./html").Mode,s=function(){i.call(this),this.HighlightRules=l,this.createModeDelegates({"js-":t,"css-":a,"html-":h})};e.inherits(s,i),function(){this.$id="ace/mode/php_laravel_blade"}.call(s.prototype),exports.Mode=s});
 //# sourceMappingURL=../sourcemaps/mode/php_laravel_blade.js.map

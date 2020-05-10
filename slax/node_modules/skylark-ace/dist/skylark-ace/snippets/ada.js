@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./ada.snippets"),t.scope="ada"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./ada.snippets"),exports.scope="ada"});
 //# sourceMappingURL=../sourcemaps/snippets/ada.js.map

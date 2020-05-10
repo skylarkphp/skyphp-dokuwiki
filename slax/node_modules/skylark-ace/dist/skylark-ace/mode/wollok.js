@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,l,t){"use strict";var o=i("../lib/oop"),e=i("./javascript").Mode,h=i("./wollok_highlight_rules").WollokHighlightRules,n=function(){e.call(this),this.HighlightRules=h};o.inherits(n,e),function(){this.createWorker=function(i){return null},this.$id="ace/mode/wollok"}.call(n.prototype),l.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),l=require("./javascript").Mode,t=require("./wollok_highlight_rules").WollokHighlightRules,o=function(){l.call(this),this.HighlightRules=t};i.inherits(o,l),function(){this.createWorker=function(i){return null},this.$id="ace/mode/wollok"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/wollok.js.map

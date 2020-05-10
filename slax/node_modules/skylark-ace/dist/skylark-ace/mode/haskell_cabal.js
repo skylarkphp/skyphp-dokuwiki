@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(l,i,e){"use strict";var t=l("../lib/oop"),h=l("./text").Mode,o=l("./haskell_cabal_highlight_rules").CabalHighlightRules,a=l("./folding/haskell_cabal").FoldMode,s=function(){this.HighlightRules=o,this.foldingRules=new a,this.$behaviour=this.$defaultBehaviour};t.inherits(s,h),function(){this.lineCommentStart="--",this.blockComment=null,this.$id="ace/mode/haskell_cabal"}.call(s.prototype),i.Mode=s});
+define(function(require,exports,module){"use strict";var l=require("../lib/oop"),i=require("./text").Mode,e=require("./haskell_cabal_highlight_rules").CabalHighlightRules,t=require("./folding/haskell_cabal").FoldMode,h=function(){this.HighlightRules=e,this.foldingRules=new t,this.$behaviour=this.$defaultBehaviour};l.inherits(h,i),function(){this.lineCommentStart="--",this.blockComment=null,this.$id="ace/mode/haskell_cabal"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/haskell_cabal.js.map

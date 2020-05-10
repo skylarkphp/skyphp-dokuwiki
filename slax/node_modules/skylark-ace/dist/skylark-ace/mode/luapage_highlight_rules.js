@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,l){"use strict";var i=e("../lib/oop"),s=e("./html_highlight_rules").HtmlHighlightRules,h=e("./lua_highlight_rules").LuaHighlightRules,r=function(){s.call(this);var e=[{token:"keyword",regex:"<\\%\\=?",push:"lua-start"},{token:"keyword",regex:"<\\?lua\\=?",push:"lua-start"}];for(var t in this.embedRules(h,"lua-",[{token:"keyword",regex:"\\%>",next:"pop"},{token:"keyword",regex:"\\?>",next:"pop"}],["start"]),this.$rules)this.$rules[t].unshift.apply(this.$rules[t],e);this.normalizeRules()};i.inherits(r,s),t.LuaPageHighlightRules=r});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),t=require("./html_highlight_rules").HtmlHighlightRules,l=require("./lua_highlight_rules").LuaHighlightRules,i=function(){t.call(this);var e=[{token:"keyword",regex:"<\\%\\=?",push:"lua-start"},{token:"keyword",regex:"<\\?lua\\=?",push:"lua-start"}];for(var i in this.embedRules(l,"lua-",[{token:"keyword",regex:"\\%>",next:"pop"},{token:"keyword",regex:"\\?>",next:"pop"}],["start"]),this.$rules)this.$rules[i].unshift.apply(this.$rules[i],e);this.normalizeRules()};e.inherits(i,t),exports.LuaPageHighlightRules=i});
 //# sourceMappingURL=../sourcemaps/mode/luapage_highlight_rules.js.map

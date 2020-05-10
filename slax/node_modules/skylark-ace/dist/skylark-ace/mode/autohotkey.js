@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var o=t("../lib/oop"),h=t("./text").Mode,l=t("./autohotkey_highlight_rules").AutoHotKeyHighlightRules,s=t("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=l,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};o.inherits(n,h),function(){this.lineCommentStart=";",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/autohotkey"}.call(n.prototype),e.Mode=n});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./autohotkey_highlight_rules").AutoHotKeyHighlightRules,o=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=i,this.foldingRules=new o,this.$behaviour=this.$defaultBehaviour};t.inherits(h,e),function(){this.lineCommentStart=";",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/autohotkey"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/autohotkey.js.map

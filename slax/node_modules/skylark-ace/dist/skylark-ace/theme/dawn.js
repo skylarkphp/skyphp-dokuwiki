@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,a){c.isDark=!1,c.cssClass="ace-dawn",c.cssText=s("./dawn.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssClass="ace-dawn",exports.cssText=require("./dawn.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/dawn.js.map

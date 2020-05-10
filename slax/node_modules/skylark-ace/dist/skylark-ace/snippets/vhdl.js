@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./vhdl.snippets"),t.scope="vhdl"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./vhdl.snippets"),exports.scope="vhdl"});
 //# sourceMappingURL=../sourcemaps/snippets/vhdl.js.map

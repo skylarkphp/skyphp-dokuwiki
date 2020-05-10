@@ -120,7 +120,7 @@ define([
     var _this = this;
     $uploadBtn.picker({
       title: _this._t('uploadImage'),
-      multiple: true,
+      multiple: false,
       accept: 'image/gif,image/jpeg,image/jpg,image/png,image/svg',
       picked : function(files){
         _this.editor.uploader.upload(files, {

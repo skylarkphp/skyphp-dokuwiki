@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var h=e("../lib/oop"),u=e("./text").Mode,l=e("./lucene_highlight_rules").LuceneHighlightRules,o=function(){this.HighlightRules=l,this.$behaviour=this.$defaultBehaviour};h.inherits(o,u),function(){this.$id="ace/mode/lucene"}.call(o.prototype),i.Mode=o});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./text").Mode,t=require("./lucene_highlight_rules").LuceneHighlightRules,h=function(){this.HighlightRules=t,this.$behaviour=this.$defaultBehaviour};e.inherits(h,i),function(){this.$id="ace/mode/lucene"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/lucene.js.map

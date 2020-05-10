@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./gcode.snippets"),t.scope="gcode"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./gcode.snippets"),exports.scope="gcode"});
 //# sourceMappingURL=../sourcemaps/snippets/gcode.js.map

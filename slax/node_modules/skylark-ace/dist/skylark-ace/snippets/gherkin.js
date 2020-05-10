@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./gherkin.snippets"),i.scope="gherkin"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./gherkin.snippets"),exports.scope="gherkin"});
 //# sourceMappingURL=../sourcemaps/snippets/gherkin.js.map

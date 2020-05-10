@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var s=e("../lib/oop"),l=e("./text").Mode,o=e("./assembly_x86_highlight_rules").AssemblyX86HighlightRules,h=e("./folding/coffee").FoldMode,n=function(){this.HighlightRules=o,this.foldingRules=new h,this.$behaviour=this.$defaultBehaviour};s.inherits(n,l),function(){this.lineCommentStart=[";"],this.$id="ace/mode/assembly_x86"}.call(n.prototype),i.Mode=n});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./text").Mode,t=require("./assembly_x86_highlight_rules").AssemblyX86HighlightRules,s=require("./folding/coffee").FoldMode,l=function(){this.HighlightRules=t,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};e.inherits(l,i),function(){this.lineCommentStart=[";"],this.$id="ace/mode/assembly_x86"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/assembly_x86.js.map

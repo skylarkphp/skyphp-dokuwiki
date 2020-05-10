@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var s=i("./text").Mode,h=i("./csp_highlight_rules").CspHighlightRules,o=function(){this.HighlightRules=h};i("../lib/oop").inherits(o,s),function(){this.$id="ace/mode/csp"}.call(o.prototype),t.Mode=o});
+define(function(require,exports,module){"use strict";var i=require("./text").Mode,t=require("./csp_highlight_rules").CspHighlightRules,e=function(){this.HighlightRules=t};require("../lib/oop").inherits(e,i),function(){this.$id="ace/mode/csp"}.call(e.prototype),exports.Mode=e});
 //# sourceMappingURL=../sourcemaps/mode/csp.js.map

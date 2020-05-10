@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var h=i("../lib/oop"),o=i("./text").Mode,c=i("./edifact_highlight_rules").EdifactHighlightRules,l=function(){this.HighlightRules=c};h.inherits(l,o),function(){this.$id="ace/mode/edifact"}.call(l.prototype),t.Mode=l});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./edifact_highlight_rules").EdifactHighlightRules,h=function(){this.HighlightRules=e};i.inherits(h,t),function(){this.$id="ace/mode/edifact"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/edifact.js.map

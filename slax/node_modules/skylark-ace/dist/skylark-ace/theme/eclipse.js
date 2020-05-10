@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,e){"use strict";c.isDark=!1,c.cssText=s("./eclipse.css"),c.cssClass="ace-eclipse",s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){"use strict";exports.isDark=!1,exports.cssText=require("./eclipse.css"),exports.cssClass="ace-eclipse",require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/eclipse.js.map

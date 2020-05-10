@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";t.snippetText=e("../requirejs/text!./fortran.snippets"),t.scope="fortran"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./fortran.snippets"),exports.scope="fortran"});
 //# sourceMappingURL=../sourcemaps/snippets/fortran.js.map

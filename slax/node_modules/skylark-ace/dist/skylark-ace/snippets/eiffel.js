@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./eiffel.snippets"),i.scope="eiffel"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./eiffel.snippets"),exports.scope="eiffel"});
 //# sourceMappingURL=../sourcemaps/snippets/eiffel.js.map

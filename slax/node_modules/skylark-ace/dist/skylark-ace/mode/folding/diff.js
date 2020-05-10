@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var n=t("../../lib/oop"),o=t("./fold_mode").FoldMode,r=t("../../range").Range,g=e.FoldMode=function(t,e){this.regExpList=t,this.flag=e,this.foldingStartMarker=RegExp("^("+t.join("|")+")",this.flag)};n.inherits(g,o),function(){this.getFoldWidgetRange=function(t,e,i){for(var n=t.getLine(i),o={row:i,column:n.length},g=this.regExpList,l=1;l<=g.length;l++){var s=RegExp("^("+g.slice(0,l).join("|")+")",this.flag);if(s.test(n))break}for(var a=t.getLength();++i<a&&(n=t.getLine(i),!s.test(n)););if(i!=o.row+1)return new r(o.row,o.column,i-1,n.length)}}.call(g.prototype)});
+define(function(require,exports,module){"use strict";var t=require("../../lib/oop"),e=require("./fold_mode").FoldMode,i=require("../../range").Range,n=exports.FoldMode=function(t,e){this.regExpList=t,this.flag=e,this.foldingStartMarker=RegExp("^("+t.join("|")+")",this.flag)};t.inherits(n,e),function(){this.getFoldWidgetRange=function(t,e,n){for(var o=t.getLine(n),r={row:n,column:o.length},g=this.regExpList,l=1;l<=g.length;l++){var s=RegExp("^("+g.slice(0,l).join("|")+")",this.flag);if(s.test(o))break}for(var a=t.getLength();++n<a&&(o=t.getLine(n),!s.test(o)););if(n!=r.row+1)return new i(r.row,r.column,n-1,o.length)}}.call(n.prototype)});
 //# sourceMappingURL=../../sourcemaps/mode/folding/diff.js.map

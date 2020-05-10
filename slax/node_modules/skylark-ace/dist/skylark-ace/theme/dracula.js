@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,a){c.isDark=!0,c.cssClass="ace-dracula",c.cssText=s("./dracula.css"),c.$selectionColorConflict=!0,s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-dracula",exports.cssText=require("./dracula.css"),exports.$selectionColorConflict=!0,require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/dracula.js.map

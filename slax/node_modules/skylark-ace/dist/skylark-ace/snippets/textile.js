@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText=e("../requirejs/text!./textile.snippets"),t.scope="textile"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./textile.snippets"),exports.scope="textile"});
 //# sourceMappingURL=../sourcemaps/snippets/textile.js.map

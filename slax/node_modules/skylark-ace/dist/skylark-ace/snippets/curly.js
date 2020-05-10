@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./curly.snippets"),t.scope="curly"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./curly.snippets"),exports.scope="curly"});
 //# sourceMappingURL=../sourcemaps/snippets/curly.js.map

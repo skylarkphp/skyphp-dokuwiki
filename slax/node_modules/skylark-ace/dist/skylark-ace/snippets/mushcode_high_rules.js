@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,i){"use strict";s.snippetText=e("../requirejs/text!./mushcode_high_rules.snippets"),s.scope="mushcode_high_rules"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./mushcode_high_rules.snippets"),exports.scope="mushcode_high_rules"});
 //# sourceMappingURL=../sourcemaps/snippets/mushcode_high_rules.js.map

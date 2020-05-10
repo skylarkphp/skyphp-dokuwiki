@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,n,e){"use strict";var r=t("../range").Range,i=function(){};(function(){this.checkOutdent=function(t,n){return!!/^\s+$/.test(t)&&/^\s*\)/.test(n)},this.autoOutdent=function(t,n){var e=t.getLine(n).match(/^(\s*\))/);if(!e)return 0;var i=e[1].length,c=t.findMatchingBracket({row:n,column:i});if(!c||c.row==n)return 0;var a=this.$getIndent(t.getLine(c.row));t.replace(new r(n,0,n,i-1),a)},this.$getIndent=function(t){var n=t.match(/^(\s+)/);return n?n[1]:""}}).call(i.prototype),n.MatchingParensOutdent=i});
+define(function(require,exports,module){"use strict";var t=require("../range").Range,n=function(){};(function(){this.checkOutdent=function(t,n){return!!/^\s+$/.test(t)&&/^\s*\)/.test(n)},this.autoOutdent=function(n,e){var r=n.getLine(e).match(/^(\s*\))/);if(!r)return 0;var i=r[1].length,c=n.findMatchingBracket({row:e,column:i});if(!c||c.row==e)return 0;var a=this.$getIndent(n.getLine(c.row));n.replace(new t(e,0,e,i-1),a)},this.$getIndent=function(t){var n=t.match(/^(\s+)/);return n?n[1]:""}}).call(n.prototype),exports.MatchingParensOutdent=n});
 //# sourceMappingURL=../sourcemaps/mode/matching_parens_outdent.js.map

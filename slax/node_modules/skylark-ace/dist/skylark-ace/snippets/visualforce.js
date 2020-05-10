@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,i){"use strict";s.snippetText=e("../requirejs/text!./visualforce.snippets"),s.scope="visualforce"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./visualforce.snippets"),exports.scope="visualforce"});
 //# sourceMappingURL=../sourcemaps/snippets/visualforce.js.map

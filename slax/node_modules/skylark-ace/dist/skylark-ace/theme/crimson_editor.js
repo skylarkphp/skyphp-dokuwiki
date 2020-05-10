@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,c){i.isDark=!1,i.cssText=s("./crimson_editor.css"),i.cssClass="ace-crimson-editor",s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!1,exports.cssText=require("./crimson_editor.css"),exports.cssClass="ace-crimson-editor",require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/crimson_editor.js.map

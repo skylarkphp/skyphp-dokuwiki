@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(r,n,e){"use strict";var t=r("../../lib/keys");e.exports.getEditorKeybordShortcuts=function(r){t.KEY_MODS;var n=[],e={};return r.keyBinding.$handlers.forEach(function(r){var t=r.commandKeyBinding;for(var i in t){var o=i.replace(/(^|-)\w/g,function(r){return r.toUpperCase()}),a=t[i];Array.isArray(a)||(a=[a]),a.forEach(function(r){"string"!=typeof r&&(r=r.name),e[r]?e[r].key+="|"+o:(e[r]={key:o,command:r},n.push(e[r]))})}}),n}});
+define(function(require,exports,module){"use strict";var r=require("../../lib/keys");module.exports.getEditorKeybordShortcuts=function(n){r.KEY_MODS;var e=[],t={};return n.keyBinding.$handlers.forEach(function(r){var n=r.commandKeyBinding;for(var i in n){var o=i.replace(/(^|-)\w/g,function(r){return r.toUpperCase()}),a=n[i];Array.isArray(a)||(a=[a]),a.forEach(function(r){"string"!=typeof r&&(r=r.name),t[r]?t[r].key+="|"+o:(t[r]={key:o,command:r},e.push(t[r]))})}}),e}});
 //# sourceMappingURL=../../sourcemaps/ext/menu_tools/get_editor_keyboard_shortcuts.js.map

@@ -10,8 +10,9 @@
 // must be run from within DokuWiki
 if (!defined('DOKU_INC')) die();
 
+// modified by lwf
 ?>
-<?php if (bootstrap3_conf('showPageTools')): ?>
+<?php if (bootstrap3_conf('showPageTools') && ($INFO['perm']>=AUTH_EDIT) ): ?>
 
 <nav id="dw__pagetools" class="hidden-print">
   <div class="tools panel panel-default pull-right <?php echo ((bootstrap3_conf('pageToolsAnimation')) ? 'tools-animation' : '') ?>">

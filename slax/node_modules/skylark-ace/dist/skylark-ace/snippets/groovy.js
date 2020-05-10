@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./groovy.snippets"),t.scope="groovy"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./groovy.snippets"),exports.scope="groovy"});
 //# sourceMappingURL=../sourcemaps/snippets/groovy.js.map

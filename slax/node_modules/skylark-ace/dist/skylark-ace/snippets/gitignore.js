@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./gitignore.snippets"),i.scope="gitignore"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./gitignore.snippets"),exports.scope="gitignore"});
 //# sourceMappingURL=../sourcemaps/snippets/gitignore.js.map

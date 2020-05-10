@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,e){i.isDark=!0,i.cssClass="ace-idle-fingers",i.cssText=s("./idle_fingers.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-idle-fingers",exports.cssText=require("./idle_fingers.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/idle_fingers.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,a,c){a.isDark=!0,a.cssClass="ace-pastel-on-dark",a.cssText=s("./pastel_on_dark.css"),s("../lib/dom").importCssString(a.cssText,a.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-pastel-on-dark",exports.cssText=require("./pastel_on_dark.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/pastel_on_dark.js.map

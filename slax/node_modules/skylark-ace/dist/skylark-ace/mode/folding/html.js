@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,o,d){"use strict";var i=e("../../lib/oop"),l=e("./mixed").FoldMode,n=e("./xml").FoldMode,s=e("./cstyle").FoldMode,t=o.FoldMode=function(e,o){l.call(this,new n(e,o),{"js-":new s,"css-":new s})};i.inherits(t,l)});
+define(function(require,exports,module){"use strict";var e=require("../../lib/oop"),o=require("./mixed").FoldMode,d=require("./xml").FoldMode,i=require("./cstyle").FoldMode,l=exports.FoldMode=function(e,l){o.call(this,new d(e,l),{"js-":new i,"css-":new i})};e.inherits(l,o)});
 //# sourceMappingURL=../../sourcemaps/mode/folding/html.js.map

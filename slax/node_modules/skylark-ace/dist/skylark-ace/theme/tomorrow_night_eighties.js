@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,i,t){i.isDark=!0,i.cssClass="ace-tomorrow-night-eighties",i.cssText=s("./tomorrow_night_eighties.css"),s("../lib/dom").importCssString(i.cssText,i.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-tomorrow-night-eighties",exports.cssText=require("./tomorrow_night_eighties.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/tomorrow_night_eighties.js.map

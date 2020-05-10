@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./matlab.snippets"),t.scope="matlab"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./matlab.snippets"),exports.scope="matlab"});
 //# sourceMappingURL=../sourcemaps/snippets/matlab.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var o=i("../lib/oop"),h=i("./text").Mode,n=i("./gitignore_highlight_rules").GitignoreHighlightRules,g=function(){this.HighlightRules=n,this.$behaviour=this.$defaultBehaviour};o.inherits(g,h),function(){this.lineCommentStart="#",this.$id="ace/mode/gitignore"}.call(g.prototype),t.Mode=g});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./gitignore_highlight_rules").GitignoreHighlightRules,o=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};i.inherits(o,t),function(){this.lineCommentStart="#",this.$id="ace/mode/gitignore"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/gitignore.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./ocaml.snippets"),t.scope="ocaml"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./ocaml.snippets"),exports.scope="ocaml"});
 //# sourceMappingURL=../sourcemaps/snippets/ocaml.js.map

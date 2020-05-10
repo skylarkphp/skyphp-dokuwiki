@@ -477,7 +477,7 @@ function pageinfo() {
 
             if ($_SESSION['nologin_account'] > $conf['nologin_maxaccesspages']) {
 
-                msg("ttt".$conf['nologin_hintmessage']);
+                msg($conf['nologin_hintmessage']);
 
                 $acl = AUTH_NONE;
 

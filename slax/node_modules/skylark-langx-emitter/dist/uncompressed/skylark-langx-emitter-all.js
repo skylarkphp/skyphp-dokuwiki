@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -125,7 +125,8 @@ define('skylark-langx-ns', ['skylark-langx-ns/main'], function (main) { return m
 define('skylark-langx-types/types',[
     "skylark-langx-ns"
 ],function(skylark){
-    var toString = {}.toString;
+    var nativeIsArray = Array.isArray, 
+        toString = {}.toString;
     
     var type = (function() {
         var class2type = {};
@@ -141,9 +142,10 @@ define('skylark-langx-types/types',[
         };
     })();
 
-    function isArray(object) {
+ 
+    var  isArray = nativeIsArray || function(obj) {
         return object && object.constructor === Array;
-    }
+    };
 
 
     /**
@@ -186,7 +188,8 @@ define('skylark-langx-types/types',[
      * // => false
      */
     function isBoolean(obj) {
-        return typeof(obj) === "boolean";
+       return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+       //return typeof(obj) === "boolean";
     }
 
     function isDefined(obj) {
@@ -196,6 +199,11 @@ define('skylark-langx-types/types',[
     function isDocument(obj) {
         return obj != null && obj.nodeType == obj.DOCUMENT_NODE;
     }
+
+   // Is a given value a DOM element?
+    function isElement(obj) {
+        return !!(obj && obj.nodeType === 1);
+    }   
 
     function isEmptyObject(obj) {
         var name;
@@ -225,6 +233,8 @@ define('skylark-langx-types/types',[
         return type(value) == "function";
     }
 
+
+
     function isHtmlNode(obj) {
         return obj && obj.nodeType; // obj instanceof Node; //Consider the elements in IFRAME
     }
@@ -248,8 +258,8 @@ define('skylark-langx-types/types',[
         }
     }
 
-    function isNull(value) {
-      return type(value) === "null";
+    function isNull(obj) {
+        return obj === null;
     }
 
     function isNumber(obj) {
@@ -257,7 +267,9 @@ define('skylark-langx-types/types',[
     }
 
     function isObject(obj) {
-        return type(obj) == "object";
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;        
+        //return type(obj) == "object";
     }
 
     function isPlainObject(obj) {
@@ -300,8 +312,9 @@ define('skylark-langx-types/types',[
         (isObjectLike(value) && objectToString.call(value) == symbolTag);
     }
 
-    function isUndefined(value) {
-      return value === undefined
+    // Is a given variable undefined?
+    function isUndefined(obj) {
+        return obj === void 0;
     }
 
     return skylark.attach("langx.types",{
@@ -316,6 +329,8 @@ define('skylark-langx-types/types',[
 
         isDocument: isDocument,
 
+        isElement,
+
         isEmpty : isEmptyObject,
 
         isEmptyObject: isEmptyObject,
@@ -324,7 +339,12 @@ define('skylark-langx-types/types',[
 
         isHtmlNode: isHtmlNode,
 
+        isNaN : function (obj) {
+            return isNaN(obj);
+        },
+
         isNull: isNull,
+
 
         isNumber: isNumber,
 
@@ -1002,8 +1022,9 @@ define('skylark-langx-arrays/arrays',[
   "skylark-langx-types",
   "skylark-langx-objects"
 ],function(skylark,types,objects){
-	var filter = Array.prototype.filter,
-		isArrayLike = types.isArrayLike;
+  var filter = Array.prototype.filter,
+      find = Array.prototype.find,
+    isArrayLike = types.isArrayLike;
 
     /**
      * The base implementation of `_.findIndex` and `_.findLastIndex` without
@@ -1186,6 +1207,10 @@ define('skylark-langx-arrays/arrays',[
         })
     }
 
+    function find2(array,func) {
+      return find.call(array,func);
+    }
+
     return skylark.attach("langx.arrays",{
         baseFindIndex: baseFindIndex,
 
@@ -1202,6 +1227,8 @@ define('skylark-langx-arrays/arrays',[
         },
 
         filter : filter2,
+
+        find : find2,
         
         flatten: flatten,
 
@@ -1488,13 +1515,288 @@ define('skylark-langx-klass/main',[
 });
 define('skylark-langx-klass', ['skylark-langx-klass/main'], function (main) { return main; });
 
+define('skylark-langx-funcs/funcs',[
+  "skylark-langx-ns/ns",
+  "skylark-langx-types",
+  "skylark-langx-objects"
+],function(skylark,types,objects){
+	var mixin = objects.mixin,
+        slice = Array.prototype.slice,
+        isFunction = types.isFunction,
+        isString = types.isString;
+
+    function defer(fn) {
+        if (requestAnimationFrame) {
+            requestAnimationFrame(fn);
+        } else {
+            setTimeoutout(fn);
+        }
+        return this;
+    }
+
+    function noop() {
+    }
+
+    function proxy(fn, context) {
+        var args = (2 in arguments) && slice.call(arguments, 2)
+        if (isFunction(fn)) {
+            var proxyFn = function() {
+                return fn.apply(context, args ? args.concat(slice.call(arguments)) : arguments);
+            }
+            return proxyFn;
+        } else if (isString(context)) {
+            if (args) {
+                args.unshift(fn[context], fn)
+                return proxy.apply(null, args)
+            } else {
+                return proxy(fn[context], fn);
+            }
+        } else {
+            throw new TypeError("expected function");
+        }
+    }
+
+    function debounce(fn, wait) {
+        var timeout;
+        return function () {
+            var context = this, args = arguments;
+            var later = function () {
+                timeout = null;
+                fn.apply(context, args);
+            };
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+   
+    var delegate = (function() {
+        // boodman/crockford delegation w/ cornford optimization
+        function TMP() {}
+        return function(obj, props) {
+            TMP.prototype = obj;
+            var tmp = new TMP();
+            TMP.prototype = null;
+            if (props) {
+                mixin(tmp, props);
+            }
+            return tmp; // Object
+        };
+    })();
+
+
+    // By default, Underscore uses ERB-style template delimiters, change the
+    // following template settings to use alternative delimiters.
+    var templateSettings = {
+        evaluate: /<%([\s\S]+?)%>/g,
+        interpolate: /<%=([\s\S]+?)%>/g,
+        escape: /<%-([\s\S]+?)%>/g
+    };
+
+    // When customizing `templateSettings`, if you don't want to define an
+    // interpolation, evaluation or escaping regex, we need one that is
+    // guaranteed not to match.
+    var noMatch = /(.)^/;
+
+
+    // Certain characters need to be escaped so that they can be put into a
+    // string literal.
+    var escapes = {
+      "'":      "'",
+      '\\':     '\\',
+      '\r':     'r',
+      '\n':     'n',
+      '\t':     't',
+      '\u2028': 'u2028',
+      '\u2029': 'u2029'
+    };
+
+    var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+
+    function template(text, data, settings) {
+        var render;
+        settings = objects.defaults({}, settings,templateSettings);
+
+        // Combine delimiters into one regular expression via alternation.
+        var matcher = RegExp([
+          (settings.escape || noMatch).source,
+          (settings.interpolate || noMatch).source,
+          (settings.evaluate || noMatch).source
+        ].join('|') + '|$', 'g');
+
+        // Compile the template source, escaping string literals appropriately.
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+          source += text.slice(index, offset)
+              .replace(escaper, function(match) { return '\\' + escapes[match]; });
+
+          if (escape) {
+            source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+          }
+          if (interpolate) {
+            source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+          }
+          if (evaluate) {
+            source += "';\n" + evaluate + "\n__p+='";
+          }
+          index = offset + match.length;
+          return match;
+        });
+        source += "';\n";
+
+        // If a variable is not specified, place data values in local scope.
+        if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+        source = "var __t,__p='',__j=Array.prototype.join," +
+          "print=function(){__p+=__j.call(arguments,'');};\n" +
+          source + 'return __p;\n';
+
+        try {
+          render = new Function(settings.variable || 'obj', '_', source);
+        } catch (e) {
+          e.source = source;
+          throw e;
+        }
+
+        if (data) {
+          return render(data,this)
+        }
+        var template = proxy(function(data) {
+          return render.call(this, data,this);
+        },this);
+
+        // Provide the compiled source as a convenience for precompilation.
+        var argument = settings.variable || 'obj';
+        template.source = 'function(' + argument + '){\n' + source + '}';
+
+        return template;
+    }
+
+
+    /**
+     * Creates a function that negates the result of the predicate `func`. The
+     * `func` predicate is invoked with the `this` binding and arguments of the
+     * created function.
+     * @category Function
+     * @param {Function} predicate The predicate to negate.
+     * @returns {Function} Returns the new negated function.
+     * @example
+     *
+     * function isEven(n) {
+     *   return n % 2 == 0
+     * }
+     *
+     * filter([1, 2, 3, 4, 5, 6], negate(isEven))
+     * // => [1, 3, 5]
+     */
+    function negate(predicate) {
+      if (typeof predicate !== 'function') {
+        throw new TypeError('Expected a function')
+      }
+      return function(...args) {
+        return !predicate.apply(this, args)
+      }
+    }
+
+
+    return skylark.attach("langx.funcs",{
+        bind : proxy,
+        
+        debounce: debounce,
+
+        delegate: delegate,
+
+        defer: defer,
+
+        negate: negate,
+
+        noop : noop,
+
+        proxy: proxy,
+
+        returnTrue: function() {
+            return true;
+        },
+
+        returnFalse: function() {
+            return false;
+        },
+
+        templateSettings : templateSettings,
+        template : template
+    });
+});
+define('skylark-langx-funcs/main',[
+	"./funcs"
+],function(funcs){
+	return funcs;
+});
+define('skylark-langx-funcs', ['skylark-langx-funcs/main'], function (main) { return main; });
+
+define('skylark-langx-emitter/Event',[
+  "skylark-langx-objects",
+  "skylark-langx-funcs",
+  "skylark-langx-klass",
+],function(objects,funcs,klass){
+    var eventMethods = {
+        preventDefault: "isDefaultPrevented",
+        stopImmediatePropagation: "isImmediatePropagationStopped",
+        stopPropagation: "isPropagationStopped"
+     };
+        
+
+    function compatible(event, source) {
+        if (source || !event.isDefaultPrevented) {
+            if (!source) {
+                source = event;
+            }
+
+            objects.each(eventMethods, function(name, predicate) {
+                var sourceMethod = source[name];
+                event[name] = function() {
+                    this[predicate] = funcs.returnTrue;
+                    return sourceMethod && sourceMethod.apply(source, arguments);
+                }
+                event[predicate] = funcs.returnFalse;
+            });
+        }
+        return event;
+    }
+
+
+    /*
+    var Event = klass({
+        _construct : function(type,props) {
+            CustomEvent.call(this,type.props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        }
+    },CustomEvent);
+    */
+
+    class Event extends CustomEvent {
+        constructor(type,props) {
+            super(type,props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        } 
+    }
+
+
+    Event.compatible = compatible;
+
+    return Event;
+    
+});
 define('skylark-langx-emitter/Emitter',[
   "skylark-langx-ns/ns",
   "skylark-langx-types",
   "skylark-langx-objects",
   "skylark-langx-arrays",
-  "skylark-langx-klass"
-],function(skylark,types,objects,arrays,klass){
+  "skylark-langx-klass",
+  "./Event"
+],function(skylark,types,objects,arrays,klass,Event){
     var slice = Array.prototype.slice,
         compact = arrays.compact,
         isDefined = types.isDefined,
@@ -1573,7 +1875,7 @@ define('skylark-langx-emitter/Emitter',[
             var self = this;
 
             if (isString(e)) {
-                e = new CustomEvent(e);
+                e = new Event(e); //new CustomEvent(e);
             }
 
             Object.defineProperty(e,"target",{
@@ -1600,6 +1902,9 @@ define('skylark-langx-emitter/Emitter',[
                     reCompact = false;
 
                 for (var i = 0; i < len; i++) {
+                    if (e.isImmediatePropagationStopped && e.isImmediatePropagationStopped()) {
+                        return this;
+                    }
                     var listener = listeners[i];
                     if (ns && (!listener.ns ||  !listener.ns.startsWith(ns))) {
                         continue;
@@ -1774,9 +2079,12 @@ define('skylark-langx-emitter/Emitter',[
     });
 
     Emitter.createEvent = function (type,props) {
-        var e = new CustomEvent(type,props);
-        return safeMixin(e, props);
+        //var e = new CustomEvent(type,props);
+        //return safeMixin(e, props);
+        return new Event(type,props);
     };
+
+    Emitter.Event = Event;
 
     return skylark.attach("langx.Emitter",Emitter);
 

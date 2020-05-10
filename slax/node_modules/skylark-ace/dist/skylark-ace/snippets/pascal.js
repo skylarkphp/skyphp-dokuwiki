@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./pascal.snippets"),s.scope="pascal"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./pascal.snippets"),exports.scope="pascal"});
 //# sourceMappingURL=../sourcemaps/snippets/pascal.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var l=e("../lib/oop"),n=e("./c_cpp").Mode,o=e("./glsl_highlight_rules").glslHighlightRules,h=e("./matching_brace_outdent").MatchingBraceOutdent,s=(e("../range").Range,e("./behaviour/cstyle").CstyleBehaviour),g=e("./folding/cstyle").FoldMode,c=function(){this.HighlightRules=o,this.$outdent=new h,this.$behaviour=new s,this.foldingRules=new g};l.inherits(c,n),function(){this.$id="ace/mode/glsl"}.call(c.prototype),i.Mode=c});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./c_cpp").Mode,t=require("./glsl_highlight_rules").glslHighlightRules,l=require("./matching_brace_outdent").MatchingBraceOutdent,n=(require("../range").Range,require("./behaviour/cstyle").CstyleBehaviour),o=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=t,this.$outdent=new l,this.$behaviour=new n,this.foldingRules=new o};e.inherits(h,i),function(){this.$id="ace/mode/glsl"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/glsl.js.map

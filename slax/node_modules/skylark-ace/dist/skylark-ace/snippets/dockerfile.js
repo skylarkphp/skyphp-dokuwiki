@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";i.snippetText=e("../requirejs/text!./dockerfile.snippets"),i.scope="dockerfile"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./dockerfile.snippets"),exports.scope="dockerfile"});
 //# sourceMappingURL=../sourcemaps/snippets/dockerfile.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var n=i("../lib/oop"),o=i("./text").Mode,s=i("./asciidoc_highlight_rules").AsciidocHighlightRules,c=i("./folding/asciidoc").FoldMode,l=function(){this.HighlightRules=s,this.foldingRules=new c};n.inherits(l,o),function(){this.type="text",this.getNextLineIndent=function(i,t,e){if("listblock"==i){var n=/^((?:.+)?)([-+*][ ]+)/.exec(t);return n?new Array(n[1].length+1).join(" ")+n[2]:""}return this.$getIndent(t)},this.$id="ace/mode/asciidoc"}.call(l.prototype),t.Mode=l});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./asciidoc_highlight_rules").AsciidocHighlightRules,n=require("./folding/asciidoc").FoldMode,o=function(){this.HighlightRules=e,this.foldingRules=new n};i.inherits(o,t),function(){this.type="text",this.getNextLineIndent=function(i,t,e){if("listblock"==i){var n=/^((?:.+)?)([-+*][ ]+)/.exec(t);return n?new Array(n[1].length+1).join(" ")+n[2]:""}return this.$getIndent(t)},this.$id="ace/mode/asciidoc"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/asciidoc.js.map

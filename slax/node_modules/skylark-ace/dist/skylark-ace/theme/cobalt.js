@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,t){c.isDark=!0,c.cssClass="ace-cobalt",c.cssText=s("./cobalt.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-cobalt",exports.cssText=require("./cobalt.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/cobalt.js.map

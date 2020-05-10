@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./rust.snippets"),t.scope="rust"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./rust.snippets"),exports.scope="rust"});
 //# sourceMappingURL=../sourcemaps/snippets/rust.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,t,e){"use strict";t.isDark=!1,t.cssClass="ace-tm",t.cssText=s("./textmate.css"),t.$id="ace/theme/textmate",s("../lib/dom").importCssString(t.cssText,t.cssClass)});
+define(function(require,exports,module){"use strict";exports.isDark=!1,exports.cssClass="ace-tm",exports.cssText=require("./textmate.css"),exports.$id="ace/theme/textmate",require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/textmate.js.map

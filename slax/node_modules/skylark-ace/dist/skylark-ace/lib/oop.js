@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,n,t){"use strict";n.inherits=function(e,n){e.super_=n,e.prototype=Object.create(n.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}})},n.mixin=function(e,n){for(var t in n)e[t]=n[t];return e},n.implement=function(e,t){n.mixin(e,t)}});
+define(function(require,exports,module){"use strict";exports.inherits=function(e,n){e.super_=n,e.prototype=Object.create(n.prototype,{constructor:{value:e,enumerable:!1,writable:!0,configurable:!0}})},exports.mixin=function(e,n){for(var t in n)e[t]=n[t];return e},exports.implement=function(e,n){exports.mixin(e,n)}});
 //# sourceMappingURL=../sourcemaps/lib/oop.js.map

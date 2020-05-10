@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var o=i("../lib/oop"),h=i("./text").Mode,r=i("./properties_highlight_rules").PropertiesHighlightRules,s=function(){this.HighlightRules=r,this.$behaviour=this.$defaultBehaviour};o.inherits(s,h),function(){this.$id="ace/mode/properties"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./properties_highlight_rules").PropertiesHighlightRules,o=function(){this.HighlightRules=t,this.$behaviour=this.$defaultBehaviour};i.inherits(o,e),function(){this.$id="ace/mode/properties"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/properties.js.map

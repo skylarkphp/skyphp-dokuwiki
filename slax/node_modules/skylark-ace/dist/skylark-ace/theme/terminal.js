@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,e,i){e.isDark=!0,e.cssClass="ace-terminal-theme",e.cssText=s("./terminal.css"),s("../lib/dom").importCssString(e.cssText,e.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-terminal-theme",exports.cssText=require("./terminal.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/terminal.js.map

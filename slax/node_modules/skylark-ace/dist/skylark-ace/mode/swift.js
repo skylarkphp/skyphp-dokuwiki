@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){"use strict";var o=t("../lib/oop"),s=t("./text").Mode,h=t("./swift_highlight_rules").HighlightRules,l=t("./behaviour/cstyle").CstyleBehaviour,n=t("./folding/cstyle").FoldMode,u=function(){this.HighlightRules=h,this.foldingRules=new n,this.$behaviour=new l,this.$behaviour=this.$defaultBehaviour};o.inherits(u,s),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/",nestable:!0},this.$id="ace/mode/swift"}.call(u.prototype),i.Mode=u});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./text").Mode,e=require("./swift_highlight_rules").HighlightRules,o=require("./behaviour/cstyle").CstyleBehaviour,s=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=e,this.foldingRules=new s,this.$behaviour=new o,this.$behaviour=this.$defaultBehaviour};t.inherits(h,i),function(){this.lineCommentStart="//",this.blockComment={start:"/*",end:"*/",nestable:!0},this.$id="ace/mode/swift"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/swift.js.map

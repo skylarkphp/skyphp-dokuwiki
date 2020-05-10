@@ -1,1 +1,0 @@
-{"version":3,"sources":["plugins.js"],"names":["define","dom","plugins"],"mappings":";;;;;;;AAAAA,QACI,QACA,wBACD,SAASC,EAAKC,GACb,aAGA,OAAOD,EAAIC,QAAUA","file":"../plugins.js","sourcesContent":["define([\r\n    \"./dom\",\r\n    \"skylark-domx-plugins\"\r\n], function(dom, plugins) {\r\n    \"use strict\";\r\n\r\n\r\n    return dom.plugins = plugins;\r\n});"]}

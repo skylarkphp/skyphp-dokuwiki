@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var o=i("../lib/oop"),s=i("./javascript").Mode,h=i("./gobstones_highlight_rules").GobstonesHighlightRules,n=function(){s.call(this),this.HighlightRules=h,this.$behaviour=this.$defaultBehaviour};o.inherits(n,s),function(){this.createWorker=function(i){return null},this.$id="ace/mode/gobstones"}.call(n.prototype),t.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./javascript").Mode,e=require("./gobstones_highlight_rules").GobstonesHighlightRules,o=function(){t.call(this),this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};i.inherits(o,t),function(){this.createWorker=function(i){return null},this.$id="ace/mode/gobstones"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/gobstones.js.map

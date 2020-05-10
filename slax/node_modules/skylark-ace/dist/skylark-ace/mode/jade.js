@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,i,t){"use strict";var o=e("../lib/oop"),h=e("./text").Mode,l=e("./jade_highlight_rules").JadeHighlightRules,d=e("./folding/coffee").FoldMode,n=function(){this.HighlightRules=l,this.foldingRules=new d,this.$behaviour=this.$defaultBehaviour};o.inherits(n,h),function(){this.lineCommentStart="//",this.$id="ace/mode/jade"}.call(n.prototype),i.Mode=n});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),i=require("./text").Mode,t=require("./jade_highlight_rules").JadeHighlightRules,o=require("./folding/coffee").FoldMode,h=function(){this.HighlightRules=t,this.foldingRules=new o,this.$behaviour=this.$defaultBehaviour};e.inherits(h,i),function(){this.lineCommentStart="//",this.$id="ace/mode/jade"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/jade.js.map

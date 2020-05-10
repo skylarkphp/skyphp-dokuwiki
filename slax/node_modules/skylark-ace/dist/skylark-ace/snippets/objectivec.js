@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";t.snippetText=e("../requirejs/text!./objectivec.snippets"),t.scope="objectivec"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./objectivec.snippets"),exports.scope="objectivec"});
 //# sourceMappingURL=../sourcemaps/snippets/objectivec.js.map

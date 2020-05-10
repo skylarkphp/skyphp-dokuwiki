@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(s,c,a){c.isDark=!0,c.cssClass="ace-chaos",c.cssText=s("./chaos.css"),s("../lib/dom").importCssString(c.cssText,c.cssClass)});
+define(function(require,exports,module){exports.isDark=!0,exports.cssClass="ace-chaos",exports.cssText=require("./chaos.css"),require("../lib/dom").importCssString(exports.cssText,exports.cssClass)});
 //# sourceMappingURL=../sourcemaps/theme/chaos.js.map

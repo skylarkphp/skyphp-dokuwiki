@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(n,i,e){"use strict";var s=n("./lib/event"),t=function(n,i){this.onRender=n,this.pending=!1,this.changes=0,this.$recursionLimit=2,this.window=i||window;var e=this;this._flush=function(n){e.pending=!1;var i=e.changes;if(i&&(s.blockIdle(100),e.changes=0,e.onRender(i)),e.changes){if(e.$recursionLimit--<0)return;e.schedule()}else e.$recursionLimit=2}};(function(){this.schedule=function(n){this.changes=this.changes|n,this.changes&&!this.pending&&(s.nextFrame(this._flush),this.pending=!0)},this.clear=function(n){var i=this.changes;return this.changes=0,i}}).call(t.prototype),i.RenderLoop=t});
+define(function(require,exports,module){"use strict";var n=require("./lib/event"),i=function(i,e){this.onRender=i,this.pending=!1,this.changes=0,this.$recursionLimit=2,this.window=e||window;var s=this;this._flush=function(i){s.pending=!1;var e=s.changes;if(e&&(n.blockIdle(100),s.changes=0,s.onRender(e)),s.changes){if(s.$recursionLimit--<0)return;s.schedule()}else s.$recursionLimit=2}};(function(){this.schedule=function(i){this.changes=this.changes|i,this.changes&&!this.pending&&(n.nextFrame(this._flush),this.pending=!0)},this.clear=function(n){var i=this.changes;return this.changes=0,i}}).call(i.prototype),exports.RenderLoop=i});
 //# sourceMappingURL=sourcemaps/renderloop.js.map

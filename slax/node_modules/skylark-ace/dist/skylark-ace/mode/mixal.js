@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var l=i("../lib/oop"),h=i("./text").Mode,o=i("./mixal_highlight_rules").MixalHighlightRules,n=function(){this.HighlightRules=o};l.inherits(n,h),function(){this.$id="ace/mode/mixal",this.lineCommentStart="*"}.call(n.prototype),t.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./mixal_highlight_rules").MixalHighlightRules,l=function(){this.HighlightRules=e};i.inherits(l,t),function(){this.$id="ace/mode/mixal",this.lineCommentStart="*"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/mixal.js.map

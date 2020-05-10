@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,p){"use strict";t.snippetText=e("../requirejs/text!./abap.snippets"),t.scope="abap"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./abap.snippets"),exports.scope="abap"});
 //# sourceMappingURL=../sourcemaps/snippets/abap.js.map

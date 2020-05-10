@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";var a=e("./dom");t.get=function(e,t){var n=new XMLHttpRequest;n.open("GET",e,!0),n.onreadystatechange=function(){4===n.readyState&&t(n.responseText)},n.send(null)},t.loadScript=function(e,t){var n=a.getDocumentHead(),o=document.createElement("script");o.src=e,n.appendChild(o),o.onload=o.onreadystatechange=function(e,n){!n&&o.readyState&&"loaded"!=o.readyState&&"complete"!=o.readyState||(o=o.onload=o.onreadystatechange=null,n||t())}},t.qualifyURL=function(e){var t=document.createElement("a");return t.href=e,t.href}});
+define(function(require,exports,module){"use strict";var e=require("./dom");exports.get=function(e,t){var n=new XMLHttpRequest;n.open("GET",e,!0),n.onreadystatechange=function(){4===n.readyState&&t(n.responseText)},n.send(null)},exports.loadScript=function(t,n){var a=e.getDocumentHead(),o=document.createElement("script");o.src=t,a.appendChild(o),o.onload=o.onreadystatechange=function(e,t){!t&&o.readyState&&"loaded"!=o.readyState&&"complete"!=o.readyState||(o=o.onload=o.onreadystatechange=null,t||n())}},exports.qualifyURL=function(e){var t=document.createElement("a");return t.href=e,t.href}});
 //# sourceMappingURL=../sourcemaps/lib/net.js.map

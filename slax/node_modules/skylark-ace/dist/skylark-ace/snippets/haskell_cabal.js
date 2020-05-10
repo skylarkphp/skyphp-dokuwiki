@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./haskell_cabal.snippets"),s.scope="haskell_cabal"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./haskell_cabal.snippets"),exports.scope="haskell_cabal"});
 //# sourceMappingURL=../sourcemaps/snippets/haskell_cabal.js.map

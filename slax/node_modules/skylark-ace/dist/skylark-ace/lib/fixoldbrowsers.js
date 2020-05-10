@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";e("./regexp"),e("./es5-shim"),"undefined"==typeof Element||Element.prototype.remove||Object.defineProperty(Element.prototype,"remove",{enumerable:!1,writable:!0,configurable:!0,value:function(){this.parentNode&&this.parentNode.removeChild(this)}})});
+define(function(require,exports,module){"use strict";require("./regexp"),require("./es5-shim"),"undefined"==typeof Element||Element.prototype.remove||Object.defineProperty(Element.prototype,"remove",{enumerable:!1,writable:!0,configurable:!0,value:function(){this.parentNode&&this.parentNode.removeChild(this)}})});
 //# sourceMappingURL=../sourcemaps/lib/fixoldbrowsers.js.map

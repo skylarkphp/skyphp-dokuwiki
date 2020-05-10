@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,n){"use strict";t.snippetText=e("../requirejs/text!./erlang.snippets"),t.scope="erlang"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./erlang.snippets"),exports.scope="erlang"});
 //# sourceMappingURL=../sourcemaps/snippets/erlang.js.map

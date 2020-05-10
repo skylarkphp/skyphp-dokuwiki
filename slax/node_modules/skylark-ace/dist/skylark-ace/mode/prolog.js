@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,o){"use strict";var e=t("../lib/oop"),l=t("./text").Mode,h=t("./prolog_highlight_rules").PrologHighlightRules,s=t("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=h,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};e.inherits(n,l),function(){this.lineCommentStart="%",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/prolog"}.call(n.prototype),i.Mode=n});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./text").Mode,o=require("./prolog_highlight_rules").PrologHighlightRules,e=require("./folding/cstyle").FoldMode,l=function(){this.HighlightRules=o,this.foldingRules=new e,this.$behaviour=this.$defaultBehaviour};t.inherits(l,i),function(){this.lineCommentStart="%",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/prolog"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/prolog.js.map

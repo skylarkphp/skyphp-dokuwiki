@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,p){"use strict";t.snippetText=e("../requirejs/text!./perl6.snippets"),t.scope="perl6"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./perl6.snippets"),exports.scope="perl6"});
 //# sourceMappingURL=../sourcemaps/snippets/perl6.js.map

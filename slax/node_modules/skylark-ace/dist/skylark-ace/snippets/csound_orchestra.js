@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./csound_orchestra.snippets"),s.scope="csound_orchestra"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./csound_orchestra.snippets"),exports.scope="csound_orchestra"});
 //# sourceMappingURL=../sourcemaps/snippets/csound_orchestra.js.map

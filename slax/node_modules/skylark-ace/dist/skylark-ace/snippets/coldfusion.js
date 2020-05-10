@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,i){"use strict";s.snippetText=e("../requirejs/text!./coldfusion.snippets"),s.scope="coldfusion"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./coldfusion.snippets"),exports.scope="coldfusion"});
 //# sourceMappingURL=../sourcemaps/snippets/coldfusion.js.map

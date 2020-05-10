@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./glsl.snippets"),s.scope="glsl"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./glsl.snippets"),exports.scope="glsl"});
 //# sourceMappingURL=../sourcemaps/snippets/glsl.js.map

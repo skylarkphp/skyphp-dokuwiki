@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -86,19 +86,159 @@
 
 })(function(define,require) {
 
-define('slax-skydoku/main',[
-   "skylark-slax-runtime",
-   "skylark-bootstrap3/loadedInit",
-   "skylark-widgets-coder",
-   "skylark-widgets-textpad",
-   "skylark-jqueryui",
-   "skylark-particles"
-],function(slax,bsInit){
-	bsInit();
-	return slax;
-})
+define('slax-skydoku/slax',[
+	"skylark-langx-ns",
+	"skylark-langx-objects",
+	"skylark-langx-hoster",
+	"skylark-langx-async",
+	"skylark-net-http/Xhr",
+	"skylark-domx-eventer"
+],function(skylark, objects, hoster, async, Xhr, eventer){
 
-;
+    var _config = {
+
+
+    },
+    _rootUrl = "",  //The root url of slax system
+    _baseUrl = "";  //the base url of slax app
+
+
+
+    var slax = {
+        prepare : function(config) {
+            var p,slaxRoot,slaxApp;
+            if (!config) {
+                config = hoster.global.slaxConfig;
+            }
+            if (!config) {
+                var scripts = document.getElementsByTagName("script"),
+                    i = 0,
+                    script, slaxDir, src, match;
+                while(i < scripts.length){
+                    script = scripts[i++];
+                    if((src = script.getAttribute("src")) && (match = src.match(/(((.*)\/)|^)skylark-slax-runtime([0-9A-Za-z\-]*)\.js(\W|$)/i))){
+                        // sniff slaxDir and baseUrl
+                        slaxDir = match[3] || "";
+
+                        // sniff configuration on attribute in script element
+                        if(src = script.getAttribute("data-slax-config") ){
+                            config = eval("({ " + src + " })");
+                        } else {
+                            slaxRoot = script.getAttribute("data-slax-root");
+                            if (slaxRoot == undefined) {
+                                slaxRoot = slaxDir;
+                            }
+                            slaxApp = script.getAttribute("data-slax-app");
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (config) {
+                objects.mixin(_config,config);
+                p = async.Deferred.resolve()
+            } else {
+                var d = new async.Deferred(),
+                    p = d.promise;
+                Xhr.get(slaxRoot + "/slax-config.json").then(function(config){
+                    if (slaxApp) {
+                        var slaxAppPath;
+                        for (var i=0; i<config.apps.length;i++) {
+                            if (config.apps[i].name == slaxApp) {
+                                slaxAppPath = slaxRoot + config.apps[i].dir;
+                            } 
+                        }
+                        Xhr.get(slaxAppPath+"/spa.json").then(function(config){
+                            objects.mixin(_config,config);
+                            d.resolve();
+                        });
+                    } else {
+                        objects.mixin(_config,config);
+                        d.resolve();
+
+                    }
+                });
+
+            }
+
+            return p;
+        },
+
+        start : function() {
+            var cfg = _config;
+
+            //if (cfg.contextPath) {
+            //  _cfg.baseUrl = cfg.contextPath;
+            //}
+
+             require.config(cfg.runtime);
+
+           
+            var initApp = function(spa, _cfg) {
+                _cfg = _cfg || cfg;
+  
+                var app = spa(_cfg);
+
+                hoster.global.go =  function(path, force) {
+                    app.go(path, force);
+                };
+
+                app.prepare().then(function(){
+                    app.run();
+                });
+            };
+            if(cfg.spaModule) {
+                require([cfg.spaModule], function(spa) {
+                    if(spa._start) {
+                        spa._start().then(function(_cfg){
+                            initApp(spa, _cfg);
+                        });
+                    } else {
+                        initApp(spa);
+                    }
+                });
+            } else {
+                initApp(skylark.spa);
+            }
+        }
+    };
+
+    define("slax",[],function(){
+        return slax;
+    });
+
+    return skylark.attach("slax",slax);
+
+});
+define('slax-skydoku/cache',[
+	"./slax"
+],function(slax,_cache){
+	//local
+	//page
+	//session
+	return slax.cache = {};
+});
+define('slax-skydoku/main',[
+	"./slax",
+	"./cache",
+	"skylark-langx",
+	"skylark-widgets-shells",
+	"skylark-jquery",
+	"skylark-ajaxfy-spa",
+	"skylark-data-entities",
+	"skylark-data-streams",
+	"skylark-jszip",
+	"skylark-domx-images",
+	"skylark-domx-colorpicker",
+	"skylark-domx-gradienter",
+	"skylark-widgets-hierarchy",
+	"skylark-faiconpicker2",
+	"skylark-widgets-repeater",
+	"skylark-widgets-wordpad"
+],function(slax){
+	return slax;
+});
 define('slax-skydoku', ['slax-skydoku/main'], function (main) { return main; });
 
 

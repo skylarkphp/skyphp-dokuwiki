@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var h=i("../lib/oop"),l=i("./text").Mode,o=i("./sql_highlight_rules").SqlHighlightRules,s=function(){this.HighlightRules=o,this.$behaviour=this.$defaultBehaviour};h.inherits(s,l),function(){this.lineCommentStart="--",this.$id="ace/mode/sql"}.call(s.prototype),t.Mode=s});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./sql_highlight_rules").SqlHighlightRules,h=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};i.inherits(h,t),function(){this.lineCommentStart="--",this.$id="ace/mode/sql"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/sql.js.map

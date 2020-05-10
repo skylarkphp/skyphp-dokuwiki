@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,s){"use strict";t.snippetText=e("../requirejs/text!./tcl.snippets"),t.scope="tcl"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./tcl.snippets"),exports.scope="tcl"});
 //# sourceMappingURL=../sourcemaps/snippets/tcl.js.map

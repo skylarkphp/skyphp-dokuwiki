@@ -44,7 +44,7 @@ $wiki_home_link = (bootstrap3_conf('homePageURL') ? bootstrap3_conf('homePageURL
             </p>
           </div>
         </div>
-        <p>&nbsp;</p>
+<!--        <p>&nbsp;</p>  // modified by lwf -->
       </div>
       <?php endif; ?>
 
@@ -53,7 +53,7 @@ $wiki_home_link = (bootstrap3_conf('homePageURL') ? bootstrap3_conf('homePageURL
         <?php echo bootstrap3_content(tpl_include_page('footer', 0, 1, bootstrap3_conf('useACL'))); ?>
       </div>
 
-      <p>&nbsp;</p>
+<!--        <p>&nbsp;</p>  // modified by lwf -->
       <?php endif; ?>
 
       <div class="footer-license row">

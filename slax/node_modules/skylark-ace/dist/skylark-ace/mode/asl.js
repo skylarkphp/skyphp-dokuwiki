@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,e,t){"use strict";var l=i("../lib/oop"),o=i("./text").Mode,h=i("./asl_highlight_rules").ASLHighlightRules,s=i("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=h,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};l.inherits(n,o),function(){this.$id="ace/mode/asl"}.call(n.prototype),e.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),e=require("./text").Mode,t=require("./asl_highlight_rules").ASLHighlightRules,l=require("./folding/cstyle").FoldMode,o=function(){this.HighlightRules=t,this.foldingRules=new l,this.$behaviour=this.$defaultBehaviour};i.inherits(o,e),function(){this.$id="ace/mode/asl"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/asl.js.map

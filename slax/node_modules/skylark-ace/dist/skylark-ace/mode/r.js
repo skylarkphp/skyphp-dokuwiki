@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";var h=e("../unicode"),n=(e("../range").Range,e("../lib/oop")),o=e("./text").Mode,s=(e("./text_highlight_rules").TextHighlightRules,e("./r_highlight_rules").RHighlightRules),g=e("./matching_brace_outdent").MatchingBraceOutdent,r=function(){this.HighlightRules=s,this.$outdent=new g,this.$behaviour=this.$defaultBehaviour};n.inherits(r,o),function(){this.lineCommentStart="#",this.tokenRe=new RegExp("^["+h.wordChars+"._]+","g"),this.nonTokenRe=new RegExp("^(?:[^"+h.wordChars+"._]|s])+","g"),this.$id="ace/mode/r"}.call(r.prototype),t.Mode=r});
+define(function(require,exports,module){"use strict";var e=require("../unicode"),t=(require("../range").Range,require("../lib/oop")),i=require("./text").Mode,h=(require("./text_highlight_rules").TextHighlightRules,require("./r_highlight_rules").RHighlightRules),n=require("./matching_brace_outdent").MatchingBraceOutdent,o=function(){this.HighlightRules=h,this.$outdent=new n,this.$behaviour=this.$defaultBehaviour};t.inherits(o,i),function(){this.lineCommentStart="#",this.tokenRe=new RegExp("^["+e.wordChars+"._]+","g"),this.nonTokenRe=new RegExp("^(?:[^"+e.wordChars+"._]|s])+","g"),this.$id="ace/mode/r"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/r.js.map

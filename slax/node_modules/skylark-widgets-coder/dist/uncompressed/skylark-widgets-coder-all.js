@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -131,7 +131,8 @@ define('skylark-langx/skylark',[
 define('skylark-langx-types/types',[
     "skylark-langx-ns"
 ],function(skylark){
-    var toString = {}.toString;
+    var nativeIsArray = Array.isArray, 
+        toString = {}.toString;
     
     var type = (function() {
         var class2type = {};
@@ -147,9 +148,10 @@ define('skylark-langx-types/types',[
         };
     })();
 
-    function isArray(object) {
+ 
+    var  isArray = nativeIsArray || function(obj) {
         return object && object.constructor === Array;
-    }
+    };
 
 
     /**
@@ -192,7 +194,8 @@ define('skylark-langx-types/types',[
      * // => false
      */
     function isBoolean(obj) {
-        return typeof(obj) === "boolean";
+       return obj === true || obj === false || toString.call(obj) === '[object Boolean]';
+       //return typeof(obj) === "boolean";
     }
 
     function isDefined(obj) {
@@ -202,6 +205,11 @@ define('skylark-langx-types/types',[
     function isDocument(obj) {
         return obj != null && obj.nodeType == obj.DOCUMENT_NODE;
     }
+
+   // Is a given value a DOM element?
+    function isElement(obj) {
+        return !!(obj && obj.nodeType === 1);
+    }   
 
     function isEmptyObject(obj) {
         var name;
@@ -231,6 +239,8 @@ define('skylark-langx-types/types',[
         return type(value) == "function";
     }
 
+
+
     function isHtmlNode(obj) {
         return obj && obj.nodeType; // obj instanceof Node; //Consider the elements in IFRAME
     }
@@ -254,8 +264,8 @@ define('skylark-langx-types/types',[
         }
     }
 
-    function isNull(value) {
-      return type(value) === "null";
+    function isNull(obj) {
+        return obj === null;
     }
 
     function isNumber(obj) {
@@ -263,7 +273,9 @@ define('skylark-langx-types/types',[
     }
 
     function isObject(obj) {
-        return type(obj) == "object";
+        var type = typeof obj;
+        return type === 'function' || type === 'object' && !!obj;        
+        //return type(obj) == "object";
     }
 
     function isPlainObject(obj) {
@@ -306,8 +318,9 @@ define('skylark-langx-types/types',[
         (isObjectLike(value) && objectToString.call(value) == symbolTag);
     }
 
-    function isUndefined(value) {
-      return value === undefined
+    // Is a given variable undefined?
+    function isUndefined(obj) {
+        return obj === void 0;
     }
 
     return skylark.attach("langx.types",{
@@ -322,6 +335,8 @@ define('skylark-langx-types/types',[
 
         isDocument: isDocument,
 
+        isElement,
+
         isEmpty : isEmptyObject,
 
         isEmptyObject: isEmptyObject,
@@ -330,7 +345,12 @@ define('skylark-langx-types/types',[
 
         isHtmlNode: isHtmlNode,
 
+        isNaN : function (obj) {
+            return isNaN(obj);
+        },
+
         isNull: isNull,
+
 
         isNumber: isNumber,
 
@@ -1008,8 +1028,9 @@ define('skylark-langx-arrays/arrays',[
   "skylark-langx-types",
   "skylark-langx-objects"
 ],function(skylark,types,objects){
-	var filter = Array.prototype.filter,
-		isArrayLike = types.isArrayLike;
+  var filter = Array.prototype.filter,
+      find = Array.prototype.find,
+    isArrayLike = types.isArrayLike;
 
     /**
      * The base implementation of `_.findIndex` and `_.findLastIndex` without
@@ -1192,6 +1213,10 @@ define('skylark-langx-arrays/arrays',[
         })
     }
 
+    function find2(array,func) {
+      return find.call(array,func);
+    }
+
     return skylark.attach("langx.arrays",{
         baseFindIndex: baseFindIndex,
 
@@ -1208,6 +1233,8 @@ define('skylark-langx-arrays/arrays',[
         },
 
         filter : filter2,
+
+        find : find2,
         
         flatten: flatten,
 
@@ -2054,76 +2081,133 @@ define('skylark-langx-funcs/funcs',[
         };
     })();
 
-  var templateSettings = {
-    evaluate: /<%([\s\S]+?)%>/g,
-    interpolate: /<%=([\s\S]+?)%>/g,
-    escape: /<%-([\s\S]+?)%>/g
-  };
 
-
-  function template(text, settings, oldSettings) {
-    if (!settings && oldSettings) settings = oldSettings;
-    settings = objects.defaults({}, settings,templateSettings);
-
-    // Combine delimiters into one regular expression via alternation.
-    var matcher = RegExp([
-      (settings.escape || noMatch).source,
-      (settings.interpolate || noMatch).source,
-      (settings.evaluate || noMatch).source
-    ].join('|') + '|$', 'g');
-
-    // Compile the template source, escaping string literals appropriately.
-    var index = 0;
-    var source = "__p+='";
-    text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
-      source += text.slice(index, offset).replace(escapeRegExp, escapeChar);
-      index = offset + match.length;
-
-      if (escape) {
-        source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
-      } else if (interpolate) {
-        source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
-      } else if (evaluate) {
-        source += "';\n" + evaluate + "\n__p+='";
-      }
-
-      // Adobe VMs need the match returned to produce the correct offset.
-      return match;
-    });
-    source += "';\n";
-
-    // If a variable is not specified, place data values in local scope.
-    if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
-
-    source = "var __t,__p='',__j=Array.prototype.join," +
-      "print=function(){__p+=__j.call(arguments,'');};\n" +
-      source + 'return __p;\n';
-
-    var render;
-    try {
-      render = new Function(settings.variable || 'obj', '_', source);
-    } catch (e) {
-      e.source = source;
-      throw e;
-    }
-
-    var template = function(data) {
-      return render.call(this, data, _);
+    // By default, Underscore uses ERB-style template delimiters, change the
+    // following template settings to use alternative delimiters.
+    var templateSettings = {
+        evaluate: /<%([\s\S]+?)%>/g,
+        interpolate: /<%=([\s\S]+?)%>/g,
+        escape: /<%-([\s\S]+?)%>/g
     };
 
-    // Provide the compiled source as a convenience for precompilation.
-    var argument = settings.variable || 'obj';
-    template.source = 'function(' + argument + '){\n' + source + '}';
+    // When customizing `templateSettings`, if you don't want to define an
+    // interpolation, evaluation or escaping regex, we need one that is
+    // guaranteed not to match.
+    var noMatch = /(.)^/;
 
-    return template;
-  };
+
+    // Certain characters need to be escaped so that they can be put into a
+    // string literal.
+    var escapes = {
+      "'":      "'",
+      '\\':     '\\',
+      '\r':     'r',
+      '\n':     'n',
+      '\t':     't',
+      '\u2028': 'u2028',
+      '\u2029': 'u2029'
+    };
+
+    var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
+
+
+    function template(text, data, settings) {
+        var render;
+        settings = objects.defaults({}, settings,templateSettings);
+
+        // Combine delimiters into one regular expression via alternation.
+        var matcher = RegExp([
+          (settings.escape || noMatch).source,
+          (settings.interpolate || noMatch).source,
+          (settings.evaluate || noMatch).source
+        ].join('|') + '|$', 'g');
+
+        // Compile the template source, escaping string literals appropriately.
+        var index = 0;
+        var source = "__p+='";
+        text.replace(matcher, function(match, escape, interpolate, evaluate, offset) {
+          source += text.slice(index, offset)
+              .replace(escaper, function(match) { return '\\' + escapes[match]; });
+
+          if (escape) {
+            source += "'+\n((__t=(" + escape + "))==null?'':_.escape(__t))+\n'";
+          }
+          if (interpolate) {
+            source += "'+\n((__t=(" + interpolate + "))==null?'':__t)+\n'";
+          }
+          if (evaluate) {
+            source += "';\n" + evaluate + "\n__p+='";
+          }
+          index = offset + match.length;
+          return match;
+        });
+        source += "';\n";
+
+        // If a variable is not specified, place data values in local scope.
+        if (!settings.variable) source = 'with(obj||{}){\n' + source + '}\n';
+
+        source = "var __t,__p='',__j=Array.prototype.join," +
+          "print=function(){__p+=__j.call(arguments,'');};\n" +
+          source + 'return __p;\n';
+
+        try {
+          render = new Function(settings.variable || 'obj', '_', source);
+        } catch (e) {
+          e.source = source;
+          throw e;
+        }
+
+        if (data) {
+          return render(data,this)
+        }
+        var template = proxy(function(data) {
+          return render.call(this, data,this);
+        },this);
+
+        // Provide the compiled source as a convenience for precompilation.
+        var argument = settings.variable || 'obj';
+        template.source = 'function(' + argument + '){\n' + source + '}';
+
+        return template;
+    }
+
+
+    /**
+     * Creates a function that negates the result of the predicate `func`. The
+     * `func` predicate is invoked with the `this` binding and arguments of the
+     * created function.
+     * @category Function
+     * @param {Function} predicate The predicate to negate.
+     * @returns {Function} Returns the new negated function.
+     * @example
+     *
+     * function isEven(n) {
+     *   return n % 2 == 0
+     * }
+     *
+     * filter([1, 2, 3, 4, 5, 6], negate(isEven))
+     * // => [1, 3, 5]
+     */
+    function negate(predicate) {
+      if (typeof predicate !== 'function') {
+        throw new TypeError('Expected a function')
+      }
+      return function(...args) {
+        return !predicate.apply(this, args)
+      }
+    }
+
 
     return skylark.attach("langx.funcs",{
+        bind : proxy,
+        
         debounce: debounce,
 
         delegate: delegate,
 
         defer: defer,
+
+        negate: negate,
 
         noop : noop,
 
@@ -2154,9 +2238,6 @@ define('skylark-langx-async/Deferred',[
     "skylark-langx-objects"
 ],function(arrays,funcs,objects){
     "use strict";
-    
-    var  PGLISTENERS = Symbol ? Symbol() : '__pglisteners',
-         PGNOTIFIES = Symbol ? Symbol() : '__pgnotifies';
 
     var slice = Array.prototype.slice,
         proxy = funcs.proxy,
@@ -2188,15 +2269,15 @@ define('skylark-langx-async/Deferred',[
 
     var Deferred = function() {
         var self = this,
-            p = this.promise = new Promise(function(resolve, reject) {
+            p = this.promise = makePromise2(new Promise(function(resolve, reject) {
                 self._resolve = resolve;
                 self._reject = reject;
-            });
+            }));
 
-        wrapPromise(p,self);
+        //wrapPromise(p,self);
 
-        this[PGLISTENERS] = [];
-        this[PGNOTIFIES] = [];
+        //this[PGLISTENERS] = [];
+        //this[PGNOTIFIES] = [];
 
         //this.resolve = Deferred.prototype.resolve.bind(this);
         //this.reject = Deferred.prototype.reject.bind(this);
@@ -2204,52 +2285,97 @@ define('skylark-langx-async/Deferred',[
 
     };
 
-    function wrapPromise(p,d) {
-        var   added = {
-                state : function() {
-                    if (d.isResolved()) {
-                        return 'resolved';
+   
+    function makePromise2(promise) {
+        // Don't modify any promise that has been already modified.
+        if (promise.isResolved) return promise;
+
+        // Set initial state
+        var isPending = true;
+        var isRejected = false;
+        var isResolved = false;
+
+        // Observe the promise, saving the fulfillment in a closure scope.
+        var result = promise.then(
+            function(v) {
+                isResolved = true;
+                isPending = false;
+                return v; 
+            }, 
+            function(e) {
+                isRejected = true;
+                isPending = false;
+                throw e; 
+            }
+        );
+
+        result.isResolved = function() { return isResolved; };
+        result.isPending = function() { return isPending; };
+        result.isRejected = function() { return isRejected; };
+
+        result.state = function() {
+            if (isResolved) {
+                return 'resolved';
+            }
+            if (isRejected) {
+                return 'rejected';
+            }
+            return 'pending';
+        };
+
+        var notified = [],
+            listeners = [];
+
+          
+        result.then = function(onResolved,onRejected,onProgress) {
+            if (onProgress) {
+                this.progress(onProgress);
+            }
+            return makePromise2(Promise.prototype.then.call(this,
+                onResolved && function(args) {
+                    if (args && args.__ctx__ !== undefined) {
+                        return onResolved.apply(args.__ctx__,args);
+                    } else {
+                        return onResolved(args);
                     }
-                    if (d.isRejected()) {
-                        return 'rejected';
-                    }
-                    return 'pending';
                 },
-                then : function(onResolved,onRejected,onProgress) {
-                    if (onProgress) {
-                        this.progress(onProgress);
+                onRejected && function(args){
+                    if (args && args.__ctx__ !== undefined) {
+                        return onRejected.apply(args.__ctx__,args);
+                    } else {
+                        return onRejected(args);
                     }
-                    return wrapPromise(Promise.prototype.then.call(this,
-                            onResolved && function(args) {
-                                if (args && args.__ctx__ !== undefined) {
-                                    return onResolved.apply(args.__ctx__,args);
-                                } else {
-                                    return onResolved(args);
-                                }
-                            },
-                            onRejected && function(args){
-                                if (args && args.__ctx__ !== undefined) {
-                                    return onRejected.apply(args.__ctx__,args);
-                                } else {
-                                    return onRejected(args);
-                                }
-                            }));
-                },
-                progress : function(handler) {
-                    d[PGNOTIFIES].forEach(function (value) {
-                        handler(value);
-                    });
-                    d[PGLISTENERS].push(handler);
-                    return this;
                 }
+            ));
+        };
 
-            };
+        result.progress = function(handler) {
+            notified.forEach(function (value) {
+                handler(value);
+            });
+            listeners.push(handler);
+            return this;
+        };
 
-        added.pipe = added.then;
-        return mixin(p,added);
+        result.pipe = result.then;
 
+        result.notify = function(value) {
+            try {
+                notified.push(value);
+
+                return listeners.forEach(function (listener) {
+                    return listener(value);
+                });
+            } catch (error) {
+            this.reject(error);
+            }
+            return this;
+        };
+
+        return result;
     }
 
+ 
     Deferred.prototype.resolve = function(value) {
         var args = slice.call(arguments);
         return this.resolveWith(null,args);
@@ -2264,15 +2390,8 @@ define('skylark-langx-async/Deferred',[
     };
 
     Deferred.prototype.notify = function(value) {
-        try {
-            this[PGNOTIFIES].push(value);
-
-            return this[PGLISTENERS].forEach(function (listener) {
-                return listener(value);
-            });
-        } catch (error) {
-          this.reject(error);
-        }
+        var p = result(this,"promise");
+        p.notify(value);
         return this;
     };
 
@@ -2290,11 +2409,18 @@ define('skylark-langx-async/Deferred',[
     };
 
     Deferred.prototype.isResolved = function() {
-        return !!this._resolved;
+        var p = result(this,"promise");
+        return p.isResolved();
     };
 
     Deferred.prototype.isRejected = function() {
-        return !!this._rejected;
+        var p = result(this,"promise");
+        return p.isRejected();
+    };
+
+    Deferred.prototype.state = function() {
+        var p = result(this,"promise");
+        return p.state();
     };
 
     Deferred.prototype.then = function(callback, errback, progback) {
@@ -2313,14 +2439,22 @@ define('skylark-langx-async/Deferred',[
     };
 
 
+    Deferred.prototype.always  = function() {
+        var p = result(this,"promise");
+        p.always.apply(p,arguments);
+        return this;
+    };
+
     Deferred.prototype.done  = function() {
         var p = result(this,"promise");
-        return p.done.apply(p,arguments);
+        p.done.apply(p,arguments);
+        return this;
     };
 
     Deferred.prototype.fail = function(errback) {
         var p = result(this,"promise");
-        return p.fail(errback);
+        p.fail(errback);
+        return this;
     };
 
 
@@ -2332,7 +2466,7 @@ define('skylark-langx-async/Deferred',[
     };
 
     Deferred.first = function(array) {
-        return wrapPromise(Promise.race(array));
+        return makePromise2(Promise.race(array));
     };
 
 
@@ -2371,6 +2505,15 @@ define('skylark-langx-async/Deferred',[
     };
 
     Deferred.immediate = Deferred.resolve;
+
+
+    Deferred.promise = function(callback) {
+        var d = new Deferred();
+
+        callback(d.resolve.bind(d),d.reject.bind(d),d.progress.bind(d));
+
+        return d.promise;
+    };
 
     return Deferred;
 });
@@ -2527,13 +2670,69 @@ define('skylark-langx/Deferred',[
 ],function(Deferred){
     return Deferred;
 });
+define('skylark-langx-emitter/Event',[
+  "skylark-langx-objects",
+  "skylark-langx-funcs",
+  "skylark-langx-klass",
+],function(objects,funcs,klass){
+    var eventMethods = {
+        preventDefault: "isDefaultPrevented",
+        stopImmediatePropagation: "isImmediatePropagationStopped",
+        stopPropagation: "isPropagationStopped"
+     };
+        
+
+    function compatible(event, source) {
+        if (source || !event.isDefaultPrevented) {
+            if (!source) {
+                source = event;
+            }
+
+            objects.each(eventMethods, function(name, predicate) {
+                var sourceMethod = source[name];
+                event[name] = function() {
+                    this[predicate] = funcs.returnTrue;
+                    return sourceMethod && sourceMethod.apply(source, arguments);
+                }
+                event[predicate] = funcs.returnFalse;
+            });
+        }
+        return event;
+    }
+
+
+    /*
+    var Event = klass({
+        _construct : function(type,props) {
+            CustomEvent.call(this,type.props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        }
+    },CustomEvent);
+    */
+
+    class Event extends CustomEvent {
+        constructor(type,props) {
+            super(type,props);
+            objects.safeMixin(this, props);
+            compatible(this);
+        } 
+    }
+
+
+    Event.compatible = compatible;
+
+    return Event;
+    
+});
 define('skylark-langx-emitter/Emitter',[
   "skylark-langx-ns/ns",
   "skylark-langx-types",
   "skylark-langx-objects",
   "skylark-langx-arrays",
-  "skylark-langx-klass"
-],function(skylark,types,objects,arrays,klass){
+  "skylark-langx-klass",
+  "./Event"
+],function(skylark,types,objects,arrays,klass,Event){
     var slice = Array.prototype.slice,
         compact = arrays.compact,
         isDefined = types.isDefined,
@@ -2612,7 +2811,7 @@ define('skylark-langx-emitter/Emitter',[
             var self = this;
 
             if (isString(e)) {
-                e = new CustomEvent(e);
+                e = new Event(e); //new CustomEvent(e);
             }
 
             Object.defineProperty(e,"target",{
@@ -2639,6 +2838,9 @@ define('skylark-langx-emitter/Emitter',[
                     reCompact = false;
 
                 for (var i = 0; i < len; i++) {
+                    if (e.isImmediatePropagationStopped && e.isImmediatePropagationStopped()) {
+                        return this;
+                    }
                     var listener = listeners[i];
                     if (ns && (!listener.ns ||  !listener.ns.startsWith(ns))) {
                         continue;
@@ -2813,9 +3015,12 @@ define('skylark-langx-emitter/Emitter',[
     });
 
     Emitter.createEvent = function (type,props) {
-        var e = new CustomEvent(type,props);
-        return safeMixin(e, props);
+        //var e = new CustomEvent(type,props);
+        //return safeMixin(e, props);
+        return new Event(type,props);
     };
+
+    Emitter.Event = Event;
 
     return skylark.attach("langx.Emitter",Emitter);
 
@@ -3229,7 +3434,7 @@ define('skylark-langx-strings/strings',[
 
         slugify : slugify,
 
-        template : template,
+        //template : template,
 
         trim: trim,
 
@@ -3241,8 +3446,159 @@ define('skylark-langx-strings/strings',[
 	}) ; 
 
 });
-define('skylark-langx-strings/main',[
+define('skylark-langx-strings/base64',[
 	"./strings"
+],function(strings) {
+
+	// private property
+	const _keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+
+	// private method for UTF-8 encoding
+	function _utf8_encode(string) {
+		string = string.replace(/\r\n/g,"\n");
+		var utftext = "";
+
+		for (var n = 0; n < string.length; n++) {
+
+			var c = string.charCodeAt(n);
+
+			if (c < 128) {
+				utftext += String.fromCharCode(c);
+			}
+			else if((c > 127) && (c < 2048)) {
+				utftext += String.fromCharCode((c >> 6) | 192);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+			else {
+				utftext += String.fromCharCode((c >> 12) | 224);
+				utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+				utftext += String.fromCharCode((c & 63) | 128);
+			}
+
+		}
+
+		return utftext;
+	}
+
+	// private method for UTF-8 decoding
+	function _utf8_decode(utftext) {
+		var string = "";
+		var i = 0;
+		var c = c1 = c2 = 0;
+
+		while ( i < utftext.length ) {
+
+			c = utftext.charCodeAt(i);
+
+			if (c < 128) {
+				string += String.fromCharCode(c);
+				i++;
+			}
+			else if((c > 191) && (c < 224)) {
+				c2 = utftext.charCodeAt(i+1);
+				string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+				i += 2;
+			}
+			else {
+				c2 = utftext.charCodeAt(i+1);
+				c3 = utftext.charCodeAt(i+2);
+				string += String.fromCharCode(((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63));
+				i += 3;
+			}
+
+		}
+
+		return string;
+	}
+
+	// public method for encoding
+	function encode(input, binary) {
+		binary = (binary != null) ? binary : false;
+		var output = "";
+		var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+		var i = 0;
+
+		if (!binary)
+		{
+			input = _utf8_encode(input);
+		}
+
+		while (i < input.length) {
+
+			chr1 = input.charCodeAt(i++);
+			chr2 = input.charCodeAt(i++);
+			chr3 = input.charCodeAt(i++);
+
+			enc1 = chr1 >> 2;
+			enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+			enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+			enc4 = chr3 & 63;
+
+			if (isNaN(chr2)) {
+				enc3 = enc4 = 64;
+			} else if (isNaN(chr3)) {
+				enc4 = 64;
+			}
+
+			output = output +
+			this._keyStr.charAt(enc1) + this._keyStr.charAt(enc2) +
+			this._keyStr.charAt(enc3) + this._keyStr.charAt(enc4);
+
+		}
+
+		return output;
+	}
+
+	// public method for decoding
+	function decode(input, binary) {
+		binary = (binary != null) ? binary : false;
+		var output = "";
+		var chr1, chr2, chr3;
+		var enc1, enc2, enc3, enc4;
+		var i = 0;
+
+		input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+
+		while (i < input.length) {
+
+			enc1 = this._keyStr.indexOf(input.charAt(i++));
+			enc2 = this._keyStr.indexOf(input.charAt(i++));
+			enc3 = this._keyStr.indexOf(input.charAt(i++));
+			enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+			chr1 = (enc1 << 2) | (enc2 >> 4);
+			chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+			chr3 = ((enc3 & 3) << 6) | enc4;
+
+			output = output + String.fromCharCode(chr1);
+
+			if (enc3 != 64) {
+				output = output + String.fromCharCode(chr2);
+			}
+			if (enc4 != 64) {
+				output = output + String.fromCharCode(chr3);
+			}
+
+		}
+
+		if (!binary) {
+			output = _utf8_decode(output);
+		}
+
+		return output;
+
+	}
+
+
+	return strings.base64 = {
+		decode,
+		encode
+	};
+	
+});
+define('skylark-langx-strings/main',[
+	"./strings",
+	"./base64"
 ],function(strings){
 	return strings;
 });
@@ -3908,7 +4264,14 @@ define('skylark-domx-noder/noder',[
      * @param } parent
      */
     function createElement(tag, props, parent) {
-        var node = document.createElement(tag);
+        var node;
+
+        if (/svg/i.test(tag)) {
+            node = document.createElementNS("http://www.w3.org/2000/svg", tag)
+        } else {
+            node = document.createElement(tag);
+        }
+
         if (props) {
             for (var name in props) {
                 node.setAttribute(name, props[name]);
@@ -3919,6 +4282,16 @@ define('skylark-domx-noder/noder',[
         }
         return node;
     }
+
+function removeSelfClosingTags(xml) {
+    var split = xml.split("/>");
+    var newXml = "";
+    for (var i = 0; i < split.length - 1;i++) {
+        var edsplit = split[i].split("<");
+        newXml += split[i] + "></" + edsplit[edsplit.length - 1].split(" ")[0] + ">";
+    }
+    return newXml + split[split.length-1];
+}
 
     /*   
      * Create a DocumentFragment from the HTML fragment.
@@ -3936,7 +4309,7 @@ define('skylark-domx-noder/noder',[
             name = "*"
         }
         var container = containers[name];
-        container.innerHTML = "" + html;
+        container.innerHTML = removeSelfClosingTags("" + html);
         dom = slice.call(container.childNodes);
 
         dom.forEach(function(node) {
@@ -4148,6 +4521,9 @@ define('skylark-domx-noder/noder',[
         return new RegExp("^(" + (blockNodes.join('|')) + ")$").test(node.nodeName.toLowerCase());
     }
 
+    function isActive (elem) {
+            return elem === document.activeElement && (elem.type || elem.href);
+    }
 
     /*   
      * Get the owner document object for the specified element.
@@ -4271,6 +4647,18 @@ define('skylark-domx-noder/noder',[
     }
 
 
+    function selectable(elem, selectable) {
+        if (elem === undefined || elem.style === undefined)
+            return;
+        elem.onselectstart = selectable ? function () {
+            return false;
+        } : function () {
+        };
+        elem.style.MozUserSelect = selectable ? 'auto' : 'none';
+        elem.style.KhtmlUserSelect = selectable ? 'auto' : 'none';
+        elem.unselectable = selectable ? 'on' : 'off';
+    }
+
     /*   
      * traverse the specified node and its descendants, perform the callback function on each
      * @param {Node} node
@@ -4344,6 +4732,12 @@ define('skylark-domx-noder/noder',[
     langx.mixin(noder, {
         active  : activeElement,
 
+        after: after,
+
+        append: append,
+
+        before: before,
+
         blur : function(el) {
             el.blur();
         },
@@ -4353,14 +4747,16 @@ define('skylark-domx-noder/noder',[
         },
 
         clone: clone,
+
+        contains: contains,
+
         contents: contents,
 
         createElement: createElement,
 
         createFragment: createFragment,
 
-        contains: contains,
-
+     
         createTextNode: createTextNode,
 
         doc: doc,
@@ -4372,6 +4768,8 @@ define('skylark-domx-noder/noder',[
         focusable: focusable,
 
         html: html,
+
+        isActive,
 
         isChildOf: isChildOf,
 
@@ -4389,13 +4787,7 @@ define('skylark-domx-noder/noder',[
 
         ownerWindow: ownerWindow,
 
-        after: after,
-
-        before: before,
-
         prepend: prepend,
-
-        append: append,
 
         reflow: reflow,
 
@@ -4404,6 +4796,8 @@ define('skylark-domx-noder/noder',[
         removeChild : removeChild,
 
         replace: replace,
+
+        selectable,
 
         traverse: traverse,
 
@@ -4779,6 +5173,9 @@ define('skylark-domx-finder/finder',[
 
         'visible': function(elm) {
             return elm.offsetWidth && elm.offsetWidth
+        },
+        'empty': function(elm) {
+            return !elm.hasChildNodes();
         }
     };
 
@@ -5188,14 +5585,17 @@ define('skylark-domx-finder/finder',[
                     break;
                 }
             }
-            ret.push(node); // TODO
+            if (!selector || matches(node, selector)) {
+              ret.push(node); 
+            }
         }
 
-        if (selector) {
-            ret = local.filter(ret, selector);
-        }
+        //if (selector) {
+        //    ret = local.filter(ret, selector);
+        //}
         return ret;
     }
+
 
     /*
      * Returns a element by its ID.
@@ -5705,12 +6105,10 @@ define('skylark-domx-data/data',[
                 }
                 return this;
             } else {
-                if (elm.hasAttribute && elm.hasAttribute(name)) {
-                    return elm.getAttribute(name);
-                }
+                return elm.getAttribute ? elm.getAttribute(name) : elm[name];
             }
         } else {
-            elm.setAttribute(name, value);
+            elm.setAttribute ? elm.setAttribute(name, value) : elm[name] = value;
             return this;
         }
     }
@@ -6068,9 +6466,11 @@ define('skylark-domx-query/query',[
                 params = slice.call(arguments);
             var result = this.map(function(idx, elem) {
                 // if (elem.nodeType == 1) {
-                //if (elem.querySelector) {
+                if (elem.querySelector) {
                     return func.apply(context, last ? [elem] : [elem, selector]);
-                //}
+                } else {
+                    return [];
+                }
             });
             if (last && selector) {
                 return result.filter(selector);
@@ -6092,6 +6492,8 @@ define('skylark-domx-query/query',[
                 // if (elem.nodeType == 1) { // TODO
                 //if (elem.querySelector) {
                     return func.apply(context, last ? [elem, util] : [elem, selector, util]);
+                //} else {
+                //    return [];
                 //}
             });
             if (last && selector) {
@@ -6120,7 +6522,7 @@ define('skylark-domx-query/query',[
                 params = slice.call(arguments);
             forEach.call(self, function(elem, idx) {
                 var newArg1 = funcArg(elem, arg1, idx, oldValueFunc(elem));
-                func.apply(context, [elem, arg1].concat(params.slice(1)));
+                func.apply(context, [elem, newArg1].concat(params.slice(1)));
             });
             return self;
         }
@@ -6138,8 +6540,7 @@ define('skylark-domx-query/query',[
 
     function wrapper_name_value(func, context, oldValueFunc) {
         return function(name, value) {
-            var self = this,
-                params = slice.call(arguments);
+            var self = this;
 
             if (langx.isPlainObject(name) || langx.isDefined(value)) {
                 forEach.call(self, function(elem, idx) {
@@ -6149,7 +6550,7 @@ define('skylark-domx-query/query',[
                     } else {
                         newValue = value
                     }
-                    func.apply(context, [elem].concat(params));
+                    func.apply(context, [elem,name,newValue]);
                 });
                 return self;
             } else {
@@ -6276,6 +6677,7 @@ define('skylark-domx-query/query',[
                 $.ready(function() {
                     selector($);
                 });
+                return rootQuery;
             } else if (isQ(selector)) {
                 return selector;
             } else {
@@ -6284,7 +6686,7 @@ define('skylark-domx-query/query',[
                 }
                 return init(selector, context);
             }
-        };
+        },rootQuery = $(document);
 
         $.fn = NodeList.prototype;
         langx.mixin($.fn, {
@@ -6456,7 +6858,8 @@ define('skylark-domx-query/query',[
                 return this.before(newContent).remove();
             },
 
-            wrap: function(structure) {
+            wrap: function(html) {
+                /*
                 var func = isFunction(structure)
                 if (this[0] && !func)
                     var dom = $(structure).get(0),
@@ -6468,9 +6871,16 @@ define('skylark-domx-query/query',[
                         clone ? dom.cloneNode(true) : dom
                     )
                 })
+                */
+                var htmlIsFunction = typeof html === "function";
+
+                return this.each( function( i ) {
+                    $( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
+                } );                
             },
 
-            wrapAll: function(wrappingElement) {
+            wrapAll: function(html) {
+                /*
                 if (this[0]) {
                     $(this[0]).before(wrappingElement = $(wrappingElement));
                     var children;
@@ -6481,9 +6891,38 @@ define('skylark-domx-query/query',[
                     $(wrappingElement).append(this);
                 }
                 return this
+                */
+                var wrap;
+
+                if ( this[ 0 ] ) {
+                    if ( typeof html === "function" ) {
+                        html = html.call( this[ 0 ] );
+                    }
+
+                    // The elements to wrap the target around
+                    wrap = $( html, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+                    if ( this[ 0 ].parentNode ) {
+                        wrap.insertBefore( this[ 0 ] );
+                    }
+
+                    wrap.map( function() {
+                        var elem = this;
+
+                        while ( elem.firstElementChild ) {
+                            elem = elem.firstElementChild;
+                        }
+
+                        return elem;
+                    } ).append( this );
+                }
+
+                return this;
+
             },
 
-            wrapInner: function(wrappingElement) {
+            wrapInner: function(html) {
+                /*
                 var func = isFunction(wrappingElement)
                 return this.each(function(index,node) {
                     var self = $(this),
@@ -6491,9 +6930,29 @@ define('skylark-domx-query/query',[
                         dom = func ? wrappingElement.call(this, index,node) : wrappingElement
                     contents.length ? contents.wrapAll(dom) : self.append(dom)
                 })
+                */
+                if ( typeof html === "function" ) {
+                    return this.each( function( i ) {
+                        $( this ).wrapInner( html.call( this, i ) );
+                    } );
+                }
+
+                return this.each( function() {
+                    var self = $( this ),
+                        contents = self.contents();
+
+                    if ( contents.length ) {
+                        contents.wrapAll( html );
+
+                    } else {
+                        self.append( html );
+                    }
+                } );
+
             },
 
             unwrap: function(selector) {
+                /*
                 if (this.parent().children().length === 0) {
                     // remove dom without text
                     this.parent(selector).not("body").each(function() {
@@ -6505,6 +6964,12 @@ define('skylark-domx-query/query',[
                     });
                 }
                 return this
+                */
+                this.parent(selector).not("body").each( function() {
+                    $(this).replaceWith(this.childNodes);
+                });
+                return this;
+
             },
 
             clone: function() {
@@ -7006,9 +7471,9 @@ define('skylark-domx-data/main',[
 
     $.fn.removeProp = $.wraps.wrapper_every_act(data.removeProp, data);
 
-    $.fn.data = $.wraps.wrapper_name_value(data.data, data, data.data);
+    $.fn.data = $.wraps.wrapper_name_value(data.data, data);
 
-    $.fn.removeData = $.wraps.wrapper_every_act(data.removeData, data);
+    $.fn.removeData = $.wraps.wrapper_every_act(data.removeData);
 
     $.fn.val = $.wraps.wrapper_value(data.val, data, data.val);
 
@@ -7063,99 +7528,101 @@ define('skylark-domx-eventer/eventer',[
         };
     }
 
+
+    var NativeEventCtors = [
+            window["CustomEvent"], // 0 default
+            window["CompositionEvent"], // 1
+            window["DragEvent"], // 2
+            window["Event"], // 3
+            window["FocusEvent"], // 4
+            window["KeyboardEvent"], // 5
+            window["MessageEvent"], // 6
+            window["MouseEvent"], // 7
+            window["MouseScrollEvent"], // 8
+            window["MouseWheelEvent"], // 9
+            window["MutationEvent"], // 10
+            window["ProgressEvent"], // 11
+            window["TextEvent"], // 12
+            window["TouchEvent"], // 13
+            window["UIEvent"], // 14
+            window["WheelEvent"], // 15
+            window["ClipboardEvent"] // 16
+        ],
+        NativeEvents = {
+            "compositionstart": 1, // CompositionEvent
+            "compositionend": 1, // CompositionEvent
+            "compositionupdate": 1, // CompositionEvent
+
+            "beforecopy": 16, // ClipboardEvent
+            "beforecut": 16, // ClipboardEvent
+            "beforepaste": 16, // ClipboardEvent
+            "copy": 16, // ClipboardEvent
+            "cut": 16, // ClipboardEvent
+            "paste": 16, // ClipboardEvent
+
+            "drag": 2, // DragEvent
+            "dragend": 2, // DragEvent
+            "dragenter": 2, // DragEvent
+            "dragexit": 2, // DragEvent
+            "dragleave": 2, // DragEvent
+            "dragover": 2, // DragEvent
+            "dragstart": 2, // DragEvent
+            "drop": 2, // DragEvent
+
+            "abort": 3, // Event
+            "change": 3, // Event
+            "error": 3, // Event
+            "selectionchange": 3, // Event
+            "submit": 3, // Event
+            "reset": 3, // Event
+
+            "focus": 4, // FocusEvent
+            "blur": 4, // FocusEvent
+            "focusin": 4, // FocusEvent
+            "focusout": 4, // FocusEvent
+
+            "keydown": 5, // KeyboardEvent
+            "keypress": 5, // KeyboardEvent
+            "keyup": 5, // KeyboardEvent
+
+            "message": 6, // MessageEvent
+
+            "click": 7, // MouseEvent
+            "contextmenu": 7, // MouseEvent
+            "dblclick": 7, // MouseEvent
+            "mousedown": 7, // MouseEvent
+            "mouseup": 7, // MouseEvent
+            "mousemove": 7, // MouseEvent
+            "mouseover": 7, // MouseEvent
+            "mouseout": 7, // MouseEvent
+            "mouseenter": 7, // MouseEvent
+            "mouseleave": 7, // MouseEvent
+
+
+            "textInput": 12, // TextEvent
+
+            "touchstart": 13, // TouchEvent
+            "touchmove": 13, // TouchEvent
+            "touchend": 13, // TouchEvent
+
+            "load": 14, // UIEvent
+            "resize": 14, // UIEvent
+            "select": 14, // UIEvent
+            "scroll": 14, // UIEvent
+            "unload": 14, // UIEvent,
+
+            "wheel": 15 // WheelEvent
+        };
+
     //create a custom dom event
     var createEvent = (function() {
-        var EventCtors = [
-                window["CustomEvent"], // 0 default
-                window["CompositionEvent"], // 1
-                window["DragEvent"], // 2
-                window["Event"], // 3
-                window["FocusEvent"], // 4
-                window["KeyboardEvent"], // 5
-                window["MessageEvent"], // 6
-                window["MouseEvent"], // 7
-                window["MouseScrollEvent"], // 8
-                window["MouseWheelEvent"], // 9
-                window["MutationEvent"], // 10
-                window["ProgressEvent"], // 11
-                window["TextEvent"], // 12
-                window["TouchEvent"], // 13
-                window["UIEvent"], // 14
-                window["WheelEvent"], // 15
-                window["ClipboardEvent"] // 16
-            ],
-            NativeEvents = {
-                "compositionstart": 1, // CompositionEvent
-                "compositionend": 1, // CompositionEvent
-                "compositionupdate": 1, // CompositionEvent
-
-                "beforecopy": 16, // ClipboardEvent
-                "beforecut": 16, // ClipboardEvent
-                "beforepaste": 16, // ClipboardEvent
-                "copy": 16, // ClipboardEvent
-                "cut": 16, // ClipboardEvent
-                "paste": 16, // ClipboardEvent
-
-                "drag": 2, // DragEvent
-                "dragend": 2, // DragEvent
-                "dragenter": 2, // DragEvent
-                "dragexit": 2, // DragEvent
-                "dragleave": 2, // DragEvent
-                "dragover": 2, // DragEvent
-                "dragstart": 2, // DragEvent
-                "drop": 2, // DragEvent
-
-                "abort": 3, // Event
-                "change": 3, // Event
-                "error": 3, // Event
-                "selectionchange": 3, // Event
-                "submit": 3, // Event
-                "reset": 3, // Event
-
-                "focus": 4, // FocusEvent
-                "blur": 4, // FocusEvent
-                "focusin": 4, // FocusEvent
-                "focusout": 4, // FocusEvent
-
-                "keydown": 5, // KeyboardEvent
-                "keypress": 5, // KeyboardEvent
-                "keyup": 5, // KeyboardEvent
-
-                "message": 6, // MessageEvent
-
-                "click": 7, // MouseEvent
-                "contextmenu": 7, // MouseEvent
-                "dblclick": 7, // MouseEvent
-                "mousedown": 7, // MouseEvent
-                "mouseup": 7, // MouseEvent
-                "mousemove": 7, // MouseEvent
-                "mouseover": 7, // MouseEvent
-                "mouseout": 7, // MouseEvent
-                "mouseenter": 7, // MouseEvent
-                "mouseleave": 7, // MouseEvent
-
-
-                "textInput": 12, // TextEvent
-
-                "touchstart": 13, // TouchEvent
-                "touchmove": 13, // TouchEvent
-                "touchend": 13, // TouchEvent
-
-                "load": 14, // UIEvent
-                "resize": 14, // UIEvent
-                "select": 14, // UIEvent
-                "scroll": 14, // UIEvent
-                "unload": 14, // UIEvent,
-
-                "wheel": 15 // WheelEvent
-            };
 
         function getEventCtor(type) {
             var idx = NativeEvents[type];
             if (!idx) {
                 idx = 0;
             }
-            return EventCtors[idx];
+            return NativeEventCtors[idx];
         }
 
         return function(type, props) {
@@ -7674,6 +8141,8 @@ define('skylark-domx-eventer/eventer',[
     }
 
     langx.mixin(eventer, {
+        NativeEvents : NativeEvents,
+        
         create: createEvent,
 
         keys: keyCodeLookup,
@@ -7698,6 +8167,32 @@ define('skylark-domx-eventer/eventer',[
 
     });
 
+    each(NativeEvents,function(name){
+        eventer[name] = function(elm,selector,data,callback) {
+            if (arguments.length>1) {
+                return this.on(elm,name,selector,data,callback);
+            } else {
+                if (name == "focus") {
+                    if (elm.focus) {
+                        elm.focus();
+                    }
+                } else if (name == "blur") {
+                    if (elm.blur) {
+                        elm.blur();
+                    }
+                } else if (name == "click") {
+                    if (elm.click) {
+                        elm.click();
+                    }
+                } else {
+                    this.trigger(elm,name);
+                }
+
+                return this;
+            }
+        };
+    });
+
     return skylark.attach("domx.eventer",eventer);
 });
 define('skylark-domx-eventer/main',[
@@ -7707,31 +8202,26 @@ define('skylark-domx-eventer/main',[
     "skylark-domx-query"        
 ],function(langx,eventer,velm,$){
 
-    // from ./eventer
-    velm.delegate([
+    var delegateMethodNames = [
         "off",
         "on",
         "one",
-        "shortcuts",
         "trigger"
-    ], eventer);
+    ];
 
-    // events
-    var events = [ 'keyUp', 'keyDown', 'mouseOver', 'mouseOut', 'click', 'dblClick', 'change' ];
-
-    events.forEach( function ( event ) {
-
-        var method = event;
-
-        velm.VisualElement.prototype[method ] = function ( callback ) {
-
-            this.on( event.toLowerCase(), callback);
-
-            return this;
-        };
-
+    langx.each(eventer.NativeEvents,function(name){
+        delegateMethodNames.push(name);
     });
 
+    // from ./eventer
+    velm.delegate(delegateMethodNames, eventer);
+
+    langx.each(delegateMethodNames,function(i,name){
+        $.fn[name] = $.wraps.wrapper_every_act(eventer[name],eventer);
+    });
+
+
+    /*
     $.fn.on = $.wraps.wrapper_every_act(eventer.on, eventer);
 
     $.fn.off = $.wraps.wrapper_every_act(eventer.off, eventer);
@@ -7741,11 +8231,7 @@ define('skylark-domx-eventer/main',[
     ('focusin focusout focus blur load resize scroll unload click dblclick ' +
         'mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave ' +
         'change select keydown keypress keyup error transitionEnd').split(' ').forEach(function(event) {
-        $.fn[event] = function(data, callback) {
-            return (0 in arguments) ?
-                this.on(event, data, callback) :
-                this.trigger(event)
-        }
+        $.fn[event] = $.wraps.wrapper_every_act(eventer[event],eventer);
     });
 
     $.fn.one = function(event, selector, data, callback) {
@@ -7762,6 +8248,7 @@ define('skylark-domx-eventer/main',[
 
         return this.on(event, selector, data, callback, 1)
     }; 
+    */
 
     $.ready = eventer.ready;
 
@@ -8131,7 +8618,7 @@ define('skylark-domx-styler/main',[
 });
 define('skylark-domx-styler', ['skylark-domx-styler/main'], function (main) { return main; });
 
-define('skylark-storages-diskfs/diskfs',[
+define('skylark-io-diskfs/diskfs',[
     "skylark-langx/skylark"
 ], function(skylark) {
 
@@ -8154,7 +8641,7 @@ define('skylark-storages-diskfs/diskfs',[
 
     return skylark.attach("storages.diskfs", diskfs);
 });
- define('skylark-storages-diskfs/webentry',[
+ define('skylark-io-diskfs/webentry',[
     "skylark-langx/arrays",
     "skylark-langx/Deferred",
     "./diskfs"
@@ -8215,7 +8702,7 @@ define('skylark-storages-diskfs/diskfs',[
     "skylark-domx-styler",
     "skylark-domx-eventer",
     "./files",
-    "skylark-storages-diskfs/webentry"
+    "skylark-io-diskfs/webentry"
 ],function(arrays,Deferred, styler, eventer, files, webentry){  /*
      * Make the specified element to could accept HTML5 file drag and drop.
      * @param {HTMLElement} elm
@@ -8312,7 +8799,7 @@ define('skylark-domx-files/pastezone',[
 
 });
 
-define('skylark-storages-diskfs/select',[
+define('skylark-io-diskfs/select',[
     "./diskfs"
 ],function(diskfs){
     var fileInput,
@@ -8324,6 +8811,8 @@ define('skylark-storages-diskfs/select',[
         params = params || {};
         var directory = params.directory || false,
             multiple = params.multiple || false,
+            accept = params.accept || "", //'image/gif,image/jpeg,image/jpg,image/png,image/svg'
+            title = params.title || "",
             fileSelected = params.picked;
         if (!fileInput) {
             var input = fileInput = document.createElement("input");
@@ -8359,6 +8848,9 @@ define('skylark-storages-diskfs/select',[
             };
         }
         fileInput.multiple = multiple;
+        fileInput.accept = accept;
+        fileInput.title = title;
+
         fileInput.webkitdirectory = directory;
         fileInput.click();
     }
@@ -8371,7 +8863,7 @@ define('skylark-domx-files/picker',[
     "skylark-langx/objects",
     "skylark-domx-eventer",
     "./files",
-    "skylark-storages-diskfs/select"
+    "skylark-io-diskfs/select"
 ],function(objects, eventer, files, select){
     /*
      * Make the specified element to pop-up the file selection dialog box when clicked , and read the contents the files selected from client file system by user.
@@ -8392,28 +8884,645 @@ define('skylark-domx-files/picker',[
 
 
 
-define('skylark-domx-files/main',[
-	"./files",
-	"skylark-domx-velm",
-	"skylark-domx-query",
-	"./dropzone",
-	"./pastezone",
-	"./picker"
-],function(files,velm,$){
-	velm.delegate([
-		"dropzone",
-		"pastezone",
-		"picker"
-	],files);
-
-    $.fn.pastezone = $.wraps.wrapper_every_act(files.pastezone, files);
-    $.fn.dropzone = $.wraps.wrapper_every_act(files.dropzone, files);
-    $.fn.picker = $.wraps.wrapper_every_act(files.picker, files);
-
-	return files;
+define('skylark-net-http/http',[
+  "skylark-langx-ns/ns",
+],function(skylark){
+	return skylark.attach("net.http",{});
 });
-define('skylark-domx-files', ['skylark-domx-files/main'], function (main) { return main; });
+define('skylark-net-http/Xhr',[
+  "skylark-langx-ns/ns",
+  "skylark-langx-types",
+  "skylark-langx-objects",
+  "skylark-langx-arrays",
+  "skylark-langx-funcs",
+  "skylark-langx-async/Deferred",
+  "skylark-langx-emitter/Evented",
+  "./http"
+],function(skylark,types,objects,arrays,funcs,Deferred,Evented,http){
 
+    var each = objects.each,
+        mixin = objects.mixin,
+        noop = funcs.noop,
+        isArray = types.isArray,
+        isFunction = types.isFunction,
+        isPlainObject = types.isPlainObject,
+        type = types.type;
+ 
+     var getAbsoluteUrl = (function() {
+        var a;
+
+        return function(url) {
+            if (!a) a = document.createElement('a');
+            a.href = url;
+
+            return a.href;
+        };
+    })();
+   
+    var Xhr = (function(){
+        var jsonpID = 0,
+            key,
+            name,
+            rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+            scriptTypeRE = /^(?:text|application)\/javascript/i,
+            xmlTypeRE = /^(?:text|application)\/xml/i,
+            jsonType = 'application/json',
+            htmlType = 'text/html',
+            blankRE = /^\s*$/;
+
+        var XhrDefaultOptions = {
+            async: true,
+
+            // Default type of request
+            type: 'GET',
+            // Callback that is executed before request
+            beforeSend: noop,
+            // Callback that is executed if the request succeeds
+            success: noop,
+            // Callback that is executed the the server drops error
+            error: noop,
+            // Callback that is executed on request complete (both: error and success)
+            complete: noop,
+            // The context for the callbacks
+            context: null,
+            // Whether to trigger "global" Ajax events
+            global: true,
+
+            // MIME types mapping
+            // IIS returns Javascript as "application/x-javascript"
+            accepts: {
+                script: 'text/javascript, application/javascript, application/x-javascript',
+                json: 'application/json',
+                xml: 'application/xml, text/xml',
+                html: 'text/html',
+                text: 'text/plain'
+            },
+            // Whether the request is to another domain
+            crossDomain: false,
+            // Default timeout
+            timeout: 0,
+            // Whether data should be serialized to string
+            processData: false,
+            // Whether the browser should be allowed to cache GET responses
+            cache: true,
+
+            traditional : false,
+            
+            xhrFields : {
+                withCredentials : false
+            }
+        };
+
+        function mimeToDataType(mime) {
+            if (mime) {
+                mime = mime.split(';', 2)[0];
+            }
+            if (mime) {
+                if (mime == htmlType) {
+                    return "html";
+                } else if (mime == jsonType) {
+                    return "json";
+                } else if (scriptTypeRE.test(mime)) {
+                    return "script";
+                } else if (xmlTypeRE.test(mime)) {
+                    return "xml";
+                }
+            }
+            return "text";
+        }
+
+        function appendQuery(url, query) {
+            if (query == '') return url
+            return (url + '&' + query).replace(/[&?]{1,2}/, '?')
+        }
+
+        // serialize payload and append it to the URL for GET requests
+        function serializeData(options) {
+            options.data = options.data || options.query;
+            if (options.processData && options.data && type(options.data) != "string") {
+                options.data = param(options.data, options.traditional);
+            }
+            if (options.data && (!options.type || options.type.toUpperCase() == 'GET')) {
+                if (type(options.data) != "string") {
+                    options.data = param(options.data, options.traditional);
+                }
+                options.url = appendQuery(options.url, options.data);
+                options.data = undefined;
+            }
+        }
+        
+        function serialize(params, obj, traditional, scope) {
+            var t, array = isArray(obj),
+                hash = isPlainObject(obj)
+            each(obj, function(key, value) {
+                t =type(value);
+                if (scope) key = traditional ? scope :
+                    scope + '[' + (hash || t == 'object' || t == 'array' ? key : '') + ']'
+                // handle data in serializeArray() format
+                if (!scope && array) params.add(value.name, value.value)
+                // recurse into nested objects
+                else if (t == "array" || (!traditional && t == "object"))
+                    serialize(params, value, traditional, key)
+                else params.add(key, value)
+            })
+        }
+
+        var param = function(obj, traditional) {
+            var params = []
+            params.add = function(key, value) {
+                if (isFunction(value)) {
+                  value = value();
+                }
+                if (value == null) {
+                  value = "";
+                }
+                this.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
+            };
+            serialize(params, obj, traditional)
+            return params.join('&').replace(/%20/g, '+')
+        };
+
+        var Xhr = Evented.inherit({
+            klassName : "Xhr",
+
+            _request  : function(args) {
+                var _ = this._,
+                    self = this,
+                    options = mixin({},XhrDefaultOptions,_.options,args),
+                    xhr = _.xhr = new XMLHttpRequest();
+
+                serializeData(options)
+
+                if (options.beforeSend) {
+                    options.beforeSend.call(this, xhr, options);
+                }                
+
+                var dataType = options.dataType || options.handleAs,
+                    mime = options.mimeType || options.accepts[dataType],
+                    headers = options.headers,
+                    xhrFields = options.xhrFields,
+                    isFormData = options.data && options.data instanceof FormData,
+                    basicAuthorizationToken = options.basicAuthorizationToken,
+                    type = options.type,
+                    url = options.url,
+                    async = options.async,
+                    user = options.user , 
+                    password = options.password,
+                    deferred = new Deferred(),
+                    contentType = options.contentType || (isFormData ? false : 'application/x-www-form-urlencoded');
+
+                if (xhrFields) {
+                    for (name in xhrFields) {
+                        xhr[name] = xhrFields[name];
+                    }
+                }
+
+                if (mime && mime.indexOf(',') > -1) {
+                    mime = mime.split(',', 2)[0];
+                }
+                if (mime && xhr.overrideMimeType) {
+                    xhr.overrideMimeType(mime);
+                }
+
+                //if (dataType) {
+                //    xhr.responseType = dataType;
+                //}
+
+                var finish = function() {
+                    xhr.onloadend = noop;
+                    xhr.onabort = noop;
+                    xhr.onprogress = noop;
+                    xhr.ontimeout = noop;
+                    xhr = null;
+                }
+                var onloadend = function() {
+                    var result, error = false
+                    if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && getAbsoluteUrl(url).startsWith('file:'))) {
+                        dataType = dataType || mimeToDataType(options.mimeType || xhr.getResponseHeader('content-type'));
+
+                        result = xhr.responseText;
+                        try {
+                            if (dataType == 'script') {
+                                eval(result);
+                            } else if (dataType == 'xml') {
+                                result = xhr.responseXML;
+                            } else if (dataType == 'json') {
+                                result = blankRE.test(result) ? null : JSON.parse(result);
+                            } else if (dataType == "blob") {
+                                result = Blob([xhrObj.response]);
+                            } else if (dataType == "arraybuffer") {
+                                result = xhr.reponse;
+                            }
+                        } catch (e) { 
+                            error = e;
+                        }
+
+                        if (error) {
+                            deferred.reject(error,xhr.status,xhr);
+                        } else {
+                            deferred.resolve(result,xhr.status,xhr);
+                        }
+                    } else {
+                        deferred.reject(new Error(xhr.statusText),xhr.status,xhr);
+                    }
+                    finish();
+                };
+
+                var onabort = function() {
+                    if (deferred) {
+                        deferred.reject(new Error("abort"),xhr.status,xhr);
+                    }
+                    finish();                 
+                }
+ 
+                var ontimeout = function() {
+                    if (deferred) {
+                        deferred.reject(new Error("timeout"),xhr.status,xhr);
+                    }
+                    finish();                 
+                }
+
+                var onprogress = function(evt) {
+                    if (deferred) {
+                        deferred.notify(evt,xhr.status,xhr);
+                    }
+                }
+
+                xhr.onloadend = onloadend;
+                xhr.onabort = onabort;
+                xhr.ontimeout = ontimeout;
+                xhr.onprogress = onprogress;
+
+                xhr.open(type, url, async, user, password);
+               
+                if (headers) {
+                    for ( var key in headers) {
+                        var value = headers[key];
+ 
+                        if(key.toLowerCase() === 'content-type'){
+                            contentType = value;
+                        } else {
+                           xhr.setRequestHeader(key, value);
+                        }
+                    }
+                }   
+
+                if  (contentType && contentType !== false){
+                    xhr.setRequestHeader('Content-Type', contentType);
+                }
+
+                if(!headers || !('X-Requested-With' in headers)){
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                }
+
+
+                //If basicAuthorizationToken is defined set its value into "Authorization" header
+                if (basicAuthorizationToken) {
+                    xhr.setRequestHeader("Authorization", basicAuthorizationToken);
+                }
+
+                xhr.send(options.data ? options.data : null);
+
+                return deferred.promise;
+
+            },
+
+            "abort": function() {
+                var _ = this._,
+                    xhr = _.xhr;
+
+                if (xhr) {
+                    xhr.abort();
+                }    
+            },
+
+
+            "request": function(args) {
+                return this._request(args);
+            },
+
+            get : function(args) {
+                args = args || {};
+                args.type = "GET";
+                return this._request(args);
+            },
+
+            post : function(args) {
+                args = args || {};
+                args.type = "POST";
+                return this._request(args);
+            },
+
+            patch : function(args) {
+                args = args || {};
+                args.type = "PATCH";
+                return this._request(args);
+            },
+
+            put : function(args) {
+                args = args || {};
+                args.type = "PUT";
+                return this._request(args);
+            },
+
+            del : function(args) {
+                args = args || {};
+                args.type = "DELETE";
+                return this._request(args);
+            },
+
+            "init": function(options) {
+                this._ = {
+                    options : options || {}
+                };
+            }
+        });
+
+        ["request","get","post","put","del","patch"].forEach(function(name){
+            Xhr[name] = function(url,args) {
+                var xhr = new Xhr({"url" : url});
+                return xhr[name](args);
+            };
+        });
+
+        Xhr.defaultOptions = XhrDefaultOptions;
+        Xhr.param = param;
+
+        return Xhr;
+    })();
+
+	return http.Xhr = Xhr;	
+});
+define('skylark-net-http/Upload',[
+    "skylark-langx-types",
+    "skylark-langx-objects",
+    "skylark-langx-arrays",
+    "skylark-langx-async/Deferred",
+    "skylark-langx-emitter/Evented",    
+    "./Xhr",
+    "./http"
+],function(types, objects, arrays, Deferred, Evented,Xhr, http){
+
+    var blobSlice = Blob.prototype.slice || Blob.prototype.webkitSlice || Blob.prototype.mozSlice;
+
+
+    /*
+     *Class for uploading files using xhr.
+     */
+    var Upload = Evented.inherit({
+        klassName : "Upload",
+
+        _construct : function(options) {
+            this._options = objects.mixin({
+                debug: false,
+                url: '/upload',
+                // maximum number of concurrent uploads
+                maxConnections: 999,
+                // To upload large files in smaller chunks, set the following option
+                // to a preferred maximum chunk size. If set to 0, null or undefined,
+                // or the browser does not support the required Blob API, files will
+                // be uploaded as a whole.
+                maxChunkSize: undefined,
+
+                onProgress: function(id, fileName, loaded, total){
+                },
+                onComplete: function(id, fileName){
+                },
+                onCancel: function(id, fileName){
+                },
+                onFailure : function(id,fileName,e) {                    
+                }
+            },options);
+
+            this._queue = [];
+            // params for files in queue
+            this._params = [];
+
+            this._files = [];
+            this._xhrs = [];
+
+            // current loaded size in bytes for each file
+            this._loaded = [];
+
+        },
+
+        /**
+         * Adds file to the queue
+         * Returns id to use with upload, cancel
+         **/
+        add: function(file){
+            return this._files.push(file) - 1;
+        },
+
+        /**
+         * Sends the file identified by id and additional query params to the server.
+         */
+        send: function(id, params){
+            if (!this._files[id]) {
+                // Already sended or canceled
+                return ;
+            }
+            if (this._queue.indexOf(id)>-1) {
+                // Already in the queue
+                return;
+            }
+            var len = this._queue.push(id);
+
+            var copy = objects.clone(params);
+
+            this._params[id] = copy;
+
+            // if too many active uploads, wait...
+            if (len <= this._options.maxConnections){
+                this._send(id, this._params[id]);
+            }     
+        },
+
+        /**
+         * Sends all files  and additional query params to the server.
+         */
+        sendAll: function(params){
+           for( var id = 0; id <this._files.length; id++) {
+                this.send(id,params);
+            }
+        },
+
+        /**
+         * Cancels file upload by id
+         */
+        cancel: function(id){
+            this._cancel(id);
+            this._dequeue(id);
+        },
+
+        /**
+         * Cancells all uploads
+         */
+        cancelAll: function(){
+            for (var i=0; i<this._queue.length; i++){
+                this._cancel(this._queue[i]);
+            }
+            this._queue = [];
+        },
+
+        getName: function(id){
+            var file = this._files[id];
+            return file.fileName != null ? file.fileName : file.name;
+        },
+
+        getSize: function(id){
+            var file = this._files[id];
+            return file.fileSize != null ? file.fileSize : file.size;
+        },
+
+        /**
+         * Returns uploaded bytes for file identified by id
+         */
+        getLoaded: function(id){
+            return this._loaded[id] || 0;
+        },
+
+
+        /**
+         * Sends the file identified by id and additional query params to the server
+         * @param {Object} params name-value string pairs
+         */
+        _send: function(id, params){
+            var options = this._options,
+                name = this.getName(id),
+                size = this.getSize(id),
+                chunkSize = options.maxChunkSize || 0,
+                curUploadingSize,
+                curLoadedSize = 0,
+                file = this._files[id],
+                args = {
+                    headers : {
+                    }                    
+                };
+
+            this._loaded[id] = this._loaded[id] || 0;
+
+            var xhr = this._xhrs[id] = new Xhr({
+                url : options.url
+            });
+
+            if (chunkSize)  {
+
+                args.data = blobSlice.call(
+                    file,
+                    this._loaded[id],
+                    this._loaded[id] + chunkSize,
+                    file.type
+                );
+                // Store the current chunk size, as the blob itself
+                // will be dereferenced after data processing:
+                curUploadingSize = args.data.size;
+                // Expose the chunk bytes position range:
+                args.headers["content-range"] = 'bytes ' + this._loaded[id] + '-' +
+                    (this._loaded[id] + curUploadingSize - 1) + '/' + size;
+                args.headers["Content-Type"] = "application/octet-stream";
+            }  else {
+                curUploadingSize = size;
+                var formParamName =  params.formParamName,
+                    formData = params.formData;
+
+                if (formParamName) {
+                    if (!formData) {
+                        formData = new FormData();
+                    }
+                    formData.append(formParamName,file);
+                    args.data = formData;
+    
+                } else {
+                    args.headers["Content-Type"] = file.type || "application/octet-stream";
+                    args.data = file;
+                }
+            }
+
+
+            var self = this;
+            xhr.post(
+                args
+            ).progress(function(e){
+                if (e.lengthComputable){
+                    curLoadedSize = curLoadedSize + e.loaded;
+                    self._loaded[id] = self._loaded[id] + e.loaded;
+                    self._options.onProgress(id, name, self._loaded[id], size);
+                }
+            }).then(function(){
+                if (!self._files[id]) {
+                    // the request was aborted/cancelled
+                    return;
+                }
+
+                if (curLoadedSize < curUploadingSize) {
+                    // Create a progress event if no final progress event
+                    // with loaded equaling total has been triggered
+                    // for this chunk:
+                    self._loaded[id] = self._loaded[id] + curUploadingSize - curLoadedSize;
+                    self._options.onProgress(id, name, self._loaded[id], size);                    
+                }
+
+                if (self._loaded[id] <size) {
+                    // File upload not yet complete,
+                    // continue with the next chunk:
+                    self._send(id,params);
+                } else {
+                    self._options.onComplete(id,name);
+
+                    self._files[id] = null;
+                    self._xhrs[id] = null;
+                    self._dequeue(id);
+                }
+
+
+            }).catch(function(e){
+                self._options.onFailure(id,name,e);
+
+                self._files[id] = null;
+                self._xhrs[id] = null;
+                self._dequeue(id);
+            });
+        },
+
+        _cancel: function(id){
+            this._options.onCancel(id, this.getName(id));
+
+            this._files[id] = null;
+
+            if (this._xhrs[id]){
+                this._xhrs[id].abort();
+                this._xhrs[id] = null;
+            }
+        },
+
+        /**
+         * Returns id of files being uploaded or
+         * waiting for their turn
+         */
+        getQueue: function(){
+            return this._queue;
+        },
+
+
+        /**
+         * Removes element from queue, starts upload of next
+         */
+        _dequeue: function(id){
+            var i = arrays.inArray(id,this._queue);
+            this._queue.splice(i, 1);
+
+            var max = this._options.maxConnections;
+
+            if (this._queue.length >= max && i < max){
+                var nextId = this._queue[max-1];
+                this._send(nextId, this._params[nextId]);
+            }
+        }
+    });
+
+    return http.Upload = Upload;    
+});
 define('skylark-domx-geom/geom',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
@@ -8611,6 +9720,27 @@ define('skylark-domx-geom/geom',[
             width: cs.width - pex.left - pex.right,
             height: cs.height - pex.top - pex.bottom
         };
+    }
+
+
+    function fullCover(elem, hor, vert) {
+        let vertical = vert;
+        let horizontal = hor;
+        if (langx.isUndefined(horizontal)) {
+            horizontal = true;
+        }
+        if (langx.isUndefined(vertical)) {
+            vertical = true;
+        }
+        elem.style.position = 'absolute';
+        if (horizontal) {
+            elem.style.left = 0;
+            elem.style.right = 0;
+        }
+        if (vertical) {
+            elem.style.top = 0;
+            elem.style.bottom = 0;
+        }
     }
 
     /*
@@ -8994,6 +10124,8 @@ define('skylark-domx-geom/geom',[
         clientWidth: clientWidth,
 
         contentRect: contentRect,
+
+        fullCover,
 
         getDocumentSize: getDocumentSize,
 
@@ -10331,50 +11463,6 @@ define('skylark-domx-plugins/plugins',[
         return pluginInstance;
     }
 
-    function shortcutter(pluginName,extfn) {
-       /*
-        * Create or get or destory a plugin instance assocated with the element,
-        * and also you can execute the plugin method directory;
-        */
-        return function (elm,options) {
-            var  plugin = instantiate(elm, pluginName,"instance");
-            if ( options === "instance" ) {
-              return plugin || null;
-            }
-            if (!plugin) {
-                plugin = instantiate(elm, pluginName,typeof options == 'object' && options || {});
-                return this;
-            } else  if (options) {
-                var args = slice.call(arguments,1); //2
-                if (extfn) {
-                    var ret =  extfn.apply(plugin,args);
-                    if (ret === undefined) {
-                        ret = this;
-                    }
-                    return ret;
-                } else {
-                    if (typeof options == 'string') {
-                        var methodName = options;
-
-                        if ( !plugin ) {
-                            throw new Error( "cannot call methods on " + pluginName +
-                                " prior to initialization; " +
-                                "attempted to call method '" + methodName + "'" );
-                        }
-
-                        if ( !langx.isFunction( plugin[ methodName ] ) || methodName.charAt( 0 ) === "_" ) {
-                            throw new Error( "no such method '" + methodName + "' for " + pluginName +
-                                " plugin instance" );
-                        }
-
-                        return plugin[methodName].apply(plugin,args);
-                    }                
-                }                
-            }
-
-        }
-
-    }
 
     function shortcutter(pluginName,extfn) {
        /*
@@ -10386,9 +11474,14 @@ define('skylark-domx-plugins/plugins',[
             if ( options === "instance" ) {
               return plugin || null;
             }
+
             if (!plugin) {
                 plugin = instantiate(elm, pluginName,typeof options == 'object' && options || {});
-            } else  if (options) {
+                if (typeof options != "string") {
+                  return this;
+                }
+            } 
+            if (options) {
                 var args = slice.call(arguments,1); //2
                 if (extfn) {
                     return extfn.apply(plugin,args);
@@ -10407,7 +11500,12 @@ define('skylark-domx-plugins/plugins',[
                                 " plugin instance" );
                         }
 
-                        return plugin[methodName].apply(plugin,args);
+                        var ret = plugin[methodName].apply(plugin,args);
+                        if (ret == plugin) {
+                          ret = undefined;
+                        }
+
+                        return ret;
                     }                
                 }                
             }
@@ -10445,10 +11543,9 @@ define('skylark-domx-plugins/plugins',[
                   this.each(function () {
                     var args2 = slice.call(args);
                     args2.unshift(this);
-                    var  ret  = shortcut.apply(null,args2);
+                    var  ret  = shortcut.apply(undefined,args2);
                     if (ret !== undefined) {
                         returnValue = ret;
-                        return false;
                     }
                   });
                 }
@@ -10638,6 +11735,485 @@ define('skylark-domx-plugins/main',[
 	return plugins;
 });
 define('skylark-domx-plugins', ['skylark-domx-plugins/main'], function (main) { return main; });
+
+define('skylark-domx-files/MultiUploader',[
+  "skylark-langx/skylark",
+  "skylark-langx/langx",
+  "skylark-domx-query",
+  "skylark-domx-velm",
+  "skylark-net-http/Upload",
+  "skylark-domx-plugins",
+  "./files"
+]  ,function(skylark,langx,$, elmx,FileUpload, plugins,files){
+
+    var fileListTemplate = '<div class="lark-multiuploader">' + 
+        '    <h3 class="popover-title">Upload files</h3>' + 
+        '    <div class="popover-content container-fluid" class="file-list file-dropzone file-pastezone">' + 
+        '        <div class="no-data"><em>Add files.</em></div>' + 
+        '    </div>' + 
+        '    <footer>' + 
+        '        <button class="btn btn-warning pull-right btn-sm" id="cancel-uploads-button"><i class="icon-cancel"></i>Cancel uploads</button>' + 
+        '        <span class="btn btn-success fileinput-button btn-sm" id="fileinput-button">' + 
+        '            <i class="icon-plus"></i>' + 
+        '            <span>Add files...</span>' + 
+        '            <input id="fileupload" type="file" name="files[]" multiple="multiple">' + 
+        '        </span>' + 
+        '        <button class="btn btn-primary btn-sm" id="start-uploads-button"><i class="icon-start"></i>Start uploads</button>' + 
+        '    </footer>' + 
+        '</div>',
+        fileItemTemplate = '<div class="file-item row">' +
+        '   <div class="col-md-6"><span class="name"></span></div>' + 
+        '   <div class="col-md-3">' +
+        '    <span class="size"></span>' +
+        '    <div class="progress hidden">' +
+        '        <div class="progress-label"></div>' +
+        '        <div class="bar"></div>' +
+        '    </div>' +
+        '    <span class="message hidden"></span>' +
+        '   </div>' +
+        '   <div class="col-md-3">' +
+        '    <button class="btn btn-warning btn-xs cancel"><i class="icon-remove"></i>Cancel</button>' +
+        '    <button class="btn btn-xs clear hidden">Clear</button>' +
+        '   </div>' +
+        '</div>';
+
+    var MultiUploader =  plugins.Plugin.inherit({
+        klassName : "Uploader",
+        pluginName : "lark.multiuploader",
+
+        options: {
+            uploadUrl: '/upload',
+
+        	params: {
+                formParamName : "file"
+            },
+
+    	    maxConnections: 3,
+        	// validation
+        	allowedExtensions: [],
+        	sizeLimit: 0,
+        	minSizeLimit: 0,
+
+            autoUpload: false,
+            selectors : {
+              fileList : ".file-list",
+              fileItem : ".file-item",
+              nodata : ".file-list .no-data",
+
+              picker   : ".file-picker",
+              dropzone : ".file-dropzone",
+              pastezone: ".file-pastezone",
+
+              startUploads: '.start-uploads',
+              cancelUploads: '.cancel-uploads',
+            },
+
+            template : fileListTemplate,
+
+            dataType: 'json',
+
+            fileItem : {
+            	selectors : {
+                    name : ".name",
+                    size : ".size",
+                    cancel: ".cancel",
+                    clear : ".clear",
+                    progress : ".progress",
+                    message : ".message"                   
+            	},
+
+            	template : fileItemTemplate
+            }
+        },
+
+
+        _construct : function(elm,options) {
+            var self = this;
+
+
+            // Render current files
+            /*
+            this.files.forEach(function (file) {
+                self.renderFile(file);
+            });
+            */
+
+            //this._refresh({files:true});
+        
+
+            //this._files.on('all', function(){
+            //  self._refresh({files:true});
+            //});
+
+
+           this.overrided(elm,options);
+
+
+           this._velm = elmx(this._elm);
+        
+
+
+            this._initEventHandler();
+            this._initFileHandlers();
+            this._initUpoadHandler();
+            this._updateFileList();
+        },
+
+        _initFileHandlers : function() {
+            var self = this;
+
+            var selectors = this.options.selectors,
+            	dzSelector = selectors.dropzone,
+            	pzSelector = selectors.pastezone,
+            	pkSelector = selectors.picker;
+
+            if (dzSelector) {
+				this._velm.$(dzSelector).dropzone({
+	                dropped : function (files) {
+                        self._addFiles(files);
+	                }
+				});
+            }
+
+
+            if (pzSelector) {
+                this._velm.$(pzSelector).pastezone({
+                    pasted : function (files) {
+                        self._addFiles(files);
+                    }
+                });                
+            }
+
+            if (pkSelector) {
+                this._velm.$(pkSelector).picker({
+                    multiple: true,
+                    picked : function (files) {
+                        self._addFiles(files);
+                    }
+                });                
+            }
+        },
+
+        _initUpoadHandler: function(){
+            var self = this,
+                handlerClass;
+
+            this._handler = new FileUpload({
+                url: this.options.uploadUrl,
+                maxConnections: this.options.maxConnections,
+                onProgress: function(id, fileName, loaded, total){
+                    self._onProgress(id, fileName, loaded, total);
+                },
+                onComplete: function(id, fileName, result){
+                    self._onComplete(id, fileName, result);
+                },
+                onCancel: function(id, fileName){
+                    self._onCancel(id, fileName);
+                },
+                onFailure: function(id,fileName,e){
+                    self._onFailure(id,fileName,e);
+                }
+            });
+        },
+        
+         /**
+         * delegate click event for cancel link
+         **/
+        _initEventHandler: function(){
+            var self = this,
+               selectors = this.options.selectors,
+               itemSelectors = this.options.fileItem.selectors, 
+               list = this._listElement;
+
+            // Add cancel handler
+            this._velm.$(selectors.fileList).on("click",itemSelectors.cancel,function(e){
+                var $fileItem = $(this).closest(selectors.fileItem),
+                    fileId = $fileItem.data("fileId");
+                self._handler.cancel(fileId);
+                $fileItem.remove();
+                self._updateFileList();
+            });
+
+            // Add clear handler
+            this._velm.$(selectors.fileList).on("click",itemSelectors.clear,function(e){
+                var $fileItem = $(this).closest(selectors.fileItem),
+                    fileId = $fileItem.data("fileId");
+                $fileItem.remove();
+                self._updateFileList();
+            });
+
+            // Add cancel all handler
+            this._velm.$(selectors.cancelUploads).click(function(){
+                var $files = self._velm.$(selectors.fileList).find(selectors.fileItem);           
+                $files.forEach(function(fileItem){
+                    var $fileItem = $(fileItem),
+                        fileId = $fileItem.data("fileId");
+                    self._handler.cancel(fileId);
+                    $fileItem.remove();
+                });
+                self._updateFileList();
+
+            });
+
+            // Add start uploads handler
+            this._velm.$(selectors.startUploads).click(function(){
+                var $files = self._velm.$(selectors.fileList).find(selectors.fileItem);           
+                $files.forEach(function(fileItem){
+                    var $fileItem = $(fileItem),
+                        fileId = $fileItem.data("fileId");
+                    if (!$fileItem.data("status")) {
+                        // The file has not yet been sent
+                        self._handler.send(fileId,self.options.params);
+                    }
+                });
+
+            });
+            
+
+        },       
+
+        _onProgress: function(id, fileName, loaded, total){          
+            var $item = this._getItemByFileId(id);
+
+            var percent = parseInt(loaded / total * 100, 10);
+            var progressHTML = this._formatSize(loaded)+' of '+ this._formatSize(total);
+
+            $item.data("status","running");
+            $item.find('.progress')
+                .find('.bar')
+                .css('width', percent+'%')
+                .parent()
+                .find('.progress-label')
+                .html(progressHTML);
+            this._updateFile($item);
+
+        },
+
+        _onComplete: function(id, fileName, result){
+            this._filesInProgress--;
+            var $item = this._getItemByFileId(id);
+            $item.data("status","done");
+            $item.find('.message').html('<i class="icon-success"></i> ' + (this.doneMsg || 'Uploaded'));
+            this._updateFile($item);
+        },
+
+        _onFailure : function(id,fileName,e) {
+            this._filesInProgress--;
+            var $item = this._getItemByFileId(id);
+            $item.data("status","error");
+            $item.find('.message').html('<i class="icon-error"></i> ');;
+            this._updateFile($item)
+
+        },
+
+        _onCancel: function(id, fileName){
+            this._filesInProgress--;
+            var $item = this._getItemByFileId(id);
+            $item.data("status","cancel");
+            this._updateFile($item)
+        },
+
+        _addToList: function(id, fileName){
+            var self = this;
+
+
+            var fileName = this._handler.getName(id),
+                fileSize = this._handler.getSize(id);
+
+            var item = $(this.options.fileItem.template);
+            item.data("fileId",id);
+
+            item.find(this.options.fileItem.selectors.name).html(this._formatFileName(fileName));
+            item.find(this.options.fileItem.selectors.size).html(this._formatSize(fileSize));
+
+            this._velm.$(this.options.selectors.fileList).append(item);
+
+            this._updateFileList();
+        },
+    
+        _updateFileList : function ()  {
+            var selectors = this.options.selectors,
+                itemSelectors = this.options.fileItem.selectors,
+                files = this._velm.$(selectors.fileList).find(selectors.fileItem);
+
+            var with_files_elements = this._velm.$(selectors.cancelUploads + ',' + selectors.startUploads);
+            var without_files_elements = this._velm.$(selectors.nodata);
+            if (files.length > 0) {
+                with_files_elements.removeClass('hidden');
+                without_files_elements.addClass('hidden');
+            } else {
+                with_files_elements.addClass('hidden');
+                without_files_elements.removeClass('hidden');
+            }
+        },
+        
+        _updateFile: function ($item) {
+            var selectors = this.options.fileItem.selectors,
+                when_pending = $item.find(selectors.size + "," + selectors.cancel),
+                when_running = $item.find(selectors.progress + "," + selectors.cancel),
+                when_done = $item.find(selectors.message + "," + selectors.clear);
+
+            var status = $item.data("status");    
+            if (status == "pending") {
+                when_running.add(when_done).addClass('hidden');
+                when_pending.removeClass('hidden');
+            } else if (status == "running") {
+                when_pending.add(when_done).addClass('hidden');
+                when_running.removeClass('hidden');
+            } else if (status == "done" || status == "error") {
+                when_pending.add(when_running).addClass('hidden');
+                when_done.removeClass('hidden');
+            }
+        },
+
+        _getItemByFileId: function(id){
+            var selectors = this.options.selectors,
+                files = this._velm.$(selectors.fileList).find(selectors.fileItem),
+                item;
+
+            // there can't be txt nodes in dynamically created list
+            // and we can  use nextSibling
+
+            for (var i = 0; i<files.length;i++){
+                var item2 = files[i];
+                if ($(item2).data("fileId") == id) {
+                    item = item2;
+                    break;
+                }
+            }
+            if (item) {
+                return $(item);
+            }
+        },
+
+
+            
+        _addFiles: function(files){
+            for (var i=0; i<files.length; i++){
+                if ( !this._validateFile(files[i])){
+                    return;
+                }
+            }
+
+            for (var i=0; i<files.length; i++){
+                this._addFile(files[i]);
+            }
+        },
+
+        _addFile: function(file){
+            var id = this._handler.add(file);
+
+            this._filesInProgress++;
+            this._addToList(id);
+
+            //this._handler.upload(id, this.options.params);
+        },
+
+        _validateFile: function(file){
+            var name, size;
+
+            if (file.value){
+                // it is a file input
+                // get input value and remove path to normalize
+                name = file.value.replace(/.*(\/|\\)/, "");
+            } else {
+                // fix missing properties in Safari
+                name = file.fileName != null ? file.fileName : file.name;
+                size = file.fileSize != null ? file.fileSize : file.size;
+            }
+
+            if (! this._isAllowedExtension(name)){
+                this._error('typeError', name);
+                return false;
+
+            } else if (size === 0){
+                this._error('emptyError', name);
+                return false;
+
+            } else if (size && this.options.sizeLimit && size > this.options.sizeLimit){
+                this._error('sizeError', name);
+                return false;
+
+            } else if (size && size < this.options.minSizeLimit){
+                this._error('minSizeError', name);
+                return false;
+            }
+
+            return true;
+        },
+
+        _error: function(code, fileName){
+            var message = this.options.messages[code];
+            function r(name, replacement){ message = message.replace(name, replacement); }
+
+            r('{file}', this._formatFileName(fileName));
+            r('{extensions}', this.options.allowedExtensions.join(', '));
+            r('{sizeLimit}', this._formatSize(this.options.sizeLimit));
+            r('{minSizeLimit}', this._formatSize(this.options.minSizeLimit));
+
+            this.options.showMessage(message);
+        },
+
+        _formatFileName: function(name){
+            if (name.length > 33){
+                name = name.slice(0, 19) + '...' + name.slice(-13);
+            }
+            return name;
+        },
+
+        _isAllowedExtension: function(fileName){
+            var ext = (-1 !== fileName.indexOf('.')) ? fileName.replace(/.*[.]/, '').toLowerCase() : '';
+            var allowed = this.options.allowedExtensions;
+
+            if (!allowed.length){return true;}
+
+            for (var i=0; i<allowed.length; i++){
+                if (allowed[i].toLowerCase() == ext){ return true;}
+            }
+
+            return false;
+        },
+
+        _formatSize: function(bytes){
+            var i = -1;
+            do {
+                bytes = bytes / 1024;
+                i++;
+            } while (bytes > 99);
+
+            return Math.max(bytes, 0.1).toFixed(1) + ['KB', 'MB', 'GB', 'TB', 'PB', 'EB'][i];
+        }
+
+    });
+
+   plugins.register(MultiUploader);
+
+
+
+	return files.MultiUploader = MultiUploader;
+});
+define('skylark-domx-files/main',[
+	"./files",
+	"skylark-domx-velm",
+	"skylark-domx-query",
+	"./dropzone",
+	"./pastezone",
+	"./picker",
+	"./MultiUploader"
+],function(files,velm,$){
+	velm.delegate([
+		"dropzone",
+		"pastezone",
+		"picker"
+	],files);
+
+    $.fn.pastezone = $.wraps.wrapper_every_act(files.pastezone, files);
+    $.fn.dropzone = $.wraps.wrapper_every_act(files.dropzone, files);
+    $.fn.picker = $.wraps.wrapper_every_act(files.picker, files);
+
+	return files;
+});
+define('skylark-domx-files', ['skylark-domx-files/main'], function (main) { return main; });
 
 define('skylark-data-collection/collections',[
 	"skylark-langx/skylark"
@@ -11413,370 +12989,6 @@ define('skylark-widgets-base/Widget',[
   return base.Widget = Widget;
 });
 
-define('skylark-net-http/http',[
-  "skylark-langx-ns/ns",
-],function(skylark){
-	return skylark.attach("net.http",{});
-});
-define('skylark-net-http/Xhr',[
-  "skylark-langx-ns/ns",
-  "skylark-langx-types",
-  "skylark-langx-objects",
-  "skylark-langx-arrays",
-  "skylark-langx-funcs",
-  "skylark-langx-async/Deferred",
-  "skylark-langx-emitter/Evented",
-  "./http"
-],function(skylark,types,objects,arrays,funcs,Deferred,Evented,http){
-
-    var each = objects.each,
-        mixin = objects.mixin,
-        noop = funcs.noop,
-        isArray = types.isArray,
-        isFunction = types.isFunction,
-        isPlainObject = types.isPlainObject,
-        type = types.type;
- 
-     var getAbsoluteUrl = (function() {
-        var a;
-
-        return function(url) {
-            if (!a) a = document.createElement('a');
-            a.href = url;
-
-            return a.href;
-        };
-    })();
-   
-    var Xhr = (function(){
-        var jsonpID = 0,
-            key,
-            name,
-            rscript = /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
-            scriptTypeRE = /^(?:text|application)\/javascript/i,
-            xmlTypeRE = /^(?:text|application)\/xml/i,
-            jsonType = 'application/json',
-            htmlType = 'text/html',
-            blankRE = /^\s*$/;
-
-        var XhrDefaultOptions = {
-            async: true,
-
-            // Default type of request
-            type: 'GET',
-            // Callback that is executed before request
-            beforeSend: noop,
-            // Callback that is executed if the request succeeds
-            success: noop,
-            // Callback that is executed the the server drops error
-            error: noop,
-            // Callback that is executed on request complete (both: error and success)
-            complete: noop,
-            // The context for the callbacks
-            context: null,
-            // Whether to trigger "global" Ajax events
-            global: true,
-
-            // MIME types mapping
-            // IIS returns Javascript as "application/x-javascript"
-            accepts: {
-                script: 'text/javascript, application/javascript, application/x-javascript',
-                json: 'application/json',
-                xml: 'application/xml, text/xml',
-                html: 'text/html',
-                text: 'text/plain'
-            },
-            // Whether the request is to another domain
-            crossDomain: false,
-            // Default timeout
-            timeout: 0,
-            // Whether data should be serialized to string
-            processData: false,
-            // Whether the browser should be allowed to cache GET responses
-            cache: true,
-
-            xhrFields : {
-                withCredentials : true
-            }
-        };
-
-        function mimeToDataType(mime) {
-            if (mime) {
-                mime = mime.split(';', 2)[0];
-            }
-            if (mime) {
-                if (mime == htmlType) {
-                    return "html";
-                } else if (mime == jsonType) {
-                    return "json";
-                } else if (scriptTypeRE.test(mime)) {
-                    return "script";
-                } else if (xmlTypeRE.test(mime)) {
-                    return "xml";
-                }
-            }
-            return "text";
-        }
-
-        function appendQuery(url, query) {
-            if (query == '') return url
-            return (url + '&' + query).replace(/[&?]{1,2}/, '?')
-        }
-
-        // serialize payload and append it to the URL for GET requests
-        function serializeData(options) {
-            options.data = options.data || options.query;
-            if (options.processData && options.data && type(options.data) != "string") {
-                options.data = param(options.data, options.traditional);
-            }
-            if (options.data && (!options.type || options.type.toUpperCase() == 'GET')) {
-                options.url = appendQuery(options.url, options.data);
-                options.data = undefined;
-            }
-        }
-
-        function serialize(params, obj, traditional, scope) {
-            var t, array = isArray(obj),
-                hash = isPlainObject(obj)
-            each(obj, function(key, value) {
-                t =type(value);
-                if (scope) key = traditional ? scope :
-                    scope + '[' + (hash || t == 'object' || t == 'array' ? key : '') + ']'
-                // handle data in serializeArray() format
-                if (!scope && array) params.add(value.name, value.value)
-                // recurse into nested objects
-                else if (t == "array" || (!traditional && t == "object"))
-                    serialize(params, value, traditional, key)
-                else params.add(key, value)
-            })
-        }
-
-        var param = function(obj, traditional) {
-            var params = []
-            params.add = function(key, value) {
-                if (isFunction(value)) {
-                  value = value();
-                }
-                if (value == null) {
-                  value = "";
-                }
-                this.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
-            };
-            serialize(params, obj, traditional)
-            return params.join('&').replace(/%20/g, '+')
-        };
-
-        var Xhr = Evented.inherit({
-            klassName : "Xhr",
-
-            _request  : function(args) {
-                var _ = this._,
-                    self = this,
-                    options = mixin({},XhrDefaultOptions,_.options,args),
-                    xhr = _.xhr = new XMLHttpRequest();
-
-                serializeData(options)
-
-                if (options.beforeSend) {
-                    options.beforeSend.call(this, xhr, options);
-                }                
-
-                var dataType = options.dataType || options.handleAs,
-                    mime = options.mimeType || options.accepts[dataType],
-                    headers = options.headers,
-                    xhrFields = options.xhrFields,
-                    isFormData = options.data && options.data instanceof FormData,
-                    basicAuthorizationToken = options.basicAuthorizationToken,
-                    type = options.type,
-                    url = options.url,
-                    async = options.async,
-                    user = options.user , 
-                    password = options.password,
-                    deferred = new Deferred(),
-                    contentType = isFormData ? false : 'application/x-www-form-urlencoded';
-
-                if (xhrFields) {
-                    for (name in xhrFields) {
-                        xhr[name] = xhrFields[name];
-                    }
-                }
-
-                if (mime && mime.indexOf(',') > -1) {
-                    mime = mime.split(',', 2)[0];
-                }
-                if (mime && xhr.overrideMimeType) {
-                    xhr.overrideMimeType(mime);
-                }
-
-                //if (dataType) {
-                //    xhr.responseType = dataType;
-                //}
-
-                var finish = function() {
-                    xhr.onloadend = noop;
-                    xhr.onabort = noop;
-                    xhr.onprogress = noop;
-                    xhr.ontimeout = noop;
-                    xhr = null;
-                }
-                var onloadend = function() {
-                    var result, error = false
-                    if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304 || (xhr.status == 0 && getAbsoluteUrl(url).startsWith('file:'))) {
-                        dataType = dataType || mimeToDataType(options.mimeType || xhr.getResponseHeader('content-type'));
-
-                        result = xhr.responseText;
-                        try {
-                            if (dataType == 'script') {
-                                eval(result);
-                            } else if (dataType == 'xml') {
-                                result = xhr.responseXML;
-                            } else if (dataType == 'json') {
-                                result = blankRE.test(result) ? null : JSON.parse(result);
-                            } else if (dataType == "blob") {
-                                result = Blob([xhrObj.response]);
-                            } else if (dataType == "arraybuffer") {
-                                result = xhr.reponse;
-                            }
-                        } catch (e) { 
-                            error = e;
-                        }
-
-                        if (error) {
-                            deferred.reject(error,xhr.status,xhr);
-                        } else {
-                            deferred.resolve(result,xhr.status,xhr);
-                        }
-                    } else {
-                        deferred.reject(new Error(xhr.statusText),xhr.status,xhr);
-                    }
-                    finish();
-                };
-
-                var onabort = function() {
-                    if (deferred) {
-                        deferred.reject(new Error("abort"),xhr.status,xhr);
-                    }
-                    finish();                 
-                }
- 
-                var ontimeout = function() {
-                    if (deferred) {
-                        deferred.reject(new Error("timeout"),xhr.status,xhr);
-                    }
-                    finish();                 
-                }
-
-                var onprogress = function(evt) {
-                    if (deferred) {
-                        deferred.notify(evt,xhr.status,xhr);
-                    }
-                }
-
-                xhr.onloadend = onloadend;
-                xhr.onabort = onabort;
-                xhr.ontimeout = ontimeout;
-                xhr.onprogress = onprogress;
-
-                xhr.open(type, url, async, user, password);
-               
-                if (headers) {
-                    for ( var key in headers) {
-                        var value = headers[key];
- 
-                        if(key.toLowerCase() === 'content-type'){
-                            contentType = value;
-                        } else {
-                           xhr.setRequestHeader(key, value);
-                        }
-                    }
-                }   
-
-                if  (contentType && contentType !== false){
-                    xhr.setRequestHeader('Content-Type', contentType);
-                }
-
-                if(!headers || !('X-Requested-With' in headers)){
-                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-                }
-
-
-                //If basicAuthorizationToken is defined set its value into "Authorization" header
-                if (basicAuthorizationToken) {
-                    xhr.setRequestHeader("Authorization", basicAuthorizationToken);
-                }
-
-                xhr.send(options.data ? options.data : null);
-
-                return deferred.promise;
-
-            },
-
-            "abort": function() {
-                var _ = this._,
-                    xhr = _.xhr;
-
-                if (xhr) {
-                    xhr.abort();
-                }    
-            },
-
-
-            "request": function(args) {
-                return this._request(args);
-            },
-
-            get : function(args) {
-                args = args || {};
-                args.type = "GET";
-                return this._request(args);
-            },
-
-            post : function(args) {
-                args = args || {};
-                args.type = "POST";
-                return this._request(args);
-            },
-
-            patch : function(args) {
-                args = args || {};
-                args.type = "PATCH";
-                return this._request(args);
-            },
-
-            put : function(args) {
-                args = args || {};
-                args.type = "PUT";
-                return this._request(args);
-            },
-
-            del : function(args) {
-                args = args || {};
-                args.type = "DELETE";
-                return this._request(args);
-            },
-
-            "init": function(options) {
-                this._ = {
-                    options : options || {}
-                };
-            }
-        });
-
-        ["request","get","post","put","del","patch"].forEach(function(name){
-            Xhr[name] = function(url,args) {
-                var xhr = new Xhr({"url" : url});
-                return xhr[name](args);
-            };
-        });
-
-        Xhr.defaultOptions = XhrDefaultOptions;
-        Xhr.param = param;
-
-        return Xhr;
-    })();
-
-	return http.Xhr = Xhr;	
-});
 define('skylark-widgets-coder/util',[
     "skylark-langx/langx",
     "skylark-net-http/Xhr"
@@ -12196,10 +13408,8 @@ define('skylark-widgets-coder/Coder',[
 define('skylark-codemirror/cm',[
 	"skylark-langx/skylark"
 ],function(skylark){
-	var itg = skylark.itg = skylark.itg || {};
 
-	return itg.cm = {};
-
+	return skylark.attach("intg.cm", {});
 });
 define('skylark-codemirror/primitives/util/browser',[],function () {
     'use strict';
@@ -16932,7 +18142,7 @@ define('skylark-codemirror/primitives/display/highlight_worker',[
 define('skylark-codemirror/primitives/model/selection',[
     '../line/pos',
     '../util/misc'
-], function (a, b) {
+], function (m_pos, m_misc) {
     'use strict';
     class Selection {
         constructor(ranges, primIndex) {
@@ -16949,7 +18159,7 @@ define('skylark-codemirror/primitives/model/selection',[
                 return false;
             for (let i = 0; i < this.ranges.length; i++) {
                 let here = this.ranges[i], there = other.ranges[i];
-                if (!a.equalCursorPos(here.anchor, there.anchor) || !a.equalCursorPos(here.head, there.head))
+                if (!m_pos.equalCursorPos(here.anchor, there.anchor) || !m_pos.equalCursorPos(here.head, there.head))
                     return false;
             }
             return true;
@@ -16957,7 +18167,7 @@ define('skylark-codemirror/primitives/model/selection',[
         deepCopy() {
             let out = [];
             for (let i = 0; i < this.ranges.length; i++)
-                out[i] = new Range(a.copyPos(this.ranges[i].anchor), a.copyPos(this.ranges[i].head));
+                out[i] = new Range(m_pos.copyPos(this.ranges[i].anchor), m_pos.copyPos(this.ranges[i].head));
             return new Selection(out, this.primIndex);
         }
         somethingSelected() {
@@ -16971,7 +18181,7 @@ define('skylark-codemirror/primitives/model/selection',[
                 end = pos;
             for (let i = 0; i < this.ranges.length; i++) {
                 let range = this.ranges[i];
-                if (a.cmp(end, range.from()) >= 0 && a.cmp(pos, range.to()) <= 0)
+                if (m_pos.cmp(end, range.from()) >= 0 && m_pos.cmp(pos, range.to()) <= 0)
                     return i;
             }
             return -1;
@@ -16983,10 +18193,10 @@ define('skylark-codemirror/primitives/model/selection',[
             this.head = head;
         }
         from() {
-            return a.minPos(this.anchor, this.head);
+            return m_pos.minPos(this.anchor, this.head);
         }
         to() {
-            return a.maxPos(this.anchor, this.head);
+            return m_pos.maxPos(this.anchor, this.head);
         }
         empty() {
             return this.head.line == this.anchor.line && this.head.ch == this.anchor.ch;
@@ -16995,13 +18205,13 @@ define('skylark-codemirror/primitives/model/selection',[
     function normalizeSelection(cm, ranges, primIndex) {
         let mayTouch = cm && cm.options.selectionsMayTouch;
         let prim = ranges[primIndex];
-        ranges.sort((a, b) => a.cmp(a.from(), b.from()));
-        primIndex = b.indexOf(ranges, prim);
+        ranges.sort((a, b) => m_pos.cmp(a.from(), b.from()));
+        primIndex = m_misc.indexOf(ranges, prim);
         for (let i = 1; i < ranges.length; i++) {
             let cur = ranges[i], prev = ranges[i - 1];
-            let diff = a.cmp(prev.to(), cur.from());
+            let diff = m_pos.cmp(prev.to(), cur.from());
             if (mayTouch && !cur.empty() ? diff > 0 : diff >= 0) {
-                let from = a.minPos(prev.from(), cur.from()), to = a.maxPos(prev.to(), cur.to());
+                let from = m_pos.minPos(prev.from(), cur.from()), to = m_pos.maxPos(prev.to(), cur.to());
                 let inv = prev.empty() ? cur.from() == cur.head : prev.from() == prev.head;
                 if (i <= primIndex)
                     --primIndex;
@@ -18483,7 +19693,6 @@ define('skylark-codemirror/primitives/model/mark_text',[
     };
 });
 define('skylark-codemirror/primitives/model/Doc',[
-    '../edit/CodeMirror',
     '../display/operations',
     '../line/line_data',
     '../line/pos',
@@ -18502,7 +19711,7 @@ define('skylark-codemirror/primitives/model/Doc',[
     './mark_text',
     './selection',
     './selection_updates'
-], function (CodeMirror, a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) {
+], function (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r) {
     'use strict';
     let nextDocId = 0;
     let Doc = function (text, mode, firstLine, lineSep, direction) {
@@ -18953,7 +20162,8 @@ define('skylark-codemirror/primitives/model/Doc',[
             return copy;
         },
         unlinkDoc: function (other) {
-            if (other instanceof CodeMirror)
+            //if (other instanceof CodeMirror) // modified by lwf
+            if (other.doc)
                 other = other.doc;
             if (this.linked)
                 for (let i = 0; i < this.linked.length; ++i) {
@@ -20389,7 +21599,7 @@ define('skylark-codemirror/primitives/edit/options',[
     '../util/dom',
     '../util/event',
     './utils'
-], function (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q) {
+], function (focus, gutters, line_numbers, mode_state, scrollbars, selection, view_tracking, keymap, line_data, posit, spans, measurement, changes, browser, dom, event, utils) {
     'use strict';
     let Init = {
         toString: function () {
@@ -20413,15 +21623,15 @@ define('skylark-codemirror/primitives/edit/options',[
         option('value', '', (cm, val) => cm.setValue(val), true);
         option('mode', null, (cm, val) => {
             cm.doc.modeOption = val;
-            d.loadMode(cm);
+            mode_state.loadMode(cm);
         }, true);
-        option('indentUnit', 2, d.loadMode, true);
+        option('indentUnit', 2, mode_state.loadMode, true);
         option('indentWithTabs', false);
         option('smartIndent', true);
         option('tabSize', 4, cm => {
-            d.resetModeState(cm);
-            l.clearCaches(cm);
-            g.regChange(cm);
+            mode_state.resetModeState(cm);
+            measurement.clearCaches(cm);
+            view_tracking.regChange(cm);
         }, true);
         option('lineSeparator', null, (cm, val) => {
             cm.doc.lineSep = val;
@@ -20434,35 +21644,35 @@ define('skylark-codemirror/primitives/edit/options',[
                     if (found == -1)
                         break;
                     pos = found + val.length;
-                    newBreaks.push(j.Pos(lineNo, found));
+                    newBreaks.push(posit.Pos(lineNo, found));
                 }
                 lineNo++;
             });
             for (let i = newBreaks.length - 1; i >= 0; i--)
-                m.replaceRange(cm.doc, val, newBreaks[i], j.Pos(newBreaks[i].line, newBreaks[i].ch + val.length));
+                changes.replaceRange(cm.doc, val, newBreaks[i], posit.Pos(newBreaks[i].line, newBreaks[i].ch + val.length));
         });
         option('specialChars', /[\u0000-\u001f\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028\u2029\ufeff]/g, (cm, val, old) => {
             cm.state.specialChars = new RegExp(val.source + (val.test('\t') ? '' : '|\t'), 'g');
             if (old != Init)
                 cm.refresh();
         });
-        option('specialCharPlaceholder', i.defaultSpecialCharPlaceholder, cm => cm.refresh(), true);
+        option('specialCharPlaceholder', line_data.defaultSpecialCharPlaceholder, cm => cm.refresh(), true);
         option('electricChars', true);
-        option('inputStyle', n.mobile ? 'contenteditable' : 'textarea', () => {
+        option('inputStyle', browser.mobile ? 'contenteditable' : 'textarea', () => {
             throw new Error('inputStyle can not (yet) be changed in a running editor');
         }, true);
         option('spellcheck', false, (cm, val) => cm.getInputField().spellcheck = val, true);
         option('autocorrect', false, (cm, val) => cm.getInputField().autocorrect = val, true);
         option('autocapitalize', false, (cm, val) => cm.getInputField().autocapitalize = val, true);
-        option('rtlMoveVisually', !n.windows);
+        option('rtlMoveVisually', !browser.windows);
         option('wholeLineUpdateBefore', true);
         option('theme', 'default', cm => {
-            q.themeChanged(cm);
+            utils.themeChanged(cm);
             guttersChanged(cm);
         }, true);
         option('keyMap', 'default', (cm, val, old) => {
-            let next = h.getKeyMap(val);
-            let prev = old != Init && h.getKeyMap(old);
+            let next = keymap.getKeyMap(val);
+            let prev = old != Init && keymap.getKeyMap(old);
             if (prev && prev.detach)
                 prev.detach(cm, next);
             if (next.attach)
@@ -20472,34 +21682,34 @@ define('skylark-codemirror/primitives/edit/options',[
         option('configureMouse', null);
         option('lineWrapping', false, wrappingChanged, true);
         option('gutters', [], cm => {
-            b.setGuttersForLineNumbers(cm.options);
+            gutters.setGuttersForLineNumbers(cm.options);
             guttersChanged(cm);
         }, true);
         option('fixedGutter', true, (cm, val) => {
-            cm.display.gutters.style.left = val ? l.compensateForHScroll(cm.display) + 'px' : '0';
+            cm.display.gutters.style.left = val ? measurement.compensateForHScroll(cm.display) + 'px' : '0';
             cm.refresh();
         }, true);
-        option('coverGutterNextToScrollbar', false, cm => e.updateScrollbars(cm), true);
+        option('coverGutterNextToScrollbar', false, cm => scrollbars.updateScrollbars(cm), true);
         option('scrollbarStyle', 'native', cm => {
-            e.initScrollbars(cm);
-            e.updateScrollbars(cm);
+            scrollbars.initScrollbars(cm);
+            scrollbars.updateScrollbars(cm);
             cm.display.scrollbars.setScrollTop(cm.doc.scrollTop);
             cm.display.scrollbars.setScrollLeft(cm.doc.scrollLeft);
         }, true);
         option('lineNumbers', false, cm => {
-            b.setGuttersForLineNumbers(cm.options);
+            gutters.setGuttersForLineNumbers(cm.options);
             guttersChanged(cm);
         }, true);
         option('firstLineNumber', 1, guttersChanged, true);
         option('lineNumberFormatter', integer => integer, guttersChanged, true);
-        option('showCursorWhenSelecting', false, f.updateSelection, true);
+        option('showCursorWhenSelecting', false, selection.updateSelection, true);
         option('resetSelectionOnContextMenu', true);
         option('lineWiseCopyCut', true);
         option('pasteLinesPerSelection', true);
         option('selectionsMayTouch', false);
         option('readOnly', false, (cm, val) => {
             if (val == 'nocursor') {
-                a.onBlur(cm);
+                focus.onBlur(cm);
                 cm.display.input.blur();
             }
             cm.display.input.readOnlyChanged(val);
@@ -20512,17 +21722,17 @@ define('skylark-codemirror/primitives/edit/options',[
         option('allowDropFileTypes', null);
         option('cursorBlinkRate', 530);
         option('cursorScrollMargin', 0);
-        option('cursorHeight', 1, f.updateSelection, true);
-        option('singleCursorHeightPerLine', true, f.updateSelection, true);
+        option('cursorHeight', 1, selection.updateSelection, true);
+        option('singleCursorHeightPerLine', true, selection.updateSelection, true);
         option('workTime', 100);
         option('workDelay', 100);
-        option('flattenSpans', true, d.resetModeState, true);
-        option('addModeClass', false, d.resetModeState, true);
+        option('flattenSpans', true, mode_state.resetModeState, true);
+        option('addModeClass', false, mode_state.resetModeState, true);
         option('pollInterval', 100);
         option('undoDepth', 200, (cm, val) => cm.doc.history.undoDepth = val);
         option('historyEventDelay', 1250);
         option('viewportMargin', 10, cm => cm.refresh(), true);
-        option('maxHighlightLength', 10000, d.resetModeState, true);
+        option('maxHighlightLength', 10000, mode_state.resetModeState, true);
         option('moveInputWithCursor', true, (cm, val) => {
             if (!val)
                 cm.display.input.resetPosition();
@@ -20533,15 +21743,15 @@ define('skylark-codemirror/primitives/edit/options',[
         option('phrases', null);
     }
     function guttersChanged(cm) {
-        b.updateGutters(cm);
-        g.regChange(cm);
-        c.alignHorizontally(cm);
+        gutters.updateGutters(cm);
+        view_tracking.regChange(cm);
+        line_numbers.alignHorizontally(cm);
     }
     function dragDropChanged(cm, value, old) {
         let wasOn = old && old != Init;
         if (!value != !wasOn) {
             let funcs = cm.display.dragFunctions;
-            let toggle = value ? p.on : p.off;
+            let toggle = value ? event.on : event.off;
             toggle(cm.display.scroller, 'dragstart', funcs.start);
             toggle(cm.display.scroller, 'dragenter', funcs.enter);
             toggle(cm.display.scroller, 'dragover', funcs.over);
@@ -20551,17 +21761,17 @@ define('skylark-codemirror/primitives/edit/options',[
     }
     function wrappingChanged(cm) {
         if (cm.options.lineWrapping) {
-            o.addClass(cm.display.wrapper, 'CodeMirror-wrap');
+            dom.addClass(cm.display.wrapper, 'CodeMirror-wrap');
             cm.display.sizer.style.minWidth = '';
             cm.display.sizerWidth = null;
         } else {
-            o.rmClass(cm.display.wrapper, 'CodeMirror-wrap');
-            k.findMaxLine(cm);
+            dom.rmClass(cm.display.wrapper, 'CodeMirror-wrap');
+            spans.findMaxLine(cm);
         }
-        l.estimateLineHeights(cm);
-        g.regChange(cm);
-        l.clearCaches(cm);
-        setTimeout(() => e.updateScrollbars(cm), 100);
+        measurement.estimateLineHeights(cm);
+        view_tracking.regChange(cm);
+        measurement.clearCaches(cm);
+        setTimeout(() => scrollbars.updateScrollbars(cm), 100);
     }
     return {
         Init: Init,

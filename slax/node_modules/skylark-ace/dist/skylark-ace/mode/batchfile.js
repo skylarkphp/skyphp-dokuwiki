@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var h=i("../lib/oop"),l=i("./text").Mode,o=i("./batchfile_highlight_rules").BatchFileHighlightRules,s=i("./folding/cstyle").FoldMode,n=function(){this.HighlightRules=o,this.foldingRules=new s,this.$behaviour=this.$defaultBehaviour};h.inherits(n,l),function(){this.lineCommentStart="::",this.blockComment="",this.$id="ace/mode/batchfile"}.call(n.prototype),t.Mode=n});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./batchfile_highlight_rules").BatchFileHighlightRules,h=require("./folding/cstyle").FoldMode,l=function(){this.HighlightRules=e,this.foldingRules=new h,this.$behaviour=this.$defaultBehaviour};i.inherits(l,t),function(){this.lineCommentStart="::",this.blockComment="",this.$id="ace/mode/batchfile"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/batchfile.js.map

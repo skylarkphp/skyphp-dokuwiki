@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(i,t,e){"use strict";var h=i("../lib/oop"),o=i("./text").Mode,s=i("./vbscript_highlight_rules").VBScriptHighlightRules,l=function(){this.HighlightRules=s,this.$behaviour=this.$defaultBehaviour};h.inherits(l,o),function(){this.lineCommentStart=["'","REM"],this.$id="ace/mode/vbscript"}.call(l.prototype),t.Mode=l});
+define(function(require,exports,module){"use strict";var i=require("../lib/oop"),t=require("./text").Mode,e=require("./vbscript_highlight_rules").VBScriptHighlightRules,h=function(){this.HighlightRules=e,this.$behaviour=this.$defaultBehaviour};i.inherits(h,t),function(){this.lineCommentStart=["'","REM"],this.$id="ace/mode/vbscript"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/vbscript.js.map

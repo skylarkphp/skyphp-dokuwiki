@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,e,i){"use strict";var l=t("../lib/oop"),o=t("./text").Mode,h=t("./turtle_highlight_rules").TurtleHighlightRules,n=t("./folding/cstyle").FoldMode,s=function(){this.HighlightRules=h,this.foldingRules=new n};l.inherits(s,o),function(){this.$id="ace/mode/turtle"}.call(s.prototype),e.Mode=s});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),e=require("./text").Mode,i=require("./turtle_highlight_rules").TurtleHighlightRules,l=require("./folding/cstyle").FoldMode,o=function(){this.HighlightRules=i,this.foldingRules=new l};t.inherits(o,e),function(){this.$id="ace/mode/turtle"}.call(o.prototype),exports.Mode=o});
 //# sourceMappingURL=../sourcemaps/mode/turtle.js.map

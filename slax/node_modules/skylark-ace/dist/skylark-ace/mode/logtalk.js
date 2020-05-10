@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(t,i,e){"use strict";var o=t("../lib/oop"),l=t("./text").Mode,h=(t("../tokenizer").Tokenizer,t("./logtalk_highlight_rules").LogtalkHighlightRules),n=t("./folding/cstyle").FoldMode,s=function(){this.HighlightRules=h,this.foldingRules=new n,this.$behaviour=this.$defaultBehaviour};o.inherits(s,l),function(){this.lineCommentStart="%",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/logtalk"}.call(s.prototype),i.Mode=s});
+define(function(require,exports,module){"use strict";var t=require("../lib/oop"),i=require("./text").Mode,e=(require("../tokenizer").Tokenizer,require("./logtalk_highlight_rules").LogtalkHighlightRules),o=require("./folding/cstyle").FoldMode,l=function(){this.HighlightRules=e,this.foldingRules=new o,this.$behaviour=this.$defaultBehaviour};t.inherits(l,i),function(){this.lineCommentStart="%",this.blockComment={start:"/*",end:"*/"},this.$id="ace/mode/logtalk"}.call(l.prototype),exports.Mode=l});
 //# sourceMappingURL=../sourcemaps/mode/logtalk.js.map

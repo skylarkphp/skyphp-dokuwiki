@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -95,9 +95,8 @@
 /* v2.0.0
 /* ----------------------------------------------- */
 define('skylark-particles/particles',[
-    "skylark-langx-ns",
-    "skylark-utils-dom/query",
-], function(skylark,$) {
+    "skylark-langx-ns"
+], function(skylark) {
     var shapeSize = { w: 100, h: 100 },
         number = { v: 80, d: 800 },
         size = { v: 3, s: 30 },

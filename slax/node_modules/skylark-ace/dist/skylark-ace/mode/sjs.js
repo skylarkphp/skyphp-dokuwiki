@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,t,i){"use strict";var n=e("../lib/oop"),o=e("./javascript").Mode,s=e("./sjs_highlight_rules").SJSHighlightRules,h=e("./matching_brace_outdent").MatchingBraceOutdent,l=e("./behaviour/cstyle").CstyleBehaviour,u=e("./folding/cstyle").FoldMode,r=function(){this.HighlightRules=s,this.$outdent=new h,this.$behaviour=new l,this.foldingRules=new u};n.inherits(r,o),function(){this.createWorker=function(e){return null},this.$id="ace/mode/sjs"}.call(r.prototype),t.Mode=r});
+define(function(require,exports,module){"use strict";var e=require("../lib/oop"),t=require("./javascript").Mode,i=require("./sjs_highlight_rules").SJSHighlightRules,n=require("./matching_brace_outdent").MatchingBraceOutdent,o=require("./behaviour/cstyle").CstyleBehaviour,s=require("./folding/cstyle").FoldMode,h=function(){this.HighlightRules=i,this.$outdent=new n,this.$behaviour=new o,this.foldingRules=new s};e.inherits(h,t),function(){this.createWorker=function(e){return null},this.$id="ace/mode/sjs"}.call(h.prototype),exports.Mode=h});
 //# sourceMappingURL=../sourcemaps/mode/sjs.js.map

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(function(e,s,t){"use strict";s.snippetText=e("../requirejs/text!./sqlserver.snippets"),s.scope="sqlserver"});
+define(function(require,exports,module){"use strict";exports.snippetText=require("../requirejs/text!./sqlserver.snippets"),exports.scope="sqlserver"});
 //# sourceMappingURL=../sourcemaps/snippets/sqlserver.js.map

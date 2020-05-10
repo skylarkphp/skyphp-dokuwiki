@@ -28056,14 +28056,14 @@ define('skylark-data-entities/main',[
 });
 define('skylark-data-entities', ['skylark-data-entities/main'], function (main) { return main; });
 
-define('skylark-data-streams/streams',[
+define('skylark-io-streams/streams',[
     "skylark-langx/skylark"
 ], function(skylark) {
 
     return skylark.attach("data.streams",{});
 });
 
-define('skylark-data-streams/Stream',[
+define('skylark-io-streams/Stream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams"
@@ -28140,7 +28140,7 @@ define('skylark-data-streams/Stream',[
 	
 });
 
-define('skylark-data-streams/DecodeStream',[
+define('skylark-io-streams/DecodeStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28246,7 +28246,7 @@ define('skylark-data-streams/DecodeStream',[
 
 });
 
-define('skylark-data-streams/Ascii85Stream',[
+define('skylark-io-streams/Ascii85Stream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28327,7 +28327,7 @@ define('skylark-data-streams/Ascii85Stream',[
 
 });
 
-define('skylark-data-streams/AsciiHexStream',[
+define('skylark-io-streams/AsciiHexStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28407,7 +28407,7 @@ define('skylark-data-streams/AsciiHexStream',[
     return streams.AsciiHexStream = AsciiHexStream;
 });
 
-define('skylark-data-streams/ChunkedStream',[
+define('skylark-io-streams/ChunkedStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28609,7 +28609,7 @@ define('skylark-data-streams/ChunkedStream',[
 });
 
 
-define('skylark-data-streams/DecryptStream',[
+define('skylark-io-streams/DecryptStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28650,7 +28650,7 @@ define('skylark-data-streams/DecryptStream',[
 });
 
 
-define('skylark-data-streams/FakeStream',[
+define('skylark-io-streams/FakeStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -28700,7 +28700,7 @@ define('skylark-data-streams/FakeStream',[
 });
 
 
-define('skylark-data-streams/FlateStream',[
+define('skylark-io-streams/FlateStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -29052,7 +29052,7 @@ define('skylark-data-streams/FlateStream',[
     return streams.FlateStream = FlateStream;
 });
 
-define('skylark-data-streams/LZWStream',[
+define('skylark-io-streams/LZWStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -29190,7 +29190,7 @@ define('skylark-data-streams/LZWStream',[
 });
 
 
-define('skylark-data-streams/PredictorStream',[
+define('skylark-io-streams/PredictorStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -29376,7 +29376,7 @@ define('skylark-data-streams/PredictorStream',[
 });
 
 
-define('skylark-data-streams/StreamsSequenceStream',[
+define('skylark-io-streams/StreamsSequenceStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -29410,7 +29410,7 @@ define('skylark-data-streams/StreamsSequenceStream',[
     return streams.StreamsSequenceStream = StreamsSequenceStream;
 });
 
-define('skylark-data-streams/StringStream',[
+define('skylark-io-streams/StringStream',[
     "skylark-langx/skylark",
     "skylark-langx/langx",
     "./streams",
@@ -29434,7 +29434,7 @@ define('skylark-data-streams/StringStream',[
 
 });
 
-define('skylark-data-streams/main',[
+define('skylark-io-streams/main',[
     "./streams",
     "./Ascii85Stream",
     "./AsciiHexStream",
@@ -29452,7 +29452,7 @@ define('skylark-data-streams/main',[
 
 	return streams;
 });
-define('skylark-data-streams', ['skylark-data-streams/main'], function (main) { return main; });
+define('skylark-io-streams', ['skylark-io-streams/main'], function (main) { return main; });
 
 define('skylark-jszip/_stuk/jszip',[], function() {
 /*!
@@ -88682,7 +88682,7 @@ define('slax-skydoku/main',[
 	"skylark-jquery",
 	"skylark-ajaxfy-spa",
 	"skylark-data-entities",
-	"skylark-data-streams",
+	"skylark-io-streams",
 	"skylark-jszip",
 	"skylark-domx-images",
 	"skylark-domx-colorpicker",

@@ -6,7 +6,7 @@ define([
 	"skylark-jquery",
 	"skylark-ajaxfy-spa",
 	"skylark-data-entities",
-	"skylark-data-streams",
+	"skylark-io-streams",
 	"skylark-jszip",
 	"skylark-domx-images",
 	"skylark-domx-colorpicker",

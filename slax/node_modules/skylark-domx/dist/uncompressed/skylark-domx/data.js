@@ -1,6 +1,6 @@
 define([
     "skylark-domx-data"
-], function( datax) {
+], function( data) {
  
-    return datax;
+    return data;
 });

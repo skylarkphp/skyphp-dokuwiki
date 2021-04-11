@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["skylark-domx-transforms"],function(r){return dom.transforms=r});
+define(["skylark-domx-transforms"],function(n){return n});
 //# sourceMappingURL=sourcemaps/transforms.js.map

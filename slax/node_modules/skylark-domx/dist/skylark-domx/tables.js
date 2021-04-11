@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["skylark-domx-tables"],function(e){return dom.tables=e});
+define(["skylark-domx-tables"],function(e){return e});
 //# sourceMappingURL=sourcemaps/tables.js.map

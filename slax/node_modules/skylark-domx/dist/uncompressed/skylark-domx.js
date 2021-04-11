@@ -104,9 +104,9 @@ define('skylark-domx/css',[
 
 define('skylark-domx/data',[
     "skylark-domx-data"
-], function( datax) {
+], function( data) {
  
-    return datax;
+    return data;
 });
 define('skylark-domx/eventer',[
     "skylark-domx-eventer"
@@ -171,16 +171,21 @@ define('skylark-domx/scripter',[
     "skylark-domx-scripter"
 ], function( scripter) {
 
-    return dom.scripter = scripter;
+    return scripter;
 });
 define('skylark-domx/transforms',[
     "skylark-domx-transforms"
 ], function(transforms) {
-  return dom.transforms = transforms;
+  return transforms;
 });
 
 define('skylark-domx/velm',[
-    "skylark-domx-velm"
+    "skylark-domx-velm",
+    "./data",
+    "./eventer",
+    "./fx",
+    "./geom",
+    "./styler"
 ], function( velm) {
      return velm;
 });

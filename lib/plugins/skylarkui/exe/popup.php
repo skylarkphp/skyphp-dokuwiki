@@ -23,7 +23,8 @@ $tmp = array();
 trigger_event('MEDIAMANAGER_STARTED', $tmp);
 session_write_close();  //close session
 
-if ($conf['template'] == 'skybs3') {
+if ($conf['template'] == 'bootstrap3' || $conf['template'] == 'skydoku') {
+
 
   include_once(DOKU_INC.'lib/tpl/'.$conf['template'].'/tpl_functions.php');
   include_once(DOKU_INC.'lib/tpl/'.$conf['template'].'/tpl_global.php');

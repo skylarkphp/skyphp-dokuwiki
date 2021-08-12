@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/pulsate"
+	"skylark-jqueryui-effects/plugins/pulsate"
 ],  function( pulsate ) {
 	return pulsate;
 });

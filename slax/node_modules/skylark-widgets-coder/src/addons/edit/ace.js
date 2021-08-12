@@ -5,7 +5,7 @@ define([
     "../../Addon",
     '../../util',
     "../../Coder"
-], function (langx,datax,Addon,ace,util,Coder) {
+], function (langx,datax,ace,Addon,util,Coder) {
     'use strict';
     class AddonAce extends Addon {
         //constructor(coder, options) 
@@ -42,6 +42,8 @@ define([
         }
         editorChange(params) {
             return () => {
+                var editor = this.editor[params.type];
+                params.content = editor.getValue();
                 this.coder.emit('change', params);
             };
         }
@@ -53,7 +55,7 @@ define([
                 params.aceEditor = editor;
                 editor.on('change', this.editorChange(params));
             }
-            params.content = editor.getValue();
+            //params.content = editor.getValue();
             //callback(null, params);
         }
 

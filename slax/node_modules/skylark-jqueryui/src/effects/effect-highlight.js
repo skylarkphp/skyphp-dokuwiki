@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/highlight"
+	"skylark-jqueryui-effects/plugins/highlight"
 ],  function( highlight ) {
 	return highlight;
 });

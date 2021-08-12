@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["./noder"],function(n){return n});
+define(["./noder","./overlay","./throb"],function(e){return e});
 //# sourceMappingURL=sourcemaps/main.js.map

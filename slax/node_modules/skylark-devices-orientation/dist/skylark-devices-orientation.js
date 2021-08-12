@@ -1,0 +1,9 @@
+/**
+ * skylark-devices-orientation - The orientation  utility library.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.1
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+!function(e,n){var i=n.define,require=n.require,r="function"==typeof i&&i.amd,t=!r&&"undefined"!=typeof exports;if(!r&&!i){var o={};i=n.define=function(e,n,i){"function"==typeof i?(o[e]={factory:i,deps:n.map(function(n){return function(e,n){if("."!==e[0])return e;var i=n.split("/"),r=e.split("/");i.pop();for(var t=0;t<r.length;t++)"."!=r[t]&&(".."==r[t]?i.pop():i.push(r[t]));return i.join("/")}(n,e)}),resolved:!1,exports:null},require(e)):o[e]={factory:null,resolved:!0,exports:i}},require=n.require=function(e){if(!o.hasOwnProperty(e))throw new Error("Module "+e+" has not been defined");var module=o[e];if(!module.resolved){var i=[];module.deps.forEach(function(e){i.push(require(e))}),module.exports=module.factory.apply(n,i)||null,module.resolved=!0}return module.exports}}if(!i)throw new Error("The module utility (ex: requirejs or skylark-utils) is not loaded!");if(function(e,require){e("skylark-devices-orientation/orientation",["skylark-langx-ns"],function(e){return e.attach("devices.orientation",{isDeviceOrientationSupported:function(){return new Promise(function(e){if("DeviceOrientationEvent"in window){var n=function(i){i&&null!==i.alpha&&!isNaN(i.alpha)?e(!0):e(!1),window.removeEventListener("deviceorientation",n)};window.addEventListener("deviceorientation",n,!1),setTimeout(n,2e3)}else e(!1)})}})}),e("skylark-devices-orientation/main",["./orientation"],function(e){return e}),e("skylark-devices-orientation",["skylark-devices-orientation/main"],function(e){return e})}(i),!r){var a=require("skylark-langx-ns");t?module.exports=a:n.skylarkjs=a}}(0,this);
+//# sourceMappingURL=sourcemaps/skylark-devices-orientation.js.map

@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/transfer"
+	"skylark-jqueryui-effects/plugins/transfer"
 ],  function( transfer ) {
 	return transfer;
 });

@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/shake"
+	"skylark-jqueryui-effects/plugins/shake"
 ],  function( shake ) {
 	return shake;
 });

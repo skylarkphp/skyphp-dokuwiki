@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/slide"
+	"skylark-jqueryui-effects/plugins/slide"
 ],  function( slide ) {
 	return slide;
 });

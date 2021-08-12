@@ -1,10 +1,9 @@
 define([
   "skylark-domx-query",
   "skylark-widgets-base/Addon",
-  "../Toolbar",
   "../Wordpad",
   "../i18n"
-],function($,Addon, Toolbar,Wordpad,i18n){ 
+],function($,Addon, Wordpad,i18n){ 
 
 
   var AutoSave = Addon.inherit({

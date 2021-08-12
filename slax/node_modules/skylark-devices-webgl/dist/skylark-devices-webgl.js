@@ -1,0 +1,9 @@
+/**
+ * skylark-devices-webgl - The webgl  utility library.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.1
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+!function(e,r){var n=r.define,require=r.require,t="function"==typeof n&&n.amd,o=!t&&"undefined"!=typeof exports;if(!t&&!n){var i={};n=r.define=function(e,r,n){"function"==typeof n?(i[e]={factory:n,deps:r.map(function(r){return function(e,r){if("."!==e[0])return e;var n=r.split("/"),t=e.split("/");n.pop();for(var o=0;o<t.length;o++)"."!=t[o]&&(".."==t[o]?n.pop():n.push(t[o]));return n.join("/")}(r,e)}),resolved:!1,exports:null},require(e)):i[e]={factory:null,resolved:!0,exports:n}},require=r.require=function(e){if(!i.hasOwnProperty(e))throw new Error("Module "+e+" has not been defined");var module=i[e];if(!module.resolved){var n=[];module.deps.forEach(function(e){n.push(require(e))}),module.exports=module.factory.apply(r,n)||null,module.resolved=!0}return module.exports}}if(!n)throw new Error("The module utility (ex: requirejs or skylark-utils) is not loaded!");if(function(e,require){e("skylark-devices-webgl/webgl",["skylark-langx-ns"],function(e){function r(){var e=document.createElement("canvas"),r=null;return e.getContext&&["webgl","experimental-webgl","moz-webgl","webkit-3d"].some(function(n){try{return(r=e.getContext(n))&&"function"==typeof r.getParameter}catch(e){return!1}})?r:null}return e.attach("devices.webgl",{getWebGLCtx:r,isWebGLSupported:function(){return!!window.WebGLRenderingContext&&null!==r()},getMaxTextureWidth:function(){var e=r();return null!==e?e.getParameter(e.MAX_TEXTURE_SIZE):0}})}),e("skylark-devices-webgl/main",["./webgl"],function(e){return e}),e("skylark-devices-webgl",["skylark-devices-webgl/main"],function(e){return e})}(n),!t){var l=require("skylark-langx-ns");o?module.exports=l:r.skylarkjs=l}}(0,this);
+//# sourceMappingURL=sourcemaps/skylark-devices-webgl.js.map

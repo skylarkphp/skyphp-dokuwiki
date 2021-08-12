@@ -52,7 +52,7 @@ define([
             var params = e.data;
             this.code[params.type] = langx.clone(params);
             if (typeof this.cache[params.type] !== 'undefined') {
-                callback(null, this.cache[params.type]);
+                //callback(null, this.cache[params.type]);
                 this.cache[params.type].forceRender = null;
             } else {
                 this.cache[params.type] = langx.clone(params);

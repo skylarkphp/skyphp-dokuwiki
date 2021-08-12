@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -87,7 +87,7 @@
 })(function(define,require) {
 
 define('skylark-tinycon/tinycon',[
-  "skylark-langx/skylark"
+  "skylark-langx-ns"
 ],function(skylark) {
   var Tinycon = {};
   var currentFavicon = null;

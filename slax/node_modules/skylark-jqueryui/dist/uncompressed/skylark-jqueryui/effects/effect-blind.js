@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/blind"
+	"skylark-jqueryui-effects/plugins/blind"
 ],  function( blind ) {
 	return blind;
 });

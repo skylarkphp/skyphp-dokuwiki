@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/fade"
+	"skylark-jqueryui-effects/plugins/fade"
 ],  function( fade ) {
 	return fade;
 });

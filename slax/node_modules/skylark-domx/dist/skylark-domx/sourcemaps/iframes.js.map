@@ -1,0 +1,1 @@
+{"version":3,"sources":["iframes.js"],"names":["define","iframes"],"mappings":";;;;;;;AAAAA,QACI,wBACD,SAAUC,GACT,OAAOA","file":"../iframes.js","sourcesContent":["define([\r\n    \"skylark-domx-iframes\"\r\n], function( iframes) {\r\n    return iframes;\r\n});"]}

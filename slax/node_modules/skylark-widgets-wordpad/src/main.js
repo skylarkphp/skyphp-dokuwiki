@@ -2,8 +2,6 @@ define([
   "./Wordpad", 
   "./Action",
   "./Popover",
-  "./Toolbar",
-  "./ToolButton", 
 
   "./addons/actions/AlignmentAction", 
   "./addons/actions/BlockquoteAction", 

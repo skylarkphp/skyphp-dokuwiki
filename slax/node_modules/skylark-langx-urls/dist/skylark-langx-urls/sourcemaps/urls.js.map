@@ -1,0 +1,1 @@
+{"version":3,"sources":["urls.js"],"names":["define","skylark","attach"],"mappings":";;;;;;;AAAAA,QACE,oBACA,SAASC,GAGP,OAAOA,EAAQC,OAAO","file":"../urls.js","sourcesContent":["define([\r\n  \"skylark-langx-ns\"\r\n],function(skylark){\r\n\r\n\r\n    return skylark.attach(\"langx.urls\",{\r\n\r\n    });\r\n});\r\n\r\n\r\n"]}

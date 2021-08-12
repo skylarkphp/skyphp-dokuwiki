@@ -1,6 +1,6 @@
 define([
-    "skylark-langx/skylark"
+    "skylark-langx-ns"
 ], function(skylark) {
 
-    return skylark.attach("data.streams",{});
+    return skylark.attach("io.streams");
 });

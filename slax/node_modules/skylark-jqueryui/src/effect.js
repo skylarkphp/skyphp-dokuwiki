@@ -1,6 +1,6 @@
 define([
 	"skylark-jquery", 
-	"skylark-domx-effects/effects" 
+	"skylark-jqueryui-effects/effects" 
 ],function( $, effects ) {
 
 	return $.effects = effects;

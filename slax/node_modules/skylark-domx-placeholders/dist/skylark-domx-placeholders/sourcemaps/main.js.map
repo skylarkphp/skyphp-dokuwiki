@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","placeholders"],"mappings":";;;;;;;AAAAA,QACC,iBACA,WACA,WACA,aACC,SAASC,GACV,OAAOA","file":"../main.js","sourcesContent":["define([\r\n\t\"./placeholders\",\r\n\t\"./create\",\r\n\t\"./remove\",\r\n\t\"./cleanup\"\r\n],function(placeholders){\r\n\treturn placeholders;\r\n});"]}

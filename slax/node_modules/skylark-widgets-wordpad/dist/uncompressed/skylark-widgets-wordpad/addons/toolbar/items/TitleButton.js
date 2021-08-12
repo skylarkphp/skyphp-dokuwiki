@@ -1,6 +1,6 @@
 define([
   "skylark-domx-query",
-  "../../../ToolButton",
+  "skylark-widgets-toolbars/ToolbarItem",
   "../../../addons"
 ],function($,ToolButton,addons){ 
   var TitleButton = ToolButton.inherit({

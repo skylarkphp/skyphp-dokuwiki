@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mega Menu</title>
+    <link href="https://fonts.googleapis.com/css?family=PT+Sans:400,400i,700,700i&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../../skins/default/menu.css">
+    <link rel="stylesheet" href="../../skins/default/mega.css">
+
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "PT Sans", sans-serif;
+        min-height: 200vh;
+      }
+
+.mega-menu {
+  display: block;
+  float: left;
+  width: 100%;
+  box-shadow: 0px 1px 4px #dadada;
+}
+   </style>
+  </head>
+  <body>
+
+    <nav>
+      <div class="lark-menu mega menuClass">
+        <div class="mobile-nav-icon">
+          <a class="" href="#">
+            <span class="fa fa-bars"></span>
+          </a>
+        </div>
+        <div class="main-links">
+          <ul>
+            <li><a href="#">Home</a></li>
+            <li><a data-submenu="products" href="#">Products</a></li>
+            <li><a data-submenu="brands" href="#">Brands</a></li>
+            <li><a   href="#">Blog</a></li>
+            <li><a data-submenu="support"  href="#">Support</a></li>
+          </ul>
+        </div>
+        <div class="menu-dropdown">
+          <ul class="menu-item-wrapper" id="products">
+            <li class="category-wrapper">
+              <span class="item-category">Clothing</span>
+              <ul>
+                <li><a href="#">Tshirts</a></li>
+                <li><a href="#">Pants</a></li>
+                <li><a href="#">Full Sleeves</a></li>
+                <li><a href="#">Pants</a></li>
+                <li><a href="#">Pants</a></li>
+              </ul>
+            </li>
+
+            <li class="category-wrapper">
+              <span class="item-category">Watches</span>
+              <ul>
+                <li><a href="#">  Sport Watches</a></li>
+                <li><a href="#">  Smartwatches</a></li>
+                <li><a href="#">  Casual Watches</a></li>
+                <li><a href="#">  Formal Watches</a></li>
+                <li><a href="#">  Mens Watches</a></li>
+                <li><a href="#">  Womens Watches</a></li>
+              </ul>
+              <ul>
+                <li><a href="#">  Womens Watches</a></li>
+                <li><a href="#">  Smartwatches</a></li>
+                <li><a href="#">  Sport Watches</a></li>
+                <li><a href="#">  Casual Watches</a></li>
+                <li><a href="#">  Formal Watches</a></li>
+                <li><a href="#">  Mens Watches</a></li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="menu-item-wrapper" id="brands">
+            <li class="category-wrapper">
+              <span class="item-category">Brands</span>
+              <ul>
+                <li><a href="#">  Nike</a></li>
+                <li><a href="#">  Adidas</a></li>
+                <li><a href="#">  Puma</a></li>
+                <li><a href="#">  Caterpillar</a></li>
+                <li><a href="#">  Levis</a></li>
+                <li><a href="#">  Wrangler</a></li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="menu-item-wrapper dropdown" id="support">
+            <li>  <a href="#">FAQ</a> </li>
+            <li>  <a href="#">Help</a> </li>
+            <li>  <a href="#">Contact US</a> </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+<!-- 
+    <script src="../dist/uncompressed/skylark-megamenu-all.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/gh/rehyan21/Mega-Menu/build/js/megamenu.min.js" type="text/javascript"></script> 
+    <script type="text/javascript">
+      $(".mega-menu").megaMenu({
+        // menuBehaviour: "mouseover",
+        // stickyHeader:false,
+        // caret:true,
+        // highlighter:false,
+        caretArrows: [{
+          // up:"fa fa-angle-up",
+          // down:"fa fa-angle-down",
+        }],
+        highlightColor:"skyblue",
+        animation:true,
+        animationClass:"animated fadeIn",
+        followingHighlighter:true,
+        // textHighlighter: true,
+        // textHighlighterColor:"skyblue",
+      })
+    </script>
+-->
+    <script type="text/javascript" src="../require.js" data-main="../bootstrap.js"></script>
+    <script>
+        var initPage = function(langx,domx) {
+            var $ = domx.query;
+            $('.lark-menu.mega').plugin("lark.menus.mega",{
+              "multitier" : {
+                "mode" : "cascade",
+                "multiExpand" : true
+              }                
+            });
+
+
+        };
+    </script>
+  </body>
+</html>

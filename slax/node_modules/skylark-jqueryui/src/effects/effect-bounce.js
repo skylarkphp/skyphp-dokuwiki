@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/bounce"
+	"skylark-jqueryui-effects/plugins/bounce"
 ],  function(bounce) {
 	return bounce;
 });

@@ -1,0 +1,1 @@
+{"version":3,"sources":["clipboard.js"],"names":["define","caches"],"mappings":";;;;;;;AAAAA,QACC,YACC,SAASC","file":"../clipboard.js","sourcesContent":["define([\r\n\t\"./caches\"\r\n],function(caches){\r\n\t\r\n});"]}

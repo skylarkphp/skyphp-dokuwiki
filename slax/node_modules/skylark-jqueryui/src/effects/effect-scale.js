@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/scale"
+	"skylark-jqueryui-effects/plugins/scale"
 ],  function( scale ) {
 	return scale;
 });

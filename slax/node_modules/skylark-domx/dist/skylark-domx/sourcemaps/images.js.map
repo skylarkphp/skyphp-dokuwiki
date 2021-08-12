@@ -1,1 +1,0 @@
-{"version":3,"sources":["images.js"],"names":["define","images"],"mappings":";;;;;;;AAAAA,QACI,uBACD,SAASC,GACV,OAAOA","file":"../images.js","sourcesContent":["define([\r\n    \"skylark-domx-images\"\r\n], function(images) {\r\n  return images;\r\n});\r\n"]}

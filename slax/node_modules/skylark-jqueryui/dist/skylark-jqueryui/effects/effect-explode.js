@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-domx-effects/plugins/explode"],function(e){return e});
+define(["skylark-jqueryui-effects/plugins/explode"],function(e){return e});
 //# sourceMappingURL=../sourcemaps/effects/effect-explode.js.map

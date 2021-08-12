@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-domx-effects/plugins/blind"],function(n){return n});
+define(["skylark-jqueryui-effects/plugins/blind"],function(e){return e});
 //# sourceMappingURL=../sourcemaps/effects/effect-blind.js.map

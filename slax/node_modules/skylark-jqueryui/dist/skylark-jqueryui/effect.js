@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-jquery","skylark-domx-effects/effects"],function(e,f){return e.effects=f});
+define(["skylark-jquery","skylark-jqueryui-effects/effects"],function(e,f){return e.effects=f});
 //# sourceMappingURL=sourcemaps/effect.js.map

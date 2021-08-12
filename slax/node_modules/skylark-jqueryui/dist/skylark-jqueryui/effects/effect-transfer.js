@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-domx-effects/plugins/transfer"],function(e){return e});
+define(["skylark-jqueryui-effects/plugins/transfer"],function(e){return e});
 //# sourceMappingURL=../sourcemaps/effects/effect-transfer.js.map

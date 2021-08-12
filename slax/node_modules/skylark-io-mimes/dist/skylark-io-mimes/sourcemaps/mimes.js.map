@@ -1,0 +1,1 @@
+{"version":3,"sources":["mimes.js"],"names":["define","skylark","attach"],"mappings":";;;;;;;AAAAA,QACC,oBACC,SAASC,GACV,OAAOA,EAAQC,OAAO","file":"../mimes.js","sourcesContent":["define([\r\n\t\"skylark-langx-ns\"\r\n],function(skylark){\r\n\treturn skylark.attach(\"io.mimes\",{\r\n\r\n\t});\r\n})"]}

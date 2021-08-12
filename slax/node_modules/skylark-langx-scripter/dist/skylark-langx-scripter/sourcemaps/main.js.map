@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","scripter"],"mappings":";;;;;;;AAAAA,QACC,cACC,SAASC,GAEV,OAAOA","file":"../main.js","sourcesContent":["define([\r\n\t\"./scripter\"\r\n],function(scripter){\r\n\t\r\n\treturn scripter;\r\n});"]}

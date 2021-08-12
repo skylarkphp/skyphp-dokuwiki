@@ -1,5 +1,7 @@
 define([
-	"./noder"
+	"./noder",
+	"./overlay",
+	"./throb"
 ],function(noder){
 	return noder;
 });

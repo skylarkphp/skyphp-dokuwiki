@@ -1,7 +1,7 @@
 define([
     "skylark-langx/langx",
     "skylark-domx-query",
-    "skylark-widgets-swt/Widget",
+    "skylark-widgets-base/Widget",
     "skylark-codemirror/CodeMirror",
     "skylark-easyeditor/EasyEditor",
     "./textpad",

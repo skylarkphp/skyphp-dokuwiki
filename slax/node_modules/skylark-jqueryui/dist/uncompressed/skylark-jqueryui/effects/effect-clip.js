@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/clip"
+	"skylark-jqueryui-effects/plugins/clip"
 ],  function( clip ) {
 	return clip;
 });

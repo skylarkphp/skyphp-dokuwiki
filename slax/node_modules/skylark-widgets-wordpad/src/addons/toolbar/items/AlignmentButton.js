@@ -1,7 +1,7 @@
 define([
   "skylark-langx/langx",
   "skylark-domx-query",
-  "../../../ToolButton",
+  "skylark-widgets-toolbars/ToolbarItem",
   "../../../i18n",
   "../../../addons"
 ],function(langx,$,ToolButton,i18n,addons){ 

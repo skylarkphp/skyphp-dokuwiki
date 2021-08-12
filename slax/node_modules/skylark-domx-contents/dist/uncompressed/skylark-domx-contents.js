@@ -2023,7 +2023,8 @@ define('skylark-domx-contents/Formatter',[
         $el = this.editable.body;
       }
       if ($el.is(':empty')) {
-        $el.append('<p>' + this.editable.util.phBr + '</p>');
+        //$el.append('<p>' + this.editable.util.phBr + '</p>'); // modified by lwf
+        $el.append('<p>' + '</p>'); // modified by lwf
         return $el;
       }
       ref = $el.contents();

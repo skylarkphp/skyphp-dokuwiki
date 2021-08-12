@@ -1,24 +1,24 @@
-.wordpad .lark-toolbar .toolbar-item-emoji span.fa {
+.wordpad .domx-toolbar .toolbar-item-emoji span.fa {
   color: #888;
   font-weight: bold;
 }
-.wordpad .lark-toolbar .toolbar-menu-emoji {
+.wordpad .domx-toolbar .toolbar-menu-emoji {
   width: 296px;
 }
-.wordpad .lark-toolbar ul.emoji-list {
+.wordpad .domx-toolbar ul.emoji-list {
   padding: 6px 8px;
   overflow: hidden;
 }
-.wordpad .lark-toolbar ul.emoji-list li {
+.wordpad .domx-toolbar ul.emoji-list li {
   float: left;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
 }
-.wordpad .lark-toolbar ul.emoji-list li:hover {
+.wordpad .domx-toolbar ul.emoji-list li:hover {
   background-color: #f0f0f0;
 }
-.wordpad .lark-toolbar ul.emoji-list img {
+.wordpad .domx-toolbar ul.emoji-list img {
   display: block;
 }
 

@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","i18n"],"mappings":";;;;;;;AAAAA,QACC,SACA,eACA,eACA,cACA,mBACA,qBACC,SAASC,GACV,OAAOA","file":"../main.js","sourcesContent":["define([\r\n\t\"./i18n\",\r\n\t\"./Translator\",\r\n\t\"./prepareDom\",\r\n\t\"./translate\",\r\n\t\"./addTranslation\",\r\n\t\"./getTranslations\"\r\n],function(i18n){\r\n\treturn i18n;\r\n})"]}

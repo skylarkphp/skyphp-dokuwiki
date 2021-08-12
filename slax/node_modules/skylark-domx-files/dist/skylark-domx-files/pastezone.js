@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["skylark-langx/objects","skylark-domx-eventer","./files"],function(e,n,t){return t.pastezone=function(t,a){(a=a||{}).hoverClass;var i=a.pasted;return n.on(t,"paste",function(n){var t=n.originalEvent&&n.originalEvent.clipboardData&&n.originalEvent.clipboardData.items,a=[];t&&t.length&&e.each(t,function(e,n){var t=n.getAsFile&&n.getAsFile();t&&a.push(t)}),i&&a.length&&i(a)}),this}});
+define(["skylark-langx/objects","skylark-domx-eventer","skylark-domx-velm","skylark-domx-query","./files"],function(e,a,n,t,r){function s(n,t){(t=t||{}).hoverClass;var r=t.pasted;return a.on(n,"paste",function(a){var n=a.originalEvent&&a.originalEvent.clipboardData&&a.originalEvent.clipboardData.items,t=[];n&&n.length&&e.each(n,function(e,a){var n=a.getAsFile&&a.getAsFile();n&&t.push(n)}),r&&t.length&&r(t)}),this}return r.pastezone=s,n.delegate(["pastezone"],r),t.fn.pastezone=t.wraps.wrapper_every_act(r.pastezone,r),s});
 //# sourceMappingURL=sourcemaps/pastezone.js.map

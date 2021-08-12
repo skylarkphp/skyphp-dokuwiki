@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-domx-effects/plugins/puff"],function(f){return f});
+define(["skylark-jqueryui-effects/plugins/puff"],function(e){return e});
 //# sourceMappingURL=../sourcemaps/effects/effect-puff.js.map

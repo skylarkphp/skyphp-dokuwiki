@@ -1,9 +1,0 @@
-/**
- * skylark-io-streams - The stream features enhancement for skylark utils.
- * @author Hudaokeji Co.,Ltd
- * @version v0.9.0
- * @link www.skylarkjs.org
- * @license MIT
- */
-define(["skylark-langx/skylark","skylark-langx/langx","./streams","./DecodeStream"],function(e,t,r,i){var n=i.inherit({klassName:"LZWStream",init:function(e,t){this.str=e,this.dict=e.dict,this.cachedData=0,this.bitsCached=0;for(var r={earlyChange:t,codeLength:9,nextCode:258,dictionaryValues:new Uint8Array(4096),dictionaryLengths:new Uint16Array(4096),dictionaryPrevCodes:new Uint16Array(4096),currentSequence:new Uint8Array(4096),currentSequenceLength:0},n=0;n<256;++n)r.dictionaryValues[n]=n,r.dictionaryLengths[n]=1;this.lzwState=r,i.prototype.init.call(this)},readBits:function(e){for(var t=this.bitsCached,r=this.cachedData;t<e;){var i=this.str.getByte();if(null==i)return this.eof=!0,null;r=r<<8|i,t+=8}return this.bitsCached=t-=e,this.cachedData=r,this.lastCode=null,r>>>t&(1<<e)-1},readBlock:function(){var e,t,r,i=1024,n=this.lzwState;if(n){var a=n.earlyChange,s=n.nextCode,h=n.dictionaryValues,c=n.dictionaryLengths,o=n.dictionaryPrevCodes,d=n.codeLength,u=n.prevCode,f=n.currentSequence,l=n.currentSequenceLength,g=0,y=this.bufferLength,L=this.ensureBuffer(this.bufferLength+i);for(e=0;e<512;e++){var C=this.readBits(d),v=l>0;if(C<256)f[0]=C,l=1;else{if(!(C>=258)){if(256==C){d=9,s=258,l=0;continue}this.eof=!0,delete this.lzwState;break}if(C<s)for(t=(l=c[C])-1,r=C;t>=0;t--)f[t]=h[r],r=o[r];else f[l++]=f[0]}if(v&&(o[s]=u,c[s]=c[u]+1,h[s]=f[0],d=++s+a&s+a-1?d:0|Math.min(Math.log(s+a)/.6931471805599453+1,12)),u=C,i<(g+=l)){do{i+=512}while(i<g);L=this.ensureBuffer(this.bufferLength+i)}for(t=0;t<l;t++)L[y++]=f[t]}n.nextCode=s,n.codeLength=d,n.prevCode=u,n.currentSequenceLength=l,this.bufferLength=y}}});return r.LZWStream=n});
-//# sourceMappingURL=sourcemaps/LZWStream.js.map

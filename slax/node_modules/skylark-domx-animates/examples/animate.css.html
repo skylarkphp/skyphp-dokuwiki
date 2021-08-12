@@ -1,0 +1,107 @@
+
+
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+
+  <meta charset="UTF-8">
+  
+<link rel="apple-touch-icon" type="image/png" href="https://cpwebassets.codepen.io/assets/favicon/apple-touch-icon-5ae1a0698dcc2402e9712f7d01ed509a57814f994c660df9f7a952f3060705ee.png" />
+<meta name="apple-mobile-web-app-title" content="CodePen">
+
+<link rel="shortcut icon" type="image/x-icon" href="https://cpwebassets.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico" />
+
+<link rel="mask-icon" type="" href="https://cpwebassets.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111" />
+
+
+  <title>CodePen - CSS animate.css の基本サンプル（通常・クリックされた・マウスオーバー）</title>
+  
+  
+  <link rel='stylesheet' href='../skins/default/animate.3.5.1.css'>
+<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-beta.2/css/bootstrap.css'>
+  
+<style>
+p {
+  font-size:1rem;
+  font-weight:bold;
+}
+p.title {
+  font-size:2rem;
+}
+.container {
+  text-align:center;
+  max-width:600px;
+}
+.row {
+  text-align:center;  
+}
+.col {
+  margin:20px 0px;
+  padding:20px;
+  background:#CCCCCC;
+}
+</style>
+
+  <script>
+  window.console = window.console || function(t) {};
+</script>
+
+  
+  
+  <script>
+  if (document.location.search.match(/type=embed/gi)) {
+    window.parent.postMessage("resize", "*");
+  }
+</script>
+
+
+</head>
+
+<body translate="no" >
+  <div class="container">
+  <p class="title">animate.cssサンプル</p>
+  <div class="row">
+    <div class="col">
+      <p>[ 画面表示された時にアニメーション ]</p>
+      <div id="bounce-1" class="animated bounce">bounce</div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p>[ ボタンクリックされた時にアニメーション ]</p>      
+      <div id="bounce-2">bounce</div>
+      <button id="bounce-2-trigger">ボタン</button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col">
+      <p>[ マウスホバーされた時にアニメーション ]</p>      
+      <div id="bounce-3">bounce</div>
+    </div>
+  </div>  
+</div>
+
+  <script src='../dist/uncompressed/skylark-domx-animates-all.js'></script>
+    <script id="rendered-js" >
+      var animates = skylarkjs.domx.animates,
+          $ = skylarkjs.domx.query;
+
+      $("#bounce-2-trigger").click(function(){
+        animates.animate($("#bounce-2")[0],"bounce");
+      });
+
+      // bounce3がマウスホバーされたら実行
+      $("#bounce-3").mouseover(function(){
+        animates.animate($("#bounce-3")[0],"bounce");
+      });
+
+
+    </script>
+
+  
+
+</body>
+
+</html>
+ 

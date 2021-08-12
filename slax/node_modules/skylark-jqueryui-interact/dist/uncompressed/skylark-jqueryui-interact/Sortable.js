@@ -4,7 +4,7 @@ define( [
 	"skylark-domx-eventer",
 	"skylark-domx-noder",
 	"skylark-domx-query",
-	"skylark-domx-plugins",
+	"skylark-domx-plugins-base",
 	"./Mouse",
 	"./ddmanager",
 ],function(langx, datax, eventer, noder, $, plugins, Mouse, ddmanager) {

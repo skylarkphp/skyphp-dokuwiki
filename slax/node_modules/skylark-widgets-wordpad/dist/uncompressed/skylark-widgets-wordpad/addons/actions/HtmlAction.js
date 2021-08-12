@@ -10,7 +10,7 @@ define([
 //  "skylark-codemirror/addon/fold/indent-fold",
 //  "skylark-codemirror/addon/fold/markdown-fold",
 //  "skylark-codemirror/addon/fold/comment-fold",  
-  "skylark-parsers-html",
+  "skylark-texts-html",
   "skylark-codemirror/addon/beautify/beautify",  
   "skylark-codemirror/mode/xml/xml",
   "skylark-codemirror/mode/css/css",

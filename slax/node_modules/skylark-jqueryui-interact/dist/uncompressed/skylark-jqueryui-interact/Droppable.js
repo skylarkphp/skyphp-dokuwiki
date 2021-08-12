@@ -3,7 +3,7 @@ define( [
 	"skylark-domx-eventer",
 	"skylark-domx-noder",
 	"skylark-domx-query",
-	"skylark-domx-plugins",
+	"skylark-domx-plugins-base",
 	"skylark-jquery/JqueryPlugin",
 	"./patch",
 	"./ddmanager",

@@ -29,6 +29,11 @@ require.config({
             main: 'main'
          },
          {
+           name : "skylark-langx-events",
+           location : "../node_modules/skylark-langx-events/dist/uncompressed/skylark-langx-events",
+            main: 'main'
+         },
+         {
            name : "skylark-langx-funcs",
            location : "../node_modules/skylark-langx-funcs/dist/uncompressed/skylark-langx-funcs",
             main: 'main'
@@ -41,6 +46,11 @@ require.config({
          {
            name : "skylark-langx-klass",
            location : "../node_modules/skylark-langx-klass/dist/uncompressed/skylark-langx-klass",
+            main: 'main'
+         },
+         {
+           name : "skylark-langx-maths",
+           location : "../node_modules/skylark-langx-maths/dist/uncompressed/skylark-langx-maths",
             main: 'main'
          },
          {
@@ -172,10 +182,15 @@ require.config({
             main: 'main'
          },
          {
-           name : "skylark-storages-diskfs",
-           location : "../node_modules/skylark-storages-diskfs/dist/uncompressed/skylark-storages-diskfs",
+           name : "skylark-io-diskfs",
+           location : "../node_modules/skylark-io-diskfs/dist/uncompressed/skylark-io-diskfs",
             main: 'main'
          },         
+         {
+           name : "skylark-net-http",
+           location : "../node_modules/skylark-net-http/dist/uncompressed/skylark-net-http",
+            main: 'main'
+         },  
          {
            name : "skylark-widgets-base",
            location : "../node_modules/skylark-widgets-base/dist/uncompressed/skylark-widgets-base",
@@ -187,7 +202,6 @@ require.config({
 
      { name: "skylark-langx", location: "../node_modules/skylark-langx/dist/uncompressed/skylark-langx" },
      { name: "skylark-data-collection", location: "../node_modules/skylark-data-collection/dist/uncompressed/skylark-data-collection"},
-     { name: "skylark-utils-dom", location: "../node_modules/skylark-utils-dom/dist/uncompressed/skylark-utils-dom"},
      { name: "skylark-domx-contents", location: "../node_modules/skylark-domx-contents/dist/uncompressed/skylark-domx-contents"},
      { name: "skylark-widgets-swt", location: "../node_modules/skylark-widgets-swt/dist/uncompressed/skylark-widgets-swt"},
      { name: "skylark-codemirror", location: "../../../intg/editor/skylark-codemirror/src"},
@@ -197,7 +211,7 @@ require.config({
 });
  
 require([
-  "skylark-utils-dom/query",
+  "skylark-domx-query",
   "skylark-widgets-textpad/helper",
   "skylark-widgets-textpad/Editor",
   "skylark-widgets-textpad/addons/html",

@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/drop"
+	"skylark-jqueryui-effects/plugins/drop"
 ],  function( drop ) {
 	return drop;
 });

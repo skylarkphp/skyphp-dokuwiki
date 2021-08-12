@@ -4,7 +4,7 @@
   "description": "The skydoku slax application.",
   "main": "./index",
   "scripts": {
-    "build": "sbundle build ."
+    "build": "slib build ."
   },
   "homepage": "skydoku.hudaokeji.com",
   "keywords": [
@@ -13,21 +13,38 @@
   ],
   "author": "Hudaokeji Co.,Ltd",
   "dependencies": {
-    "skylark-faiconpicker2": "git+https://github.com/skylark-integration/skylark-faiconpicker2.git#master",
-    "skylark-jqueryui": "git+https://github.com/skylark-integration/skylark-jqueryui.git#master",
-    "skylark-jqueryui-interact": "git+https://github.com/skylark-integration/skylark-jqueryui-interact.git#master",
-    "skylark-jszip": "git+https://github.com/skylark-integration/skylark-jszip.git#master",
-    "skylark-langx": "git+https://github.com/skylark-langx/skylark-langx.git#master",
-    "skylark-particles": "git+https://github.com/skylark-integration/skylark-particles.git#master",
-    "skylark-slax-runtime": "git+https://github.com/skylark-slax/skylark-slax-runtime.git#master",
-    "skylark-widgets-coder": "git+https://github.com/skylark-widgets/skylark-widgets-coder.git#master",
-    "skylark-widgets-hierarchy": "git+https://github.com/skylark-widgets/skylark-widgets-hierarchy.git#master",
-    "skylark-widgets-repeater": "git+https://github.com/skylark-widgets/skylark-widgets-repeater.git#master",
-    "skylark-widgets-shells": "git+https://github.com/skylark-widgets/skylark-widgets-shells.git#master",
-    "skylark-widgets-textpad": "git+https://github.com/skylark-widgets/skylark-widgets-textpad.git#master",
-    "skylark-widgets-wordpad": "git+https://github.com/skylark-widgets/skylark-widgets-wordpad.git#master"
+    "skylark-slax-runtime": "git+https://github.com/skylark-slax/skylark-slax-runtime.git",
+    "skylark-faiconpicker2": "git+https://github.com/skylark-integration/skylark-faiconpicker2.git",
+    "skylark-jqueryui": "git+https://github.com/skylark-integration/skylark-jqueryui.git",
+    "skylark-jqueryui-interact": "git+https://github.com/skylark-integration/skylark-jqueryui-interact.git",
+    "skylark-jszip": "git+https://github.com/skylark-integration/skylark-jszip.git",
+    "skylark-particles": "git+https://github.com/skylark-integration/skylark-particles.git",
+    "skylark-widgets-coder": "git+https://github.com/skylark-widgets/skylark-widgets-coder.git",
+    "skylark-widgets-textpad": "git+https://github.com/skylark-widgets/skylark-widgets-textpad.git",
+    "skylark-widgets-wordpad": "git+https://github.com/skylark-widgets/skylark-widgets-wordpad.git"
   },
   "engines": {
     "node": ">=0.8.0"
+  },
+  "skylarkjs": {
+    "directories": {
+      "dependencies": "./node_modules"
+    },
+    "secondaries": {},
+    "build": {
+      "prepare": {
+        "texttojs": [
+          "html",
+          "json",
+          "css"
+        ],
+        "jsxtojs": false,
+        "es6toamd": false,
+        "cjstoamd": false
+      },
+      "bundles": {
+        "all": true
+      }
+    }
   }
 }

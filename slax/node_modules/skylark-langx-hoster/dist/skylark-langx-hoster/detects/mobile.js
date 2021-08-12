@@ -1,0 +1,9 @@
+/**
+ * skylark-langx-hoster - The skylark JavaScript language extension library.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(["../hoster"],function(e){var i=/iPhone/i,o=/iPod/i,t=/iPad/i,n=/\biOS-universal(?:.+)Mac\b/i,r=/\bAndroid(?:.+)Mobile\b/i,a=/Android/i,d=/(?:SD4930UR|\bSilk(?:.+)Mobile\b)/i,l=/Silk/i,p=/Windows Phone/i,b=/\bWindows(?:.+)ARM\b/i,u=/BlackBerry/i,s=/BB10/i,c=/Opera Mini/i,h=/\b(CriOS|Chrome)(?:.+)Mobile/i,v=/Mobile(?:.+)Firefox\b/i,f=function(e){return void 0!==e&&"MacIntel"===e.platform&&"number"==typeof e.maxTouchPoints&&e.maxTouchPoints>1&&"undefined"==typeof MSStream};return e.detects.mobile=function(e){var m={userAgent:"",platform:"",maxTouchPoints:0};e||"undefined"==typeof navigator?"string"==typeof e?m.userAgent=e:e&&e.userAgent&&(m={userAgent:e.userAgent,platform:e.platform,maxTouchPoints:e.maxTouchPoints||0}):m={userAgent:navigator.userAgent,platform:navigator.platform,maxTouchPoints:navigator.maxTouchPoints||0};var g=m.userAgent,A=g.split("[FBAN");void 0!==A[1]&&(g=A[0]),void 0!==(A=g.split("Twitter"))[1]&&(g=A[0]);var w=function(e){return function(i){return i.test(e)}}(g),P={apple:{phone:w(i)&&!w(p),ipod:w(o),tablet:!w(i)&&(w(t)||f(m))&&!w(p),universal:w(n),device:(w(i)||w(o)||w(t)||w(n)||f(m))&&!w(p)},amazon:{phone:w(d),tablet:!w(d)&&w(l),device:w(d)||w(l)},android:{phone:!w(p)&&w(d)||!w(p)&&w(r),tablet:!w(p)&&!w(d)&&!w(r)&&(w(l)||w(a)),device:!w(p)&&(w(d)||w(l)||w(r)||w(a))||w(/\bokhttp\b/i)},windows:{phone:w(p),tablet:w(b),device:w(p)||w(b)},other:{blackberry:w(u),blackberry10:w(s),opera:w(c),firefox:w(v),chrome:w(h),device:w(u)||w(s)||w(c)||w(v)||w(h)},any:!1,phone:!1,tablet:!1};return P.any=P.apple.device||P.android.device||P.windows.device||P.other.device,P.phone=P.apple.phone||P.android.phone||P.windows.phone,P.tablet=P.apple.tablet||P.android.tablet||P.windows.tablet,P}});
+//# sourceMappingURL=../sourcemaps/detects/mobile.js.map

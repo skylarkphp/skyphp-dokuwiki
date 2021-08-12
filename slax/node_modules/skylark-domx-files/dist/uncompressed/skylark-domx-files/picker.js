@@ -1,9 +1,11 @@
 define([
     "skylark-langx/objects",
     "skylark-domx-eventer",
-    "./files",
-    "skylark-io-diskfs/select"
-],function(objects, eventer, files, select){
+    "skylark-domx-velm",
+    "skylark-domx-query",   
+    "skylark-io-diskfs/select",
+    "./files"
+],function(objects, eventer, velm, $, select, files){
     /*
      * Make the specified element to pop-up the file selection dialog box when clicked , and read the contents the files selected from client file system by user.
      * @param {HTMLElement} elm
@@ -17,7 +19,15 @@ define([
         return this;
     }
 
-    return files.picker = picker;
+    files.picker = picker;
+
+    velm.delegate([
+        "picker"
+    ],files);
+
+    $.fn.picker = $.wraps.wrapper_every_act(files.picker, files);
+
+    return picker;
 
 });
 

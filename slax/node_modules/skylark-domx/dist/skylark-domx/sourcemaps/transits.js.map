@@ -1,0 +1,1 @@
+{"version":3,"sources":["transits.js"],"names":["define","transits"],"mappings":";;;;;;;AAAAA,QACI,yBACD,SAAUC,GACT,OAAOA","file":"../transits.js","sourcesContent":["define([\r\n    \"skylark-domx-transits\"\r\n], function( transits) {\r\n    return transits;\r\n});"]}

@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/puff"
+	"skylark-jqueryui-effects/plugins/puff"
 ],  function( puff ) {
 	return puff;
 });

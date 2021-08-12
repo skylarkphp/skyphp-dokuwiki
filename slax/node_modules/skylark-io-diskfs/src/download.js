@@ -16,7 +16,8 @@ define([
             }
             a.href = data;
             a.setAttribute('download', name || 'noname');
-            a.dispatchEvent(new CustomEvent('click'));
+            //a.dispatchEvent(new CustomEvent('click'));
+            a.click();
         }
     }
 

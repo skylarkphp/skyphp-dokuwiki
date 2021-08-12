@@ -1,0 +1,1 @@
+{"version":3,"sources":["main.js"],"names":["define","toolbars"],"mappings":";;;;;;;AAAAA,QACC,aACA,YACA,iBACC,SAASC,GACV,OAAOA","file":"../main.js","sourcesContent":["define([\r\n\t\"./toolbars\",\r\n\t\"./Toolbar\",\r\n\t\"./ToolbarItem\"\r\n],function(toolbars){\r\n\treturn toolbars;\r\n})"]}

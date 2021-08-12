@@ -3,7 +3,7 @@ define([
 
    "skylark-bootstrap3/loadedInit",
 
-   "skylark-widgets-shells",
+   "skylark-appify-shells",
 
    "skylark-widgets-coder",
 

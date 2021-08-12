@@ -1,0 +1,1 @@
+{"version":3,"sources":["constructs.js"],"names":["define","skylark","attach"],"mappings":";;;;;;;AAAAA,QACE,oBACA,SAASC,GAEP,OAAOA,EAAQC,OAAO","file":"../constructs.js","sourcesContent":["define([\r\n  \"skylark-langx-ns\"\r\n],function(skylark){\r\n\r\n    return skylark.attach(\"langx.constructs\",{});\r\n});"]}

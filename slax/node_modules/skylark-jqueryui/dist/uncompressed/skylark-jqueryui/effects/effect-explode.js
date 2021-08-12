@@ -1,5 +1,5 @@
 define( [
-	"skylark-domx-effects/plugins/explode"
+	"skylark-jqueryui-effects/plugins/explode"
 ],  function( explode ) {
 	return explode;
 });

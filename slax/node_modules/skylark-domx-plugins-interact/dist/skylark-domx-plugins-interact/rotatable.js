@@ -1,0 +1,9 @@
+/**
+ * skylark-domx-plugins-interact - The interact features enhancement for dom.
+ * @author Hudaokeji Co.,Ltd
+ * @version v0.9.0
+ * @link www.skylarkjs.org
+ * @license MIT
+ */
+define(["skylark-langx/langx","skylark-domx-noder","skylark-domx-data","skylark-domx-geom","skylark-domx-eventer","skylark-domx-styler","skylark-domx-plugins-base","./interact"],function(t,e,o,n,r,a,i,l){r.on,r.off,o.attr,o.removeAttr,n.pagePosition,a.addClass,n.height,Array.prototype.some,Array.prototype.map;function s(t,e,o){o>180&&(o=180),o<0&&(o=0),t.style.transform="rotateX("+-o+"deg) rotateY("+e+"deg)"}var d=i.Plugin.inherit({klassName:"Rotatable",pluginName:"lark.interact.rotatable",_construct:function(o,i){this.overrided(o,i);var l,d,p,c,u=(i=this.options).handle||o,m=i.document||document,f=i.starting,v=i.started,g=i.moving,h=i.stopped,k=0,y=10,b=0,x=0,X=function(t){b=t.deltaX=t.clientX-d,x=t.deltaY=t.clientY-p,d=t.clientX,p=t.clientY,s(o,k+=.1*b,y+=.1*x),t.preventDefault(),g&&g(t)},Y=function(t){r.off(m,"pointermove",X).off(m,"pointerup",Y),c=setInterval(function(){x*=.95,s(o,k+=.1*(b*=.95),y+=.1*b),Math.abs(b)<.5&&Math.abs(x)<.5&&clearInterval(c)},17),e.remove(l),h&&h(t)};r.on(u,"pointerdown",function(o){if("mouse"==o.pointerType&&0!==o.button)return Y(o);var i,s=n.getDocumentSize(m);if(f){var k=f(o);if(!1===k)return;t.isPlainObject(k)&&(k.started&&(v=k.started),k.moving&&(g=k.moving),k.stopped&&(h=k.stopped))}o.preventDefault(),o.button,d=o.clientX,p=o.clientY,i=a.css(u,"cursor"),l=e.createElement("div"),a.css(l,{position:"absolute",top:0,left:0,width:s.width,height:s.height,zIndex:2147483647,opacity:1e-4,cursor:i}),e.append(m.body,l),clearInterval(c),r.on(m,"pointermove",X).on(m,"pointerup",Y),v&&v(o)}),this._handleEl=u},remove:function(){r.off(this._handleEl)}});return i.register(d,"rotatable"),l.Rotatable=d});
+//# sourceMappingURL=sourcemaps/rotatable.js.map

@@ -1,0 +1,95 @@
+/* @group Flipster Navigation */
+.lark-menu.nav,
+.lark-menu.nav .menu-item {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lark-menu.nav {
+  display: block;
+  margin: 0 0 4em;
+  text-align: center;
+  position: relative;
+}
+
+.lark-menu.nav .menu-item {
+  display: inline-block;
+  margin: 0 0.25em;
+}
+
+.lark-menu.nav .link {
+  display: block;
+  color: inherit;
+  padding: 0.5em 1em;
+  position: relative;
+  overflow: hidden;
+  -webkit-transition: all 250ms ease-out;
+  -o-transition: all 250ms ease-out;
+  transition: all 250ms ease-out;
+  -webkit-transition-timing-function: cubic-bezier(0.56, 0.12, 0.12, 0.98);
+       -o-transition-timing-function: cubic-bezier(0.56, 0.12, 0.12, 0.98);
+          transition-timing-function: cubic-bezier(0.56, 0.12, 0.12, 0.98);
+}
+
+.lark-menu.nav .link::after {
+  content: '';
+  display: block;
+  background: #232221;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  -webkit-transform: translateY(100%) translateY(-0.25em);
+      -ms-transform: translateY(100%) translateY(-0.25em);
+          transform: translateY(100%) translateY(-0.25em);
+  -webkit-transition: inherit;
+  -o-transition: inherit;
+  transition: inherit;
+}
+
+.lark-menu.nav .menu-item.current > .link,
+.lark-menu.nav .link:hover,
+.lark-menu.nav .link:focus {
+  color: #FFF;
+}
+
+.lark-menu.nav .menu-item.current > .link::after,
+.lark-menu.nav .link:hover::after,
+.lark-menu.nav .link:focus::after {
+  -webkit-transform: translateY(0);
+      -ms-transform: translateY(0);
+          transform: translateY(0);
+}
+
+.lark-menu.nav .child {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: -1px;
+  padding: 0.5em;
+  background: #4e4441;
+  z-index: 1;
+}
+
+.lark-menu.nav .child .link {
+  color: #FFF;
+}
+
+.lark-menu.nav .child .link::after {
+  background: #FFF;
+}
+.lark-menu.nav .child .menu-item.current > .link,
+.lark-menu.nav .child .link:hover,
+.lark-menu.nav .child .link:focus {
+  color: #232221;
+}
+
+.lark-menu.nav .menu-item.current .child {
+  display: block;
+}
+/* @end */

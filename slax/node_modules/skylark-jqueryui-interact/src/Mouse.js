@@ -2,7 +2,7 @@ define( [
 	"skylark-domx-browser",
 	"skylark-domx-data",
 	"skylark-domx-query",
-	"skylark-domx-plugins",
+	"skylark-domx-plugins-base",
 	"skylark-jquery/JqueryPlugin"
 ],function(browser, datax, $, plugins, JqPlugin) {
 

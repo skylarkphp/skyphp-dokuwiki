@@ -100,7 +100,7 @@ define('skylark-widgets-textpad/Preview',[
   "skylark-domx-geom",
   "skylark-domx-velm",
   "skylark-domx-query",
-  "skylark-widgets-swt/Widget"
+  "skylark-widgets-base/Widget"
 ],function(langx,browser,datax,eventer,noder,geom,elmx,$,Widget){
 
     'use strict';
@@ -833,7 +833,7 @@ define('skylark-widgets-textpad/helper',[
 define('skylark-widgets-textpad/Editor',[
     "skylark-langx/langx",
     "skylark-domx-query",
-    "skylark-widgets-swt/Widget",
+    "skylark-widgets-base/Widget",
     "skylark-codemirror/CodeMirror",
     "skylark-easyeditor/EasyEditor",
     "./textpad",

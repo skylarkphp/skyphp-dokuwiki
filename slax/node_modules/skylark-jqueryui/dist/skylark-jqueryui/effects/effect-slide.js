@@ -5,5 +5,5 @@
  * @link https://github.com/skylark-integration/skylark-jqueryui/
  * @license MIT
  */
-define(["skylark-domx-effects/plugins/slide"],function(e){return e});
+define(["skylark-jqueryui-effects/plugins/slide"],function(e){return e});
 //# sourceMappingURL=../sourcemaps/effects/effect-slide.js.map

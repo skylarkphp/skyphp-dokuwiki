@@ -1,5 +1,6 @@
 define([
-	"./hoster"
+	"./hoster",
+	"./isMobile"
 ],function(hoster){
 	return hoster;
 });

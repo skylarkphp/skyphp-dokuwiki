@@ -17,19 +17,22 @@ define([
       Action.prototype._init.call(this);
 
       this.window = $(window);
-      this.body = $('body');
+      //this.body = $('body');
       this.editable = this.editor.body;
     },
 
 
     status : function() {
-      return this.setActive(this.body.hasClass(this.constructor.cls));
+      //return this.setActive(this.body.hasClass(this.constructor.cls));
+      return this.setActive(this.editor.hasClass(this.constructor.cls));
     },
 
     _execute : function() {
       var editablePadding, isFullscreen;
-      this.body.toggleClass(this.constructor.cls);
-      isFullscreen = this.body.hasClass(this.constructor.cls);
+      //this.body.toggleClass(this.constructor.cls);
+      //isFullscreen = this.body.hasClass(this.constructor.cls);
+      this.editor.toggleClass(this.constructor.cls);
+      isFullscreen = this.editor.hasClass(this.constructor.cls);
       if (isFullscreen) {
         editablePadding = this.editable.outerHeight() - this.editable.height();
         this.window.on("resize.wordpad-fullscreen-" + this.editor.id, (function(_this) {

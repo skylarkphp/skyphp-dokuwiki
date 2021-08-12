@@ -1,24 +1,24 @@
-.lark-wordpad .lark-toolbar .toolbar-item-emoji span.fa {
+.lark-wordpad .domx-toolbar .toolbar-item-emoji span.fa {
   color: #888;
   font-weight: bold;
 }
-.lark-wordpad .lark-toolbar .toolbar-menu-emoji {
+.lark-wordpad .domx-toolbar .toolbar-menu-emoji {
   width: 296px;
 }
-.lark-wordpad .lark-toolbar ul.emoji-list {
+.lark-wordpad .domx-toolbar ul.emoji-list {
   padding: 6px 8px;
   overflow: hidden;
 }
-.lark-wordpad .lark-toolbar ul.emoji-list li {
+.lark-wordpad .domx-toolbar ul.emoji-list li {
   float: left;
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
 }
-.lark-wordpad .lark-toolbar ul.emoji-list li:hover {
+.lark-wordpad .domx-toolbar ul.emoji-list li:hover {
   background-color: #f0f0f0;
 }
-.lark-wordpad .lark-toolbar ul.emoji-list img {
+.lark-wordpad .domx-toolbar ul.emoji-list img {
   display: block;
 }
 

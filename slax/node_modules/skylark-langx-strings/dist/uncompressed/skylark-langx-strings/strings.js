@@ -68,6 +68,19 @@ define([
         return str == null ? "" : String.prototype.trim.call(str);
     }
 
+    const NullCharactersRegExp = /\x00/g;
+
+    /**
+     * @param {string} str
+     */
+    function trimNull(str) {
+      if (typeof str !== "string") {
+        warn("The argument for removeNullCharacters must be a string.");
+        return str;
+      }
+      return str.replace(NullCharactersRegExp, "");
+    }
+
     function substitute( /*String*/ template,
         /*Object|Array*/
         map,
@@ -285,6 +298,8 @@ define([
         //template : template,
 
         trim: trim,
+
+        trimNull,
 
         uniqueId: uniqueId,
 

@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["./hoster","./isMobile"],function(e){return e});
+define(["./hoster","./is-mobile"],function(e){return e});
 //# sourceMappingURL=sourcemaps/main.js.map

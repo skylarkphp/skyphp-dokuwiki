@@ -1,5 +1,5 @@
 define([
-    "skylark-langx-async/Deferred",
+    "skylark-langx-async/deferred",
     "./diskfs"
 ],function(Deferred, diskfs){
 

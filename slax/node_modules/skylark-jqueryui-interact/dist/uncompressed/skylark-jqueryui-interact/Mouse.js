@@ -3,7 +3,7 @@ define( [
 	"skylark-domx-data",
 	"skylark-domx-query",
 	"skylark-domx-plugins-base",
-	"skylark-jquery/JqueryPlugin"
+	"skylark-jquery/jquery-plugin"
 ],function(browser, datax, $, plugins, JqPlugin) {
 
 	var mouseHandled = false;

@@ -91,9 +91,7 @@ define('slax-skydoku/main',[
 
    "skylark-bootstrap3/loadedInit",
 
-   "skylark-appify-shells",
-
-   "skylark-widgets-coder",
+   "skylark-widgets-codeground",
 
    "skylark-widgets-textpad",
 

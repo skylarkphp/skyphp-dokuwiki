@@ -27,6 +27,11 @@ require.config({
             main: 'main'
           },
           { 
+           name: "skylark-codemirror-base", 
+           location : "../node_modules/skylark-codemirror-base/dist/uncompressed/skylark-codemirror-base"
+           //location: "../../../intg/editor/skylark-codemirror/src"
+         },
+          { 
            name: "skylark-codemirror", 
            location : "../node_modules/skylark-codemirror/dist/uncompressed/skylark-codemirror"
            //location: "../../../intg/editor/skylark-codemirror/src"
@@ -127,10 +132,16 @@ require.config({
             main: 'main'
          },
          {
-           name : "skylark-langx-xhr",
-           location : "../node_modules/skylark-langx-xhr/dist/uncompressed/skylark-langx-xhr",
+           name : "skylark-net-http",
+           location : "../node_modules/skylark-net-http/dist/uncompressed/skylark-net-http",
             main: 'main'
          },
+         {
+           name : "skylark-langx-urls",
+           location : "../node_modules/skylark-langx-urls/dist/uncompressed/skylark-langx-urls",
+            main: 'main'
+         },
+
          {
            name : "skylark-domx-browser",
            location : "../node_modules/skylark-domx-browser/dist/uncompressed/skylark-domx-browser",
@@ -169,6 +180,16 @@ require.config({
            main: 'main'
          },
          {
+           name : "skylark-domx-animates",
+           location : "../node_modules/skylark-domx-animates/dist/uncompressed/skylark-domx-animates",
+            main: 'main'
+         },
+         {
+           name : "skylark-domx-transits",
+           location : "../node_modules/skylark-domx-transits/dist/uncompressed/skylark-domx-transits",
+            main: 'main'
+         },
+         {
            name : "skylark-domx-fx",
            location : "../node_modules/skylark-domx-fx/dist/uncompressed/skylark-domx-fx",
             main: 'main'
@@ -189,13 +210,18 @@ require.config({
             main: 'main'
          },
          {
+           name : "skylark-domx-plugins-interact",
+           location : "../node_modules/skylark-domx-plugins-interact/dist/uncompressed/skylark-domx-plugins-interact",
+            main: 'main'
+         },
+         {
            name : "skylark-domx-plugins-panels",
            location : "../node_modules/skylark-domx-plugins-panels/dist/uncompressed/skylark-domx-plugins-panels",
             main: 'main'
          },
          {
-           name : "skylark-domx-plugins",
-           location : "../node_modules/skylark-domx-plugins/dist/uncompressed/skylark-domx-plugins",
+           name : "skylark-domx-plugins-base",
+           location : "../node_modules/skylark-domx-plugins-base/dist/uncompressed/skylark-domx-plugins-base",
             main: 'main'
          },
          {
@@ -210,8 +236,8 @@ require.config({
          },
 
          {
-           name : "skylark-domx-scripter",
-           location : "../node_modules/skylark-domx-scripter/dist/uncompressed/skylark-domx-scripter",
+           name : "skylark-langx-scripter",
+           location : "../node_modules/skylark-langx-scripter/dist/uncompressed/skylark-langx-scripter",
             main: 'main'
          },
          {

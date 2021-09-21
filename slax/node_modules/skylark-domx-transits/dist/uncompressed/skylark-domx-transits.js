@@ -381,7 +381,7 @@ define('skylark-domx-transits/bounce',[
 
     return transits.bounce = bounce;
 });
-define('skylark-domx-transits/emulateTransitionEnd',[
+define('skylark-domx-transits/emulate-transition-end',[
     "skylark-langx/langx",
     "skylark-domx-browser",
     "skylark-domx-eventer",
@@ -591,7 +591,7 @@ define('skylark-domx-transits/fade',[
 
     return transits.fade = fade;
 });
-define('skylark-domx-transits/fadeIn',[
+define('skylark-domx-transits/fade-in',[
     "skylark-langx/langx",
     "skylark-domx-styler",
     "./transits",
@@ -621,7 +621,7 @@ define('skylark-domx-transits/fadeIn',[
 
     return transits.fadeIn = fadeIn;
 });
-define('skylark-domx-transits/fadeOut',[
+define('skylark-domx-transits/fade-out',[
     "skylark-langx/langx",
     "skylark-domx-styler",
     "./transits",
@@ -651,12 +651,12 @@ define('skylark-domx-transits/fadeOut',[
 
     return transits.fadeOut = fadeOut;
 });
-define('skylark-domx-transits/fadeToggle',[
+define('skylark-domx-transits/fade-toggle',[
     "skylark-langx/langx",
     "skylark-domx-styler",
     "./transits",
-    "./fadeIn",
-    "./fadeOut"
+    "./fade-in",
+    "./fade-out"
 ],function(langx,styler,transits,fadeIn,fadeOut) {
 
     /*   
@@ -1012,7 +1012,7 @@ define('skylark-domx-transits/slide',[
 
 });
 
-define('skylark-domx-transits/slideDown',[
+define('skylark-domx-transits/slide-down',[
     "./transits",
     "./slide"
 ],function(transits,slide) {
@@ -1031,7 +1031,7 @@ define('skylark-domx-transits/slideDown',[
 
     return transits.slideDown = slideDown;
 });
-define('skylark-domx-transits/slideUp',[
+define('skylark-domx-transits/slide-up',[
     "./transits",
     "./slide"
 ],function(transits,slide) {
@@ -1052,12 +1052,12 @@ define('skylark-domx-transits/slideUp',[
 
     return transits.slideUp = slideUp;
 });
-define('skylark-domx-transits/slideToggle',[
+define('skylark-domx-transits/slide-toggle',[
     "skylark-langx/langx",
     "skylark-domx-geom",
     "./transits",
-    "./slideDown",
-    "./slideUp"
+    "./slide-down",
+    "./slide-up"
 ],function(langx,geom,transits,slideDown,slideUp) {
 
     /*   
@@ -1192,20 +1192,20 @@ define('skylark-domx-transits/main',[
 	"skylark-domx-query",
     "./transit",
     "./bounce",
-    "./emulateTransitionEnd",
+    "./emulate-transition-end",
     "./explode",
-    "./fadeIn",
-    "./fadeOut",
+    "./fade-in",
+    "./fade-out",
     "./fade",
-    "./fadeToggle",
+    "./fade-toggle",
     "./hide",
     "./pulsate",
     "./shake",
     "./show",
     "./slide",
-    "./slideDown",
-    "./slideToggle",
-    "./slideUp",
+    "./slide-down",
+    "./slide-toggle",
+    "./slide-up",
     "./throb",
     "./toggle"
 ],function(transits,velm,$){

@@ -316,7 +316,7 @@ define('skylark-langx-hoster/detects/mobile',[
     return hoster.detects.mobile = detectMobile;
 });
 
-define('skylark-langx-hoster/isMobile',[
+define('skylark-langx-hoster/is-mobile',[
     "./hoster",
     "./detects/mobile"
 ],function(hoster,detectMobile){
@@ -329,7 +329,7 @@ define('skylark-langx-hoster/isMobile',[
 
 define('skylark-langx-hoster/main',[
 	"./hoster",
-	"./isMobile"
+	"./is-mobile"
 ],function(hoster){
 	return hoster;
 });

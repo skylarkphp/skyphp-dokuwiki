@@ -3,7 +3,7 @@ define([
   "skylark-langx/langx",
   "skylark-domx-query",
   "skylark-domx-velm",
-  "skylark-net-http/Upload",
+  "skylark-net-http/upload",
   "skylark-domx-plugins-base",
   "./uploads"
 ]  ,function(skylark,langx,$, elmx,FileUpload, plugins,uploads){

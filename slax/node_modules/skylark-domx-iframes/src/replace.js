@@ -1,5 +1,5 @@
 define([
-  "skylark-langx-urls/getQuery",
+  "skylark-langx-urls/get-query",
   "skylark-domx-noder",
   "skylark-domx-geom",
   "skylark-domx-styler",

@@ -19,7 +19,7 @@
     "skylark-jqueryui-interact": "git+https://github.com/skylark-integration/skylark-jqueryui-interact.git",
     "skylark-jszip": "git+https://github.com/skylark-integration/skylark-jszip.git",
     "skylark-particles": "git+https://github.com/skylark-integration/skylark-particles.git",
-    "skylark-widgets-coder": "git+https://github.com/skylark-widgets/skylark-widgets-coder.git",
+    "skylark-widgets-codeground": "git+https://github.com/skylark-widgets/skylark-widgets-codeground.git",
     "skylark-widgets-textpad": "git+https://github.com/skylark-widgets/skylark-widgets-textpad.git",
     "skylark-widgets-wordpad": "git+https://github.com/skylark-widgets/skylark-widgets-wordpad.git"
   },

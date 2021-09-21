@@ -3,8 +3,8 @@ define([
     "skylark-domx-velm",
     "skylark-domx-query",
     "./deserialize",
-    "./serializeArray",
-    "./serializeObject",
+    "./serialize-array",
+    "./serialize-object",
     "./serialize"
 ],function(forms,velm,$){
 

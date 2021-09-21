@@ -1,6 +1,6 @@
  define([
-    "skylark-langx/arrays",
-    "skylark-langx/Deferred",
+    "skylark-langx-arrays",
+    "skylark-langx-async/deferred",
     "./diskfs"
 ],function(arrays,Deferred, diskfs){
     var concat = Array.prototype.concat;

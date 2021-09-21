@@ -1,6 +1,6 @@
 define([
 	"skylark-langx-emitter",
-	"skylark-langx-async/Deferred",
+	"skylark-langx-async/deferred",
     "skylark-domx-velm",
     "skylark-domx-plugins-base",
 	"./uploads",

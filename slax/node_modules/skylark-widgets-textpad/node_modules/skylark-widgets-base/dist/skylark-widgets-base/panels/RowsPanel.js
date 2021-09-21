@@ -1,9 +1,0 @@
-/**
- * skylark-widgets-base - The skylark widget base library.
- * @author Hudaokeji Co.,Ltd
- * @version v0.9.0
- * @link www.skylarkjs.org
- * @license MIT
- */
-define(["skylark-langx-numerics/Vector2","../base","../TextPane","./Panel"],function(t,s,i,e){"use strict";var n=e.inherit({_construct:function(s){e.prototype._construct.call(this,s),this.autoSize=!0,this.fitElements=!0,this.spacing=new t(5,5),this.defaultTextWidth=80,this.rows=[],this.rows.push([])},setAutoSize:function(t){this.autoSize=t,this.element.style.overflow=t?"visible":"auto"},add:function(t){this.rows.length>0&&(this.rows[this.rows.length-1].push(t),t.setParent(this))},addText:function(t,s){var e=new i(this);return e.setAlignment(i.LEFT),e.setText(t),e.size.set(this.defaultTextWidth,20),!0===s?e.fitContent=!0:e.setOverflow(Text.ELLIPSIS),this.add(e),e},addDivision:function(t,s){var i=new e(this);return i.size.set(t,s),this.add(i),i},nextRow:function(){this.rows.push([])},removeLastRow:function(){if(this.rows.length>0)for(var t=this.rows.pop(),s=0;s<t.length;s++)t[s].destroy()},removeAll:function(){for(var t=0;t<this.rows.length;t++)for(var s=0;s<this.rows[t].length;s++)this.rows[t][s].destroy();this.rows=[],this.rows.push([])},updateSize:function(){var t=0,s=0,i=0;this.autoSize||(t=this.spacing.x,s=this.spacing.y);for(var n=0;n<this.rows.length;n++){for(var o=0,h=0;h<this.rows[n].length;h++){var r=this.rows[n][h];r.visible&&(this.fitElements&&h===this.rows[n].length-1&&(r.size.x=this.size.x-t-15),r.position.set(t,s),r.updateInterface(),r.size.y>o&&(o=r.size.y),t+=r.size.x+this.spacing.x)}i<t&&(i=t),0!==t&&(t=this.autoSize?0:this.spacing.x,s+=o+this.spacing.y)}this.autoSize&&this.size.set(i,s),e.prototype.updateSize.call(this)}});return s.RowsPanel=n});
-//# sourceMappingURL=../sourcemaps/panels/RowsPanel.js.map

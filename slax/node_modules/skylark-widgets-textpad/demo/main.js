@@ -199,13 +199,11 @@ require.config({
 
 
 
-
      { name: "skylark-langx", location: "../node_modules/skylark-langx/dist/uncompressed/skylark-langx" },
      { name: "skylark-data-collection", location: "../node_modules/skylark-data-collection/dist/uncompressed/skylark-data-collection"},
      { name: "skylark-domx-contents", location: "../node_modules/skylark-domx-contents/dist/uncompressed/skylark-domx-contents"},
-     { name: "skylark-widgets-swt", location: "../node_modules/skylark-widgets-swt/dist/uncompressed/skylark-widgets-swt"},
-     { name: "skylark-codemirror", location: "../../../intg/editor/skylark-codemirror/src"},
-     { name: "skylark-easyeditor", location: "../../../intg/editor/skylark-easyeditor/src"},
+     { name: "skylark-codemirror", location: "../node_modules/skylark-codemirror/dist/uncompressed/skylark-codemirror"},
+     { name: "skylark-easyeditor", location: "./node_modules/skylark-easyeditor/dist/uncompressed/skylark-easyeditor"},
      { name: "skylark-widgets-textpad", location: "../src" }
   ],
 });

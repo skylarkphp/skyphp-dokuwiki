@@ -2,7 +2,7 @@ define([
 	"./diskfs",
 	"./download",
 	"./read",
-	"./readImage",
+	"./read-image",
 	"./select",
 	"./webentry"
 ],function(diskfs){

@@ -229,11 +229,11 @@ define('skylark-domx-browser/support/css3',[
 });
 
 define('skylark-domx-browser/support/fullscreen',[
-	"../browser"
+    "../browser"
 ],function(browser){
 
     const FullscreenApi = { 
-    	prefixed: true 
+        prefixed: true 
     };
 
     const apiMap = [
@@ -288,12 +288,16 @@ define('skylark-domx-browser/support/fullscreen',[
         }
         FullscreenApi.prefixed = browserApi[0] !== specApi[0];
 
-        browser.requestFullscreen = document.body[FullscreenApi["requestFullscreen"]];
-        browser.exitFullscreen = document[FullscreenApi["exitFullscreen"]];
+        browser.requestFullscreen = function() {
+            return document.body[FullscreenApi["requestFullscreen"]].apply(this,arguments);
+        };
+        browser.exitFullscreen = function() {
+            return document[FullscreenApi["exitFullscreen"]].apply(this,arguments);
+        };
 
         browser.support.fullscreen = FullscreenApi;
     } else {
-	    browser.support.fullscreen = null;
+        browser.support.fullscreen = null;
     }
 
     return browser.support.fullscreen;

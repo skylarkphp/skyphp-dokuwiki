@@ -24,7 +24,6 @@ define([
         noder.append(document.body, div);
 
         w1 = innerDiv.offsetWidth;
-
         styler.css(div, "overflow", "scroll");
 
         w2 = innerDiv.offsetWidth;
@@ -82,8 +81,8 @@ define([
                 pbex = borderExtents(parent);
 
             relativePosition(elm, {
-                top: coords.top - parentOffset.top - mex.top - pbex.top,
-                left: coords.left - parentOffset.left - mex.left - pbex.left
+                top: coords.top - parentOffset.top - mex.top - pbex.top + (scrollTop(parent) || 0),
+                left: coords.left - parentOffset.left - mex.left - pbex.left + (scrollLeft(parent) || 0)
             });
             return this;
         }
@@ -421,6 +420,7 @@ define([
                 left: coords.left
             };
 
+            /*
             if (langx.isDefined(props.top)) {
                 props.top = props.top + (scrollTop(parent) || 0);
             }
@@ -428,7 +428,7 @@ define([
             if (langx.isDefined(props.left)) {
                 props.left = props.left + (scrollLeft(parent) || 0);
             } 
-
+            */ 
 
             if (styler.css(elm, "position") == "static") {
                 props['position'] = "relative";

@@ -616,8 +616,9 @@ function bootstrap3_sidebar_include($type) {
 
 
 
-  if (! bootstrap3_conf('showSidebar')) return false;
-
+  
+ // if (! bootstrap3_conf('showSidebar')) return false; // deleted by lwf
+    if ( bootstrap3_conf('sidebarPosition')== $type && (! bootstrap3_conf('showSidebar'))) return false; // added by lwf
 
 
   switch ($type) {
@@ -629,6 +630,7 @@ function bootstrap3_sidebar_include($type) {
 
 
       if (bootstrap3_conf('sidebarPosition') == 'left') {
+   
 
         bootstrap3_sidebar_wrapper($left_sidebar, 'dokuwiki__aside', $left_sidebar_grid,
 
@@ -644,8 +646,6 @@ function bootstrap3_sidebar_include($type) {
 
     case 'right':
 
-
-
       if (bootstrap3_conf('sidebarPosition') == 'right') {
 
         bootstrap3_sidebar_wrapper($left_sidebar, 'dokuwiki__aside', $left_sidebar_grid,
@@ -653,7 +653,6 @@ function bootstrap3_sidebar_include($type) {
                                   'sidebarheader.html', 'sidebarfooter.html');
 
       }
-
 
 
       if (   bootstrap3_conf('showRightSidebar')
@@ -4828,7 +4827,7 @@ function bootstrap3_content($content) {
 
 
 
-        $content = preg_replace('/<tr(.*)>\s+<td(.*)>\s+<span(.*)>(tpl»bootstrap3»'.$search.')<\/span>/',
+        $content = preg_replace('/<tr(.*)>\s+<td(.*)>\s+<span(.*)>(tplﾂｻbootstrap3ﾂｻ'.$search.')<\/span>/',
 
                                 '</table></div></fieldset><fieldset id="bootstrap3__'.$section.'"><legend><i class="fa '.$icon.'"></i> '.tpl_getLang("config_$section").'</legend><div class="table-responsive"><table class="table table-hover table-condensed inline"><tr$1><td$2><span$3>$4</span>', $content);
 

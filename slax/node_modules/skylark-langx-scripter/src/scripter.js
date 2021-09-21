@@ -1,7 +1,7 @@
 define([
     "skylark-langx/skylark",
-    "skylark-langx/langx"
-], function(skylark, langx, noder) {
+    "skylark-langx"
+], function(skylark, langx) {
 
     var head = document.getElementsByTagName('head')[0],
         scriptsByUrl = {},
@@ -131,6 +131,18 @@ define([
         },
 
         evaluate : evaluate,
+
+        loadScript : function(url) {
+            var d = new langx.Deferred();
+
+            d.promise.scriptId = this.loadJavaScript(url,function(){
+                d.resolve();
+            },function(e){
+                d.reject(e);
+            });
+
+            return d.promise;
+        }
 
 
     });

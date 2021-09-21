@@ -1,6 +1,6 @@
   define([
     "skylark-langx/arrays",
-    "skylark-langx/Deferred",
+    "skylark-langx/deferred",
     "skylark-domx-styler",
     "skylark-domx-eventer",
     "skylark-domx-velm",

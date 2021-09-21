@@ -137,7 +137,7 @@ define('skylark-io-diskfs/download',[
 });
 
 define('skylark-io-diskfs/read',[
-    "skylark-langx-async/Deferred",
+    "skylark-langx-async/deferred",
     "./diskfs"
 ],function(Deferred, diskfs){
 
@@ -175,8 +175,8 @@ define('skylark-io-diskfs/read',[
     
 });
 
-define('skylark-io-diskfs/readImage',[
-    "skylark-langx/Deferred",
+define('skylark-io-diskfs/read-image',[
+    "skylark-langx-async/deferred",
     "./diskfs",
     "./read"
 ],function(Deferred, diskfs,read){
@@ -270,8 +270,8 @@ define('skylark-io-diskfs/select',[
 
 
  define('skylark-io-diskfs/webentry',[
-    "skylark-langx/arrays",
-    "skylark-langx/Deferred",
+    "skylark-langx-arrays",
+    "skylark-langx-async/deferred",
     "./diskfs"
 ],function(arrays,Deferred, diskfs){
     var concat = Array.prototype.concat;
@@ -328,7 +328,7 @@ define('skylark-io-diskfs/main',[
 	"./diskfs",
 	"./download",
 	"./read",
-	"./readImage",
+	"./read-image",
 	"./select",
 	"./webentry"
 ],function(diskfs){

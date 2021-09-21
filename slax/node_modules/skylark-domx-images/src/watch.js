@@ -2,8 +2,8 @@ define([
     "skylark-langx/langx",
     "skylark-domx-eventer",
     "./images",
-    "./isCompleted",
-    "./isLoaded"
+    "./is-completed",
+    "./is-loaded"
 ], function(langx,eventer,images,isCompleted,isLoaded) {
 
   function watch(imgs) {

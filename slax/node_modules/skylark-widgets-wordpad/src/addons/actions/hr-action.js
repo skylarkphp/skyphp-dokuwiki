@@ -1,0 +1,27 @@
+define([
+  "skylark-domx-query",
+  "../../addons",
+  "../../action"
+],function($,addons,Action){ 
+  
+   var HrAction = Action.inherit({
+
+	  name : 'hr',
+
+	  icon : 'hr',
+
+	  htmlTag : 'hr',
+
+	  _status : function() {},
+
+	  _execute : function() {
+	    return this.editor.editable.hr();
+	  }
+
+   });
+
+
+  addons.actions.hr = HrAction; 
+
+  return HrAction;	
+});

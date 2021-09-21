@@ -1,9 +1,0 @@
-/**
- * skylark-widgets-coder - The skylark code editor widget for showcasing html/css/js.
- * @author Hudaokeji, Inc.
- * @version v0.9.0
- * @link https://github.com/skylark-widgets/skylark-widgets-coder/
- * @license MIT
- */
-define(function(){"use strict";return{container:function(){return'\n    <ul class="coder-nav">\n      <li class="coder-nav-item coder-nav-item-result">\n        <a href="#" data-coder-type="result">\n          Result\n        </a>\n      </li>\n      <li class="coder-nav-item coder-nav-item-html">\n        <a href="#" data-coder-type="html">\n          HTML\n        </a>\n      </li>\n      <li class="coder-nav-item coder-nav-item-css">\n        <a href="#" data-coder-type="css">\n          CSS\n        </a>\n      </li>\n      <li class="coder-nav-item coder-nav-item-js">\n        <a href="#" data-coder-type="js">\n          JavaScript\n        </a>\n      </li>\n    </ul>\n    <div class="coder-pane coder-pane-result"><iframe></iframe></div>\n    <div class="coder-pane coder-pane-html"></div>\n    <div class="coder-pane coder-pane-css"></div>\n    <div class="coder-pane coder-pane-js"></div>\n  '},paneActiveClass:function(n){return`coder-pane-active-${n}`},containerClass:function(){return"coder"},hasFileClass:function(n){return`coder-has-${n}`},editorClass:function(n){return`coder-editor coder-editor-${n}`},editorContent:function(n,e=""){return`\n    <textarea data-coder-type="${n}" data-coder-file="${e}"></textarea>\n    <div class="coder-status"></div>\n  `},statusMessage:function(n){return`\n    <p>${n}</p>\n  `},statusClass:function(n){return`coder-status-${n}`},statusActiveClass:function(n){return`coder-status-active-${n}`},pluginClass:function(n){return`coder-plugin-${n}`},statusLoading:function(n){return`Loading <strong>${n}</strong>..`},statusFetchError:function(n){return`There was an error loading <strong>${n}</strong>.`}}});
-//# sourceMappingURL=sourcemaps/template.js.map

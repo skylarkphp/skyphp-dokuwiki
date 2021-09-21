@@ -109,9 +109,14 @@ define('skylark-domx-files/files',[
 
     return skylark.attach("domx.files", files);
 });
+define('skylark-langx/deferred',[
+    "skylark-langx-async"
+],function(async){
+    return async.Deferred;
+});
   define('skylark-domx-files/dropzone',[
     "skylark-langx/arrays",
-    "skylark-langx/Deferred",
+    "skylark-langx/deferred",
     "skylark-domx-styler",
     "skylark-domx-eventer",
     "skylark-domx-velm",

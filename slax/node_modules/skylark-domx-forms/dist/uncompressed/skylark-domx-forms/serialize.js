@@ -1,7 +1,7 @@
 define([
   "skylark-langx/langx",
   "./forms",
-  "./serializeArray"
+  "./serialize-array"
 ],function(langx,forms,serializeArray){
     function serialize(formElm) {
         var result = []

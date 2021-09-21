@@ -75,7 +75,7 @@
   factory(define,require);
 
   if (!isAmd) {
-    var skylarkjs = require("skylark-langx/skylark");
+    var skylarkjs = require("skylark-langx-ns");
 
     if (isCmd) {
       module.exports = skylarkjs;
@@ -340,7 +340,7 @@ define('skylark-domx-forms/deserialize',[
 
   return forms.deserialize = deserialize;
 });
-define('skylark-domx-forms/serializeArray',[
+define('skylark-domx-forms/serialize-array',[
   "skylark-langx/langx",
   "skylark-domx-data",
   "./forms"
@@ -364,10 +364,10 @@ define('skylark-domx-forms/serializeArray',[
     return forms.serializeArray = serializeArray;
 });
 
-define('skylark-domx-forms/serializeObject',[
+define('skylark-domx-forms/serialize-object',[
   "skylark-langx/langx",
   "./forms",
-  "./serializeArray"
+  "./serialize-array"
 ],function(langx,forms,serializeArray){
 
   function serializeObject(formElm){
@@ -390,7 +390,7 @@ define('skylark-domx-forms/serializeObject',[
 define('skylark-domx-forms/serialize',[
   "skylark-langx/langx",
   "./forms",
-  "./serializeArray"
+  "./serialize-array"
 ],function(langx,forms,serializeArray){
     function serialize(formElm) {
         var result = []
@@ -407,8 +407,8 @@ define('skylark-domx-forms/main',[
     "skylark-domx-velm",
     "skylark-domx-query",
     "./deserialize",
-    "./serializeArray",
-    "./serializeObject",
+    "./serialize-array",
+    "./serialize-object",
     "./serialize"
 ],function(forms,velm,$){
 

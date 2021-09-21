@@ -5,5 +5,5 @@
  * @link www.skylarkjs.org
  * @license MIT
  */
-define(["skylark-langx/arrays","skylark-langx/Deferred","./diskfs"],function(e,n,r){var t=Array.prototype.concat,i=function(){function r(e,r){var t=new n,a=function(e){t.reject(e)};if(r=r||"",e.isFile)e.file(function(e){e.relativePath=r,t.resolve(e)},a);else if(e.isDirectory){e.createReader().readEntries(function(n){i(n,r+e.name+"/").then(function(e){t.resolve(e)}).catch(a)},a)}else t.resolve([]);return t.promise}function i(i,a){return n.all(e.map(i,function(e){return r(e,a)})).then(function(){return t.apply([],arguments)})}return{one:r,all:i}}();return r.webentry=i});
+define(["skylark-langx-arrays","skylark-langx-async/deferred","./diskfs"],function(e,n,r){var t=Array.prototype.concat,a=function(){function r(e,r){var t=new n,i=function(e){t.reject(e)};if(r=r||"",e.isFile)e.file(function(e){e.relativePath=r,t.resolve(e)},i);else if(e.isDirectory){e.createReader().readEntries(function(n){a(n,r+e.name+"/").then(function(e){t.resolve(e)}).catch(i)},i)}else t.resolve([]);return t.promise}function a(a,i){return n.all(e.map(a,function(e){return r(e,i)})).then(function(){return t.apply([],arguments)})}return{one:r,all:a}}();return r.webentry=a});
 //# sourceMappingURL=sourcemaps/webentry.js.map

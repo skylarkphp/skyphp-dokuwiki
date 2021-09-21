@@ -1,5 +1,6 @@
 define([
-	"./datetimes"
+	"./datetimes",
+	"./to_date"
 ],function(datetimes){
 	return datetimes;
 });

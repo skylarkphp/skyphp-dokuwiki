@@ -97,7 +97,7 @@ define('skylark-domx-images/images',[
   return skylark.attach("domx.images" , images);
 });
 
-define('skylark-domx-images/isCompleted',[
+define('skylark-domx-images/is-completed',[
 	"./images"
 ],function(images){
   function isCompleted(img) {
@@ -106,7 +106,7 @@ define('skylark-domx-images/isCompleted',[
 
   return images.isCompleted = isCompleted;
 });
-define('skylark-domx-images/isLoaded',[
+define('skylark-domx-images/is-loaded',[
 	"./images"
 ],function(images){
 
@@ -119,8 +119,8 @@ define('skylark-domx-images/watch',[
     "skylark-langx/langx",
     "skylark-domx-eventer",
     "./images",
-    "./isCompleted",
-    "./isLoaded"
+    "./is-completed",
+    "./is-loaded"
 ], function(langx,eventer,images,isCompleted,isLoaded) {
 
   function watch(imgs) {
@@ -396,8 +396,8 @@ define('skylark-domx-images/main',[
 	"skylark-domx-query",
 	"skylark-domx-velm",
 	"./images",
-	"./isCompleted",
-	"./isLoaded",
+	"./is-completed",
+	"./is-loaded",
 	"./loaded",
 	"./preload",
 	"./transform",

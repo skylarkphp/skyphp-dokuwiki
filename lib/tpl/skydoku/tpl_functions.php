@@ -999,10 +999,10 @@ function bootstrap3_sidebar($sidebar, $return = false) {
 
 
 
-  $out = bootstrap3_nav($sidebar, 'pills', true);
+  //$out = bootstrap3_nav($sidebar, 'pills', true); //deleted by lwf
 
-  $out = bootstrap3_content($out);
-
+  //$out = bootstrap3_content($out);//deleted by lwf
+  $out = bootstrap3_content($sidebar);//added by lwf
 
 
   $html = new simple_html_dom;

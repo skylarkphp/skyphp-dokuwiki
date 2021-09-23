@@ -1,0 +1,7 @@
+base    twitter
+author  Mark C. Prins
+email   mprins@users.sf.net
+date    2020-11-22
+name    Twitter Plugin
+desc    Show tweets from Twitter
+url     https://www.dokuwiki.org/plugin:twitter

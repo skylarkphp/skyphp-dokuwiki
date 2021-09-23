@@ -767,6 +767,10 @@ function page_findnearest($page, $useacl = true){
         $ns = getNS($ns);
         $pageid = cleanID("$ns:$page");
         if(page_exists($pageid) && (!$useacl || auth_quickaclcheck($pageid) >= AUTH_READ)){
+               //dbg(p_get_metadata($pageid)) ;
+             if (null !== p_get_metadata($pageid,'nopage')) { // added by lwf
+                return false;
+            }
             return $pageid;
         }
     } while($ns);
